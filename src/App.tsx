@@ -153,25 +153,23 @@ export default function App() {
       <Navbar currentPath={currentPath} onNavigate={navigateTo} />
 
       {/* Main Pages Content with transition effects */}
-      <main className={`flex-1 w-full min-h-0 flex flex-col ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 overflow-y-auto'}`}>
-        <div className={`flex-1 min-h-0 ${isTutorPage ? 'flex flex-col' : 'py-6 pb-24'}`}>
-          {renderView()}
-        </div>
-
-        {/* Footer Area moved inside main scrollable for non-tutor pages */}
-        {!isTutorPage && (
-          <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
-              <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI &bull; BILINGUAL TUTOR SERVER</span>
-              <div className="flex gap-4">
-                <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
-                <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>
-                <button onClick={() => navigateTo('/blog')} className="hover:text-[var(--accent-primary)] transition-colors">Journal</button>
-              </div>
-            </div>
-          </footer>
-        )}
+      <main className={`flex-1 w-full min-h-0 ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24 overflow-y-auto'}`}>
+        {renderView()}
       </main>
+
+      {/* Footer Area */}
+      {!isTutorPage && (
+        <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
+            <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI &bull; BILINGUAL TUTOR SERVER</span>
+            <div className="flex gap-4">
+              <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
+              <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>
+              <button onClick={() => navigateTo('/blog')} className="hover:text-[var(--accent-primary)] transition-colors">Journal</button>
+            </div>
+          </div>
+        </footer>
+      )}
 
     </div>
   );

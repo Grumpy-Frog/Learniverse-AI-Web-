@@ -22,8 +22,7 @@ import {
    Newspaper,
    Zap,
    Target,
-   Info,
-   RotateCcw
+   Info
 } from 'lucide-react';
 
 interface StudentDashboardProps {
@@ -113,20 +112,35 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
       const subWithSummary: SubjectWithSummary[] = [];
       const dashTopics: DashboardTopic[] = [];
 
-      // 4. Traverse Catalog and Diagnostics in parallel
+      // 4. Traverse Catalog and Diagnostics in parallel where possible
       const subjectPromises = subjects.map(async (sub) => {
-        // Get summary, chapters in parallel
-        const [summary, chapters] = await Promise.all([
-          api.getSubjectSummary(sub.id).catch(() => null),
-          api.getChapters(sub.id).catch(() => [])
-        ]);
+        // Get summary
+        let summary: SubjectSummary | null = null;
+        try {
+          summary = await api.getSubjectSummary(sub.id);
+        } catch (e) {
+          console.warn(`Summary fail sub ${sub.id}`);
+        }
 
-        // Process all chapters in parallel
-        await Promise.all(chapters.map(async (chap: Chapter) => {
-          const topics = await api.getTopics(chap.id).catch(() => []);
+        // Get chapters to reach topics
+        let chapters: Chapter[] = [];
+        try {
+          chapters = await api.getChapters(sub.id);
+        } catch (e) {
+          console.warn(`Chapters fail sub ${sub.id}`);
+        }
 
-          // Process all topics in parallel
-          await Promise.all(topics.map(async (top: Topic) => {
+        // For each chapter, get topics
+        for (const chap of chapters) {
+          let topics: Topic[] = [];
+          try {
+            topics = await api.getTopics(chap.id);
+          } catch (e) {
+            console.warn(`Topics fail chap ${chap.id}`);
+          }
+
+          // For each topic, get status
+          const topicStatusPromises = topics.map(async (top) => {
             try {
               const status = await api.getTopicStatus(top.id);
               dashTopics.push({
@@ -140,7 +154,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                 topic_title: top.title,
                 completion_status: status.status || 'not_started',
                 latest_score: status.last_test_score ?? null,
-                best_score: status.last_test_score ?? null,
+                best_score: status.last_test_score ?? null, // Backend doesn't differentiate best vs latest in basic status yet
                 strength_labels: status.strengths || [],
                 weakness_labels: status.weaknesses || [],
                 show_checkmark: status.status === 'completed',
@@ -148,6 +162,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                 learning_objective: top.learning_objective
               });
             } catch (e) {
+              // Add as not started if fails
               dashTopics.push({
                 grade_id: gradeId,
                 grade_name: gradeName,
@@ -167,8 +182,9 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                 learning_objective: top.learning_objective
               });
             }
-          }));
-        }));
+          });
+          await Promise.all(topicStatusPromises);
+        }
 
         return { subject: sub, summary };
       });
@@ -304,18 +320,9 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
             <h1 className="text-2xl md:text-3xl font-black mt-1 text-[var(--text-primary)]">
               Welcome back, {userProfile?.fullname || userProfile?.email || 'Student'}!
             </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <div className="flex items-center gap-2">
-                <Badge variant="source_grounded">{userProfile?.role?.toUpperCase() || 'LEARNER'}</Badge>
-                <span className="text-[10px] font-mono text-[var(--text-secondary)]">{userProfile?.email}</span>
-              </div>
-              <button 
-                onClick={() => selectedGradeId && refreshDashboardData(selectedGradeId)} 
-                className="p-1 px-2 hover:bg-blue-500/10 rounded-lg text-blue-500 flex items-center gap-1.5 transition-colors"
-              >
-                <RotateCcw className="h-3 w-3" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Refresh Stats</span>
-              </button>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="source_grounded">{userProfile?.role?.toUpperCase() || 'LEARNER'}</Badge>
+              <span className="text-[10px] font-mono text-[var(--text-secondary)]">{userProfile?.email}</span>
             </div>
           </div>
           
