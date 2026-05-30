@@ -26,8 +26,11 @@ import {
   FileText,
   SearchCheck,
   FileQuestion,
-  Zap
+  Zap,
+  X,
+  AlertCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function TutorInbox() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -532,10 +535,21 @@ export default function TutorInbox() {
         </div>
 
         {/* Message View Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative">
            
-            <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12 pb-32">
+            <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12">
               
+              {/* Error Header Display */}
+              {errorHeader && (
+                <div className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 text-rose-400">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <p className="text-xs font-bold uppercase tracking-wider">{errorHeader}</p>
+                  <button onClick={() => setErrorHeader(null)} className="ml-auto p-1 hover:bg-rose-500/20 rounded-lg">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
               {loadingMsg ? (
                <div className="flex min-h-[400px] items-center justify-center">
                  <div className="flex flex-col items-center gap-4">
@@ -650,53 +664,16 @@ export default function TutorInbox() {
                   <div ref={messagesEndRef} className="h-1" />
                 </div>
               )}
-
-              {/* Diagnostic Integrated Panel - Positioned below messages */}
-              {selectedTopic && activeDiagnosticTab !== 'none' && (
-                <div className="space-y-6 pt-12 border-t border-white/5">
-                   {activeDiagnosticTab === 'check' && (
-                      <UnderstandingCheck
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        conversationId={activeConversation?.id}
-                        onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
-                        onSuccessCheck={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'quiz' && (
-                      <DiagnosticQuiz
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        conversationId={activeConversation?.id}
-                        onQuizCompleted={(res) => {
-                          sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session.id);
-                          if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
-                          refreshWorkspace();
-                        }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'remediation' && (
-                      <RemediationPanel
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        onRemediationCompleted={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                </div>
-              )}
-           </div>
+            </div>
         </div>
 
-        {/* Floating Input Area */}
-        <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none z-40">
+        {/* Floating Input Area - Now in Flow to prevent overlap */}
+        <div className="shrink-0 w-full p-6 bg-slate-950 border-t border-white/5 z-40">
            <form 
             onSubmit={handleSendMessage} 
-            className="max-w-[900px] mx-auto relative pointer-events-auto group pb-4"
+            className="max-w-[900px] mx-auto relative group"
           >
-             <div className="relative rounded-[2rem] bg-slate-900/90 border border-white/10 shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 p-2 backdrop-blur-3xl transition-all duration-300">
+             <div className="relative rounded-[2rem] bg-slate-900 border border-white/10 shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 p-2 backdrop-blur-3xl transition-all duration-300">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -725,6 +702,71 @@ export default function TutorInbox() {
              </p>
            </form>
         </div>
+
+        {/* Diagnostic Modal Overlay */}
+        <AnimatePresence>
+          {selectedTopic && activeDiagnosticTab !== 'none' && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-slate-950/80 backdrop-blur-md">
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                 className="w-full max-w-4xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-full flex flex-col overflow-hidden"
+               >
+                  <div className="shrink-0 p-6 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {activeDiagnosticTab === 'check' && <SearchCheck className="h-5 w-5 text-blue-500" />}
+                      {activeDiagnosticTab === 'quiz' && <FileQuestion className="h-5 w-5 text-emerald-500" />}
+                      {activeDiagnosticTab === 'remediation' && <Zap className="h-5 w-5 text-amber-500" />}
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                        {activeDiagnosticTab === 'check' ? 'Understanding Check' : activeDiagnosticTab === 'quiz' ? 'Diagnostic Quiz' : 'Focused help & Study'}
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={() => setActiveDiagnosticTab('none')}
+                      className="p-2 hover:bg-white/5 rounded-xl text-slate-400 hover:text-white transition-colors"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                    {activeDiagnosticTab === 'check' && (
+                        <UnderstandingCheck
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          language={language}
+                          conversationId={activeConversation?.id}
+                          onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
+                          onSuccessCheck={() => { refreshWorkspace(); }}
+                        />
+                    )}
+                    {activeDiagnosticTab === 'quiz' && (
+                        <DiagnosticQuiz
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          language={language}
+                          conversationId={activeConversation?.id}
+                          onQuizCompleted={(res) => {
+                            sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session.id);
+                            if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
+                            refreshWorkspace();
+                          }}
+                        />
+                    )}
+                    {activeDiagnosticTab === 'remediation' && (
+                        <RemediationPanel
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          language={language}
+                          onRemediationCompleted={() => { refreshWorkspace(); }}
+                        />
+                    )}
+                  </div>
+               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>
