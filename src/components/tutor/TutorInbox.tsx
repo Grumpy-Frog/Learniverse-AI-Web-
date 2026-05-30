@@ -318,15 +318,24 @@ export default function TutorInbox() {
   };
 
   return (
-    <div className="w-full h-full flex overflow-hidden bg-slate-950 isolate">
+    <div className="flex-1 min-h-0 flex overflow-hidden bg-slate-950 isolate">
       
       {/* Left Sidebar - Compact Setup & Inbox */}
       <aside className="w-[320px] shrink-0 border-r border-slate-800/60 bg-slate-900/40 flex flex-col min-h-0">
         
         {/* Fixed Header */}
-        <div className="p-4 flex items-center gap-2 border-b border-white/5">
-          <Book className="h-5 w-5 text-blue-500" />
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white">Study Workspace</h2>
+        <div className="p-4 flex items-center justify-between border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <Book className="h-5 w-5 text-blue-500" />
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white">Study Workspace</h2>
+          </div>
+          <button 
+            onClick={refreshWorkspace} 
+            className="p-2 hover:bg-white/5 rounded-xl text-slate-500 hover:text-white transition-colors"
+            title="Refresh Topic Status"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Scrollable Content Area */}
@@ -358,6 +367,26 @@ export default function TutorInbox() {
                   </span>
                 )}
               </div>
+              
+              {/* Strengths & Weaknesses in Sidebar */}
+              {((topicStatus.strengths?.length || 0) > 0 || (topicStatus.weaknesses?.length || 0) > 0) && (
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  {topicStatus.strengths && topicStatus.strengths.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {topicStatus.strengths.map((s, i) => (
+                        <span key={i} className="text-[8px] font-black uppercase text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20">✓ {s}</span>
+                      ))}
+                    </div>
+                  )}
+                  {topicStatus.weaknesses && topicStatus.weaknesses.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {topicStatus.weaknesses.map((w, i) => (
+                        <span key={i} className="text-[8px] font-black uppercase text-rose-400 bg-rose-400/10 px-1.5 py-0.5 rounded border border-rose-400/20">⚠ {w}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-4 text-xs italic text-slate-500">
@@ -424,9 +453,9 @@ export default function TutorInbox() {
             {generatingStory ? 'Synthesizing...' : 'Synthesize Story'}
           </button>
         </div>
-
-        {/* History List Section (Takes remaining space but stays within sidebar scroll) */}
-        <div className="p-4 pt-0 flex flex-col space-y-3 min-h-0">
+        
+        {/* History List Section */}
+        <div className="flex flex-col space-y-3 min-h-0">
           <div className="flex items-center justify-between px-1">
             <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Learning Channels</span>
             <button onClick={handleCreateConversation} className="p-1 hover:bg-white/5 rounded-full text-blue-400 transition-colors">
@@ -463,9 +492,8 @@ export default function TutorInbox() {
             })}
           </div>
         </div>
-
-      </div>
-    </aside>
+        </div>
+      </aside>
 
       {/* Right Column - Chat Content */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative bg-slate-950">

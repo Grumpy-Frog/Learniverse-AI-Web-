@@ -154,7 +154,7 @@ export default function App() {
 
       {/* Main Pages Content with transition effects */}
       <main className={`flex-1 w-full min-h-0 flex flex-col ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 overflow-y-auto'}`}>
-        <div className={`flex-1 ${isTutorPage ? '' : 'py-6 pb-24'}`}>
+        <div className={`flex-1 min-h-0 ${isTutorPage ? 'flex flex-col' : 'py-6 pb-24'}`}>
           {renderView()}
         </div>
 
