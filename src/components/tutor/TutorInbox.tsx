@@ -500,12 +500,12 @@ export default function TutorInbox() {
           <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-[700px] overflow-hidden shadow-sm relative">
             
             {/* Header info */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-855 bg-white dark:bg-slate-900 flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
+            <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--bg-surface)] flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
               <div className="space-y-0.5 max-w-[70%]">
                 <span className="text-[9px] font-black uppercase text-blue-500 tracking-wider">
                   Dialogue Channel
                 </span>
-                <h3 className="font-black text-sm text-slate-900 dark:text-slate-50 heading-font truncate">
+                <h3 className="font-black text-sm text-[var(--text-primary)] heading-font truncate">
                   {activeConversation ? activeConversation.title || 'Classroom Discussion' : 'Learniverse AI Tutoring desk'}
                 </h3>
               </div>
@@ -524,22 +524,22 @@ export default function TutorInbox() {
                   <LoadingState message="Restoring discussion context parameters..." />
                 </div>
               ) : (!selectedTopic && !activeConversation) ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-3 select-none">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-3 select-none">
+                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--text-secondary)] shrink-0 border border-[var(--glass-border)]">
                     <BookOpen className="h-6 w-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-205">Select a topic first</h4>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Select a topic first</h4>
                   <p className="text-xs leading-relaxed font-normal">
                     Choose a grade, subject, chapter, and topic from the Catalog before starting the tutor.
                   </p>
                   <Button onClick={() => window.location.hash = '#/catalog'}>Open Catalog</Button>
                 </div>
               ) : (selectedTopic && !activeConversation) ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-4 select-none">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-blue-500 shrink-0 border border-slate-100 dark:border-slate-805">
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-4 select-none">
+                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--accent-primary)] shrink-0 border border-[var(--glass-border)]">
                     <MessageSquare className="h-6 w-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-205">Ready to learn {selectedTopic.topic_title}</h4>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Ready to learn {selectedTopic.topic_title}</h4>
                   <p className="text-xs leading-relaxed font-normal">
                     Start a new tutor conversation, generate a story lesson, or ask a question about this topic.
                   </p>
@@ -551,11 +551,11 @@ export default function TutorInbox() {
                   </div>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-3 select-none">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-3 select-none">
+                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--text-secondary)] shrink-0 border border-[var(--glass-border)]">
                     <MessageSquare className="h-6 w-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Conversation started</h4>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Conversation started</h4>
                   <p className="text-xs leading-relaxed font-normal">
                     No messages yet. Generate a story lesson or ask your first question.
                   </p>
@@ -650,8 +650,8 @@ export default function TutorInbox() {
             </div>
 
             {/* Input keyboard controls panels */}
-            <form onSubmit={handleSendMessage} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-b-2xl shrink-0 z-10 sticky bottom-0 border-t border-slate-100 dark:border-slate-800/50">
-              <div className="max-w-4xl mx-auto relative rounded-3xl bg-slate-100 dark:bg-slate-800 p-2 border-none ring-1 ring-slate-200 dark:ring-slate-700/50 shadow-sm focus-within:ring-indigo-300 dark:focus-within:ring-indigo-700/50 transition-shadow">
+            <form onSubmit={handleSendMessage} className="p-4 bg-[var(--bg-primary)]/80 backdrop-blur-md rounded-b-2xl shrink-0 z-10 sticky bottom-0 border-t border-[var(--glass-border)]">
+              <div className="max-w-4xl mx-auto relative rounded-3xl bg-[var(--bg-surface)] p-2 border-none ring-1 ring-[var(--glass-border)] shadow-sm focus-within:ring-[var(--accent-primary)] transition-shadow">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -662,13 +662,13 @@ export default function TutorInbox() {
                     }
                   }}
                   placeholder={selectedTopic ? `Ask about "${selectedTopic.topic_title}"...` : "Choose a learning context catalog topic or write here..."}
-                  className="w-full min-h-[48px] max-h-[200px] p-3 text-base text-slate-850 dark:text-slate-50 bg-transparent placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:outline-none resize-none pr-12"
+                  className="w-full min-h-[48px] max-h-[200px] p-3 text-sm text-[var(--text-primary)] bg-transparent placeholder:text-[var(--text-secondary)] outline-none focus:outline-none resize-none pr-12"
                   rows={1}
                 />
                 <button
                   type="submit"
                   disabled={sendingMsg || !typedMessage.trim()}
-                  className="absolute right-3 bottom-3 h-10 w-10 flex items-center justify-center rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 dark:disabled:text-slate-500 transition-colors"
+                  className="absolute right-3 bottom-3 h-10 w-10 flex items-center justify-center rounded-full bg-[var(--accent-primary)] text-white disabled:opacity-30 disabled:bg-[var(--glass-bg)] disabled:text-[var(--text-secondary)] transition-colors"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -685,7 +685,7 @@ export default function TutorInbox() {
           {/* Interactive Diagnostic Probe Tabs Selector */}
           {selectedTopic && (
             <div className="space-y-4">
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 border-b border-slate-200 dark:border-slate-805 pb-2">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 border-b border-[var(--glass-border)] pb-2">
                 <button
                   onClick={() => {
                     setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check');
@@ -693,8 +693,8 @@ export default function TutorInbox() {
                   }}
                   className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
                     ${activeDiagnosticTab === 'check' 
-                      ? 'bg-blue-600 text-white font-black dark:bg-blue-400 dark:text-slate-955' 
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                      ? 'bg-[var(--accent-primary)] text-white font-black' 
+                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
                     }`}
                 >
                   Quick Understanding check
@@ -703,8 +703,8 @@ export default function TutorInbox() {
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
                   className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
                     ${activeDiagnosticTab === 'quiz' 
-                      ? 'bg-blue-600 text-white font-black dark:bg-blue-400 dark:text-slate-955' 
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                      ? 'bg-[var(--accent-primary)] text-white font-black' 
+                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
                     }`}
                 >
                   Diagnostic Quiz
@@ -714,8 +714,8 @@ export default function TutorInbox() {
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'reremedy' || activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
                   className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
                     ${activeDiagnosticTab === 'remediation' 
-                      ? 'bg-amber-500 text-white font-black dark:bg-amber-400 dark:text-slate-955' 
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                      ? 'bg-[var(--warning)] text-white font-black' 
+                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
                     }`}
                 >
                   Focused help & Study

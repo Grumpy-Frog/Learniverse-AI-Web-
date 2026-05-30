@@ -54,15 +54,15 @@ export default function AdminBlogManager({ onNavigate }: AdminBlogManagerProps) 
   return (
     <div className="space-y-6">
       {/* Structural Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-4 flex items-center justify-between">
+      <div className="border-b border-[var(--glass-border)] pb-4 flex items-center justify-between">
         <div>
           <span className="text-[10px] font-mono tracking-[0.2em] font-black text-blue-500 uppercase">
             Blog Admin
           </span>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl font-black uppercase tracking-tight text-[var(--text-primary)] mt-1">
             AI Blog Generation Management
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl font-semibold">
+          <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl font-semibold">
             Generate, review, publish, and unpublish Learniverse AI blog posts.
           </p>
         </div>
@@ -81,7 +81,7 @@ export default function AdminBlogManager({ onNavigate }: AdminBlogManagerProps) 
       {loading && blogs.length === 0 ? (
         <LoadingState message="Loading blog posts..." />
       ) : blogs.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center p-12 text-center text-slate-400 border-dashed">
+        <Card className="flex flex-col items-center justify-center p-12 text-center text-[var(--text-secondary)] border-dashed">
           <Newspaper className="h-10 w-10 mb-3 opacity-50" />
           <p className="text-sm">No blog posts found.</p>
           <Button onClick={() => onNavigate && onNavigate('/admin/blog/new')} className="mt-4" variant="secondary">
@@ -105,15 +105,15 @@ export default function AdminBlogManager({ onNavigate }: AdminBlogManagerProps) 
                       {post.category || 'Science'}
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                      <span className="text-[10px] font-mono uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold">
+                      <span className="text-[10px] font-mono uppercase bg-[var(--bg-surface)] text-[var(--text-primary)] px-1.5 py-0.5 rounded font-bold border border-[var(--glass-border)]">
                         {post.language}
                       </span>
                       {isPublished ? (
-                        <span className="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded flex items-center font-bold">
+                        <span className="text-[10px] font-mono uppercase bg-emerald-100/10 text-emerald-500 px-1.5 py-0.5 rounded flex items-center font-bold border border-emerald-500/20">
                           <CheckCircle2 className="w-3 h-3 mr-1" /> Published
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono uppercase bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-1.5 py-0.5 rounded flex items-center font-bold">
+                        <span className="text-[10px] font-mono uppercase bg-slate-100/10 text-slate-400 px-1.5 py-1 rounded flex items-center font-bold border border-slate-500/20">
                           <FileText className="w-3 h-3 mr-1" /> Draft
                         </span>
                       )}

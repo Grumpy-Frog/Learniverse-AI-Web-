@@ -79,12 +79,12 @@ export default function BlogWorkspace({ initialSlug, onNavigate }: BlogWorkspace
       
       {/* Blog Header (Only show if not reading detail) */}
       {!activeBlog && (
-        <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
-          <div className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase mb-1">LEARNIVERSE CORNER</div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
+        <div className="border-b border-[var(--glass-border)] pb-5">
+          <div className="text-[10px] font-black tracking-[0.2em] text-[var(--text-secondary)] uppercase mb-1">LEARNIVERSE CORNER</div>
+          <h1 className="text-4xl font-black tracking-tight text-[var(--text-primary)] heading-font">
             SCIENCE & MATHEMATICS BLOG
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl font-semibold leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl font-semibold leading-relaxed">
             Explaining physical forces, chemical elements, biological cells, and formulas through clear concepts curated by educators and AI experts.
           </p>
         </div>
@@ -99,8 +99,8 @@ export default function BlogWorkspace({ initialSlug, onNavigate }: BlogWorkspace
       {/* List of published posts */}
       {!loading && !activeBlog && (
         blogs.length === 0 ? (
-          <div className="text-center p-12 border-2 border-dashed border-slate-205 dark:border-slate-800 rounded-2xl bg-white/40 dark:bg-slate-900/30">
-            <span className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 mx-auto block w-fit mb-3 border border-slate-105 dark:border-slate-805">
+          <div className="text-center p-12 border-2 border-dashed border-[var(--glass-border)] rounded-2xl bg-white/40 dark:bg-slate-900/30">
+            <span className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-[var(--text-secondary)] mx-auto block w-fit mb-3 border border-[var(--glass-border)]">
               <BookOpen className="h-6 w-6" />
             </span>
             <p className="text-sm font-bold text-slate-705 dark:text-slate-355 mb-1">No educational posts published yet.</p>
@@ -112,23 +112,23 @@ export default function BlogWorkspace({ initialSlug, onNavigate }: BlogWorkspace
               <div key={post.id}>
                 <Card
                   onClick={() => handleSelectPost(post)}
-                  className="p-6 md:p-7 h-full flex flex-col justify-between gap-4 border-slate-200 dark:border-slate-850 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 select-none group"
+                  className="p-6 md:p-7 h-full flex flex-col justify-between gap-4 select-none group"
                 >
                 <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-[9px] uppercase tracking-wider font-semibold">
                     <Badge variant="source_grounded">{post.category || 'Science'}</Badge>
-                    <span className="text-slate-450">{post.language === 'bn' ? 'Bangla bn' : 'English en'}</span>
+                    <span className="text-[var(--text-secondary)] font-mono">{post.language === 'bn' ? 'Bangla bn' : 'English en'}</span>
                   </div>
-                  <h3 className="text-lg font-black leading-tight text-slate-905 dark:text-slate-50 heading-font group-hover:text-blue-500 transition-colors">
+                  <h3 className="text-lg font-black leading-tight text-[var(--text-primary)] heading-font group-hover:text-blue-500 transition-colors">
                     {post.title}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] line-clamp-3 leading-relaxed">
                     {post.excerpt}
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800/80 pt-3.5 mt-2">
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1 font-medium select-none">
+                <div className="flex justify-between items-center border-t border-[var(--glass-border)] pt-3.5 mt-2">
+                  <span className="text-[10px] text-[var(--text-secondary)] font-mono flex items-center gap-1 font-medium select-none">
                     <Calendar className="h-3 w-3" /> {formatDate(post.created_at)}
                   </span>
                   <span className="text-xs text-blue-600 dark:text-blue-400 font-bold flex items-center gap-0.5 group-hover:underline">
@@ -156,18 +156,18 @@ export default function BlogWorkspace({ initialSlug, onNavigate }: BlogWorkspace
             {/* Category / language */}
             <div className="flex items-center gap-3 select-none">
               <Badge variant="source_grounded">{activeBlog.category || 'Science'}</Badge>
-              <span className="text-xs uppercase font-mono text-slate-400 dark:text-slate-500">
+              <span className="text-xs uppercase font-mono text-[var(--text-secondary)]">
                 {activeBlog.language === 'bn' ? 'Bangla bn' : 'English en'} &bull; {formatDate(activeBlog.created_at)}
               </span>
             </div>
 
             {/* Title / excerpt */}
-            <div className="border-b border-slate-200 dark:border-slate-800 pb-6 space-y-3">
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white heading-font leading-tight">
+            <div className="border-b border-[var(--glass-border)] pb-6 space-y-3">
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[var(--text-primary)] heading-font leading-tight">
                 {activeBlog.title}
               </h1>
               {activeBlog.excerpt && (
-                <p className="text-sm md:text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic pl-3 border-l-2 border-indigo-500">
+                <p className="text-sm md:text-lg text-[var(--text-secondary)] font-medium leading-relaxed italic pl-3 border-l-2 border-[var(--accent-primary)]">
                   {activeBlog.excerpt}
                 </p>
               )}

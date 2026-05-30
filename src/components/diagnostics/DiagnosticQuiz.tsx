@@ -286,7 +286,7 @@ export default function DiagnosticQuiz({
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex gap-2">
                     <span className="font-bold text-xs text-slate-450">Q{idx + 1}.</span>
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-205">{item.question_text}</p>
+                    <p className="text-xs font-bold text-[var(--text-primary)]">{item.question_text}</p>
                   </div>
                   <div>
                     {item.is_correct ? (

@@ -53,14 +53,14 @@ export default function RegisterBlock({ onNavigate }: RegisterBlockProps) {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16 select-none">
-      <Card className="p-6 md:p-8 border-slate-205 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-6 shadow-xl rounded-2xl relative overflow-hidden">
+      <Card className="p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
         
         {/* Banner */}
         <div className="text-center space-y-1 pb-2">
           <span className="p-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl inline-block shadow-md">
             <UserPlus className="h-5 w-5 animate-pulse" />
           </span>
-          <h2 className="text-2xl font-black text-slate-905 dark:text-white mt-3 heading-font tracking-tight">
+          <h2 className="text-2xl font-black text-[var(--text-primary)] mt-3 heading-font tracking-tight">
             Register for Learniverse
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
@@ -126,7 +126,7 @@ export default function RegisterBlock({ onNavigate }: RegisterBlockProps) {
         </form>
 
         {/* Direct login */}
-        <div className="text-center border-t border-slate-105 dark:border-slate-800 pt-5 text-xs font-semibold select-text">
+        <div className="text-center border-t border-[var(--glass-border)] pt-5 text-xs font-semibold select-text">
           <span className="text-slate-500 dark:text-slate-400">Already registered on the platform? </span>
           <button
             onClick={() => onNavigate('/login')}
