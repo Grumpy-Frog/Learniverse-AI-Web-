@@ -530,41 +530,9 @@ export default function TutorInbox() {
         {/* Message View Area */}
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
            
-           <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12 pb-32">
-             
-             {/* Diagnostic Overlays */}
-             {selectedTopic && activeDiagnosticTab !== 'none' && (
-                <div className="animate-in fade-in zoom-in-95 duration-500 bg-slate-900/90 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl p-1 overflow-hidden">
-                   {activeDiagnosticTab === 'check' && (
-                      <UnderstandingCheck
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
-                        onSuccessCheck={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'quiz' && (
-                      <DiagnosticQuiz
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        onQuizCompleted={(res) => {
-                          sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
-                          if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
-                          refreshWorkspace();
-                        }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'remediation' && (
-                      <RemediationPanel
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        onRemediationCompleted={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                </div>
-             )}
-
-             {loadingMsg ? (
+            <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12 pb-32">
+              
+              {loadingMsg ? (
                <div className="flex min-h-[400px] items-center justify-center">
                  <div className="flex flex-col items-center gap-4">
                     <div className="h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -677,7 +645,44 @@ export default function TutorInbox() {
                   )}
                   <div ref={messagesEndRef} className="h-1" />
                 </div>
-             )}
+              )}
+
+              {/* Diagnostic Integrated Panel - Positioned below messages */}
+              {selectedTopic && activeDiagnosticTab !== 'none' && (
+                <div className="space-y-6 pt-12 border-t border-white/5">
+                   {activeDiagnosticTab === 'check' && (
+                      <UnderstandingCheck
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        language={language}
+                        conversationId={activeConversation?.id}
+                        onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
+                        onSuccessCheck={() => { refreshWorkspace(); }}
+                      />
+                   )}
+                   {activeDiagnosticTab === 'quiz' && (
+                      <DiagnosticQuiz
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        language={language}
+                        conversationId={activeConversation?.id}
+                        onQuizCompleted={(res) => {
+                          sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session.id);
+                          if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
+                          refreshWorkspace();
+                        }}
+                      />
+                   )}
+                   {activeDiagnosticTab === 'remediation' && (
+                      <RemediationPanel
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        language={language}
+                        onRemediationCompleted={() => { refreshWorkspace(); }}
+                      />
+                   )}
+                </div>
+              )}
            </div>
         </div>
 

@@ -179,16 +179,74 @@ export interface QuestionDetailFeedback {
   explanation: string;
 }
 
-export interface DiagnosticResult {
+export interface DiagnosticQuestion {
+  id: string;
   session_id: string;
-  score: number;
+  question_type: "mcq" | "short_answer";
+  question_text: string;
+  options: Record<string, string> | null;
+  skill_label: string;
+  display_order: number;
   max_score: number;
-  percentage: number;
-  outcome: string;
-  show_checkmark: boolean;
+}
+
+export interface DiagnosticResult {
+  session: any;
+  answers: {
+    question_id: string;
+    question_type: string;
+    question_text: string;
+    student_answer: string;
+    correct_answer: string;
+    is_correct: boolean;
+    score: number;
+    feedback: string;
+    skill_label: string;
+    detected_weakness: string | null;
+    confidence: string | null;
+    explanation: string;
+  }[];
   strengths: string[];
   weaknesses: string[];
-  details: QuestionDetailFeedback[];
+  completion_status: string | null;
+  show_checkmark: boolean;
+}
+
+export interface RemediationDetail {
+  session: {
+    id: string;
+    user_id: string;
+    topic_id: string;
+    diagnostic_session_id: string;
+    weakness_label: string;
+    language: "en" | "bn";
+    status: "generated" | "completed" | "needs_retry";
+    is_source_grounded: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+  content: {
+    id: string;
+    remediation_session_id: string;
+    weakness_statement: string;
+    micro_lesson: string;
+    guided_example: string;
+    partially_solved_problem: string;
+    recheck_question: string;
+    expected_answer: string;
+    next_action: string;
+    created_at: string;
+  };
+  rechecks: {
+    id: string;
+    remediation_session_id: string;
+    student_answer: string;
+    is_correct: boolean;
+    score: number;
+    feedback: string;
+    next_action: string;
+    created_at: string;
+  }[];
 }
 
 export interface TopicStatus {

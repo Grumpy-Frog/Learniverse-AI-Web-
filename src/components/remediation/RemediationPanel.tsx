@@ -1,254 +1,289 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { RemediationSession } from '../../types';
+import { RemediationDetail, TopicStatus } from '../../types';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
-import Badge from '../ui/Badge';
-import StatusMessage from '../ui/StatusMessage';
-import LoadingState from '../ui/LoadingState';
+import { Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, BookOpen, HelpCircle, ShieldCheck } from 'lucide-react';
 import MarkdownContent from '../markdown/MarkdownContent';
-import { ShieldCheck, HelpCircle, ArrowRight, Sparkles, AlertCircle, CheckSquare } from 'lucide-react';
+
+type FocusedHelpState = {
+  selectedWeakness: string | null;
+  remediationSessionId: string | null;
+  remediationDetail: RemediationDetail | null;
+  recheckAnswer: string;
+  loading: boolean;
+  submitting: boolean;
+  error: string | null;
+};
 
 interface RemediationPanelProps {
   topicId: string;
   topicTitle: string;
+  language?: 'en' | 'bn';
   onRemediationCompleted?: () => void;
 }
 
 export default function RemediationPanel({
   topicId,
   topicTitle,
+  language = 'en',
   onRemediationCompleted
 }: RemediationPanelProps) {
-  const [remediation, setRemediation] = useState<RemediationSession | null>(null);
   const [weaknesses, setWeaknesses] = useState<string[]>([]);
-  const [studentAnswer, setStudentAnswer] = useState('');
-  
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'warn'; text: string } | null>(null);
+  const [state, setState] = useState<FocusedHelpState>({
+    selectedWeakness: null,
+    remediationSessionId: null,
+    remediationDetail: null,
+    recheckAnswer: '',
+    loading: false,
+    submitting: false,
+    error: null,
+  });
 
   useEffect(() => {
-    fetchTopicRemediation();
+    fetchTopicStatus();
   }, [topicId]);
 
-  const fetchTopicRemediation = async () => {
-    setLoading(true);
-    setError(null);
-    setRemediation(null);
-    setWeaknesses([]);
-    setStudentAnswer('');
-    setStatusMsg(null);
+  const fetchTopicStatus = async () => {
     try {
-      // 1. Fetch current topic status to extract weaknesses list
-      const status = await api.getTopicStatus(topicId);
-      if (status && status.weaknesses && status.weaknesses.length > 0) {
-        setWeaknesses(status.weaknesses);
-      } else {
-        // Fallback: fetch directly from database if weaknesses already loaded
-        try {
-          const rem = await api.getRemediationByTopic(topicId);
-          if (rem) {
-            setRemediation(rem);
-            setWeaknesses(rem.weaknesses || []);
-          }
-        } catch (e) {
-          // No active remediation recorded yet
-        }
+      const status: TopicStatus = await api.getTopicStatus(topicId);
+      setWeaknesses(status.weaknesses || []);
+      if (status.weaknesses && status.weaknesses.length > 0 && !state.selectedWeakness) {
+        setState(prev => ({ ...prev, selectedWeakness: status.weaknesses[0] }));
       }
-    } catch (err: any) {
-      console.warn('Could not locate topic weaknesses:', err);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.warn("Could not load topic status for weaknesses:", e);
     }
   };
 
-  const handleGenerateRemediation = async () => {
-    setLoading(true);
-    setError(null);
-    setStatusMsg(null);
+  const handleGenerateFocusedHelp = async () => {
+    if (!state.selectedWeakness) return;
+    
+    setState(prev => ({ ...prev, loading: true, error: null, remediationDetail: null }));
     try {
-      // Typically, remediation is booted from diagnostic session, but if we have topicId 
-      // we can also load the diagnostic history of the topic to extract the latest diagnostic sessionId.
-      // Let's create an elegant remediation session directly, or if they just generated a diagnostic quiz,
-      // let's retrieve the diagnostic sessions from the backend context to pull the latest submitted quiz.
-      // A highly robust pattern: let's invoke a prompt/generation mapping to get focused help!
-      const status = await api.getTopicStatus(topicId);
-      let session_id = '';
-      
-      // Let's search the user's sessions to locate the active quiz session
-      // For absolute dependability, we can allow generating focused help from the actual quiz sessions context or boot a template diagnostic mapping.
-      // Let's use GET /diagnostics/me/subjects/ and find any submitted session, or if they have weaknesses,
-      // trigger the remediation generation. Let's use a creative approach: since we can generate remediation based on topic weakness status directly:
-      // Let's invoke a mock session ID or let the backend authorize it using a session_id. Wait! Since we need diagnostic_session_id:
-      // Let's save the last diagnostic session ID in sessionStorage and retrieve it here!
       const cachedSessionId = sessionStorage.getItem(`learniverse_last_session_id_${topicId}`);
       if (!cachedSessionId) {
-        throw new Error('Please submit a Diagnostic Quiz first to compile weakness indicators.');
+        throw new Error('Submit a Diagnostic Quiz first to unlock focused help.');
       }
 
-      const rem: RemediationSession = await api.generateRemediation(cachedSessionId);
-      setRemediation(rem);
-      if (rem.weaknesses) {
-        setWeaknesses(rem.weaknesses);
-      }
+      const sess = await api.generateRemediation(cachedSessionId, state.selectedWeakness, language);
+      const detail: RemediationDetail = await api.getRemediationSession(sess.id);
+      
+      setState(prev => ({
+        ...prev,
+        remediationSessionId: sess.id,
+        remediationDetail: detail,
+        loading: false
+      }));
     } catch (err: any) {
-      setError(err.message || 'Complete the Diagnostic Quiz first to generate tailored remedial lessons.');
-    } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false, error: err.message || 'Error occurred while generating focused help.' }));
     }
   };
 
   const handleSubmitRecheck = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentAnswer.trim() || !remediation) return;
+    if (!state.recheckAnswer.trim() || !state.remediationSessionId) return;
 
-    setSubmitting(true);
-    setError(null);
-    setStatusMsg(null);
+    setState(prev => ({ ...prev, submitting: true, error: null }));
     try {
-      // POST recheck answer
-      const result = await api.submitRemediationRecheck(remediation.id, studentAnswer);
+      await api.submitRemediationRecheck(state.remediationSessionId, state.recheckAnswer);
+      const updated: RemediationDetail = await api.getRemediationSession(state.remediationSessionId);
       
-      // Reload details to get recheck_score and feedback
-      const updated: RemediationSession = await api.getRemediationSession(remediation.id);
-      setRemediation(updated);
+      setState(prev => ({ ...prev, remediationDetail: updated, submitting: false }));
 
-      if (updated.status === 'completed') {
-        setStatusMsg({
-          type: 'success',
-          text: updated.recheck_feedback || 'Success! Your recheck response successfully resolves this weakness indicator.'
-        });
-        if (onRemediationCompleted) onRemediationCompleted();
-      } else {
-        setStatusMsg({
-          type: 'warn',
-          text: updated.recheck_feedback || 'The solution needs minor correction. Check the micro-lesson hint details and submit again.'
-        });
+      if (updated.session.status === 'completed' && onRemediationCompleted) {
+        onRemediationCompleted();
       }
     } catch (err: any) {
-      setError(err.message || 'Error occurred while verifying recheck response.');
-    } finally {
-      setSubmitting(false);
+      setState(prev => ({ ...prev, submitting: false, error: err.message || 'Error occurred while checking answer.' }));
     }
   };
 
-  return (
-    <Card className="border border-slate-200 dark:border-slate-800 bg-white/65 dark:bg-slate-900/40 p-5 md:p-6 rounded-2xl space-y-4">
-      {/* Title */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-        <div>
-          <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-[0.15em] block">
-            Focused Study Companion
-          </span>
-          <h4 className="text-base font-black text-slate-800 dark:text-white heading-font">
-            FOCUSED STUDY & REMEDIATION
-          </h4>
+  if (weaknesses.length === 0 && !state.remediationDetail) {
+    return (
+      <Card className="bg-slate-900 border border-white/10 p-12 rounded-[2rem] text-center flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-6">
+          <ShieldCheck className="h-8 w-8" />
         </div>
-        {!remediation && weaknesses.length > 0 && (
-          <Button size="sm" variant="success" onClick={handleGenerateRemediation} isLoading={loading}>
-            <Sparkles className="h-3.5 w-3.5 mr-1" /> Get Focused Help
-          </Button>
-        )}
+        <h4 className="text-xl font-black text-white mb-2">Great work!</h4>
+        <p className="text-xs text-slate-400 font-medium">No focused help is needed right now for this topic.</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-slate-900 border border-white/10 p-6 md:p-8 rounded-[2rem] space-y-8">
+      <div className="flex items-center gap-3 pb-6 border-b border-white/5">
+        <Zap className="h-6 w-6 text-amber-500" />
+        <h3 className="text-xl font-black text-white uppercase tracking-tight">Focused Help & Study</h3>
       </div>
 
-      {loading && <LoadingState message="Tailoring customized remediation script based on quiz performance..." />}
-
-      {error && (
-        <StatusMessage type="error" message={error} onRetry={fetchTopicRemediation} />
-      )}
-
-      {/* Weakness highlights before loading */}
-      {!remediation && (
-        <div className="space-y-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Based on current assessment diagnostics, Learniverse AI has categorized these items for practice focus:
-          </p>
-          {weaknesses.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-amber-500/5 dark:bg-amber-400/5 border border-amber-500/10 dark:border-amber-400/10">
-              {weaknesses.map((weak, i) => (
-                <span key={i} className="px-2.5 py-1 text-xs rounded-md bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-bold">
-                  ⚠ {weak}
-                </span>
-              ))}
+      {/* Top Selection Area */}
+      {!state.remediationDetail && (
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300 font-medium leading-relaxed">
+              We found a few areas to improve. Choose one weakness and get focused help.
+            </p>
+            <div className="flex flex-wrap gap-2">
+               {weaknesses.map((weak, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setState(prev => ({ ...prev, selectedWeakness: weak }))}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border
+                      ${state.selectedWeakness === weak 
+                        ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' 
+                        : 'bg-slate-950 border-white/5 text-slate-400 hover:border-white/20'
+                      }
+                    `}
+                  >
+                    {weak.replace('_', ' ')}
+                  </button>
+               ))}
             </div>
-          ) : (
-            <div className="p-4 border border-dashed border-slate-200 dark:border-slate-800 text-center rounded-xl text-xs text-slate-450 italic bg-slate-50 dark:bg-transparent">
-              No learning weakness targets identified yet. Submit a Diagnostic Quiz to explore.
-            </div>
-          )}
+          </div>
+          
+          <Button 
+            className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-2xl font-black uppercase tracking-widest text-xs" 
+            onClick={handleGenerateFocusedHelp} 
+            isLoading={state.loading}
+            disabled={!state.selectedWeakness}
+          >
+            <Sparkles className="h-4 w-4 mr-2" /> Get Focused Help
+          </Button>
         </div>
       )}
 
-      {/* Tailored Remediation lesson sheet */}
-      {remediation && (
-        <div className="space-y-4">
-          <Card className="p-4 md:p-5 border-amber-200 dark:border-amber-900 bg-amber-500/5 dark:bg-amber-400/5 rounded-xl space-y-3.5">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">
-                Tailored Remedial Lesson
-              </span>
-              <Badge variant={remediation.status === 'completed' ? 'completed' : 'needs_practice'}>
-                {remediation.status === 'completed' ? 'Completed' : 'Needs Retry'}
-              </Badge>
-            </div>
+      {state.loading && (
+        <div className="py-12 flex flex-col items-center justify-center gap-4">
+          <div className="h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-black uppercase text-slate-500 tracking-widest">Generating focused help...</p>
+        </div>
+      )}
 
-            <h5 className="text-base font-black text-slate-900 dark:text-white heading-font border-b border-amber-500/10 pb-2">
-              {remediation.lesson_title || 'Active Remediation Class'}
-            </h5>
+      {state.error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs text-red-500 font-bold uppercase tracking-wider">
+          {state.error}
+        </div>
+      )}
 
-            {/* Markdown Lesson Content */}
-            <MarkdownContent 
-              content={remediation.remediation_text || 'Preparing detailed visual guide...'} 
-              className="prose-sm dark:prose-invert"
-            />
-          </Card>
+      {/* Study Card Content */}
+      {state.remediationDetail && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+          
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase text-amber-500 tracking-widest">
+                  {state.remediationDetail.session.weakness_label.replace('_', ' ')}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border
+                  ${state.remediationDetail.session.status === 'completed' 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' 
+                    : state.remediationDetail.session.status === 'needs_retry'
+                      ? 'bg-amber-500/10 border-amber-500/20 text-amber-500'
+                      : 'bg-blue-500/10 border-blue-500/20 text-blue-500'
+                  }
+                `}>
+                   {state.remediationDetail.session.status.replace('_', ' ')}
+                </span>
+             </div>
+          </div>
 
-          {/* Interactive Recheck Challenge */}
-          {remediation.recheck_question && (
-            <div className="p-4 rounded-xl border border-slate-250 dark:border-slate-800 bg-[#FCFDFE] dark:bg-slate-900/60 space-y-3">
-              <div className="flex gap-1.5 items-start">
-                <CheckSquare className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <span className="text-[9px] uppercase font-bold text-indigo-500 dark:text-blue-400 block tracking-wider">Recheck Challenge Question</span>
-                  <p className="text-xs font-bold leading-relaxed text-slate-800 dark:text-slate-100">
-                    {remediation.recheck_question}
-                  </p>
+          <div className="space-y-12">
+            
+             {/* Micro lesson sections */}
+             <div className="space-y-8">
+                <section className="space-y-4">
+                   <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">What went wrong</h4>
+                   </div>
+                   <div className="p-6 rounded-3xl bg-amber-500/5 border border-amber-500/10">
+                      <p className="text-sm font-black text-amber-200 leading-relaxed">
+                        {state.remediationDetail.content.weakness_statement}
+                      </p>
+                   </div>
+                </section>
+
+                <section className="space-y-4">
+                   <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-blue-500" />
+                      <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">Micro Lesson</h4>
+                   </div>
+                   <div className="text-slate-300 leading-relaxed text-[15px]">
+                      <MarkdownContent content={state.remediationDetail.content.micro_lesson} />
+                   </div>
+                </section>
+
+                <section className="space-y-4">
+                   <div className="flex items-center gap-2 text-purple-500">
+                      <Zap className="h-4 w-4" />
+                      <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">Guided Example</h4>
+                   </div>
+                   <div className="p-6 rounded-3xl bg-slate-950 border border-white/5">
+                      <MarkdownContent content={state.remediationDetail.content.guided_example} />
+                   </div>
+                </section>
+
+                <section className="space-y-4">
+                   <div className="flex items-center gap-2 text-indigo-500">
+                      <Sparkles className="h-4 w-4" />
+                      <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">Try This</h4>
+                   </div>
+                   <div className="p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10">
+                      <MarkdownContent content={state.remediationDetail.content.partially_solved_problem} />
+                   </div>
+                </section>
+             </div>
+
+             {/* Recheck Section */}
+             <div className="pt-8 border-t border-white/5 space-y-6">
+                <div className="flex items-center gap-2 text-emerald-500">
+                   <HelpCircle className="h-5 w-5" />
+                   <h4 className="text-sm font-black uppercase tracking-widest">Recheck Question</h4>
                 </div>
-              </div>
+                
+                <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 text-slate-200 font-bold leading-relaxed">
+                   {state.remediationDetail.content.recheck_question}
+                </div>
 
-              {/* Status Note */}
-              {statusMsg && (
-                <StatusMessage 
-                  type={statusMsg.type === 'success' ? 'success' : 'warning'} 
-                  message={statusMsg.text} 
-                />
-              )}
-
-              {/* Input for answer */}
-              {remediation.status !== 'completed' ? (
-                <form onSubmit={handleSubmitRecheck} className="space-y-2.5 pt-1.5">
-                  <textarea
-                    value={studentAnswer}
-                    onChange={(e) => setStudentAnswer(e.target.value)}
-                    placeholder="Provide your corrected response to this concept check..."
-                    className="w-full min-h-[60px] p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 placeholder:text-slate-400 dark:placeholder:text-slate-650 outline-hidden focus:border-indigo-500"
-                    required
-                  />
-                  <div className="flex justify-end">
-                    <Button size="sm" type="submit" isLoading={submitting}>
-                      Submit Recheck Answer <ArrowRight className="h-3 ml-1" />
+                {state.remediationDetail.session.status !== 'completed' ? (
+                   <form onSubmit={handleSubmitRecheck} className="space-y-4">
+                      <textarea
+                        value={state.recheckAnswer}
+                        onChange={(e) => setState(prev => ({ ...prev, recheckAnswer: e.target.value }))}
+                        placeholder="State your updated answer here..."
+                        className="w-full min-h-[120px] p-4 text-sm rounded-3xl border border-white/10 bg-slate-950 text-white placeholder:text-slate-700 outline-none focus:border-emerald-500/30"
+                        required
+                      />
+                      <Button 
+                        className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs" 
+                        type="submit" 
+                        isLoading={state.submitting}
+                      >
+                         Submit Recheck
+                      </Button>
+                   </form>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="p-6 rounded-3xl bg-emerald-600 border border-emerald-500 text-white shadow-xl shadow-emerald-600/20">
+                       <div className="flex items-center gap-3 mb-2">
+                          <CheckCircle2 className="h-5 w-5" />
+                          <h5 className="font-black uppercase text-xs tracking-widest">Assessment Completed</h5>
+                       </div>
+                       <p className="text-sm font-bold opacity-90 leading-relaxed">
+                         {state.remediationDetail.rechecks[state.remediationDetail.rechecks.length - 1]?.feedback || 'Great work! You have successfully mastered this area of the topic.'}
+                       </p>
+                    </div>
+                    <Button variant="ghost" className="w-full text-slate-500" onClick={() => setState(prev => ({ ...prev, remediationDetail: null, remediationSessionId: null }))}>
+                       Back to Weakness List
                     </Button>
                   </div>
-                </form>
-              ) : (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-850 dark:text-emerald-400 font-medium">
-                  ✓ Recheck passed! You have addressed all remedial flags for this segment. Close this panel or check other chapters.
-                </div>
-              )}
-            </div>
-          )}
+                )}
+             </div>
+
+          </div>
+
         </div>
       )}
     </Card>

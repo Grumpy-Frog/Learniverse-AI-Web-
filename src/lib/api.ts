@@ -347,15 +347,19 @@ export const api = {
   },
 
   // --- Diagnostics, Quizzes and status checks ---
-  async generateUnderstandingCheck(topicId: string) {
+  async generateUnderstandingCheck(topicId: string, language: string = 'en', conversationId: string | null = null) {
     return request(`/diagnostics/topics/${topicId}/understanding-check/generate`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, conversation_id: conversationId }),
     });
   },
 
-  async generateDiagnosticQuiz(topicId: string) {
+  async generateDiagnosticQuiz(topicId: string, language: string = 'en', conversationId: string | null = null) {
     return request(`/diagnostics/topics/${topicId}/quiz/generate`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, conversation_id: conversationId }),
     });
   },
 
@@ -363,7 +367,7 @@ export const api = {
     return request(`/diagnostics/sessions/${sessionId}/questions`, { method: 'GET' });
   },
 
-  async submitSessionAnswers(sessionId: string, payload: any) {
+  async submitSessionAnswers(sessionId: string, payload: { answers: { question_id: string, student_answer: string }[] }) {
     return request(`/diagnostics/sessions/${sessionId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -384,9 +388,11 @@ export const api = {
   },
 
   // --- Remediation ---
-  async generateRemediation(diagnosticSessionId: string) {
+  async generateRemediation(diagnosticSessionId: string, weaknessLabel: string, language: string = 'en') {
     return request(`/remediation/diagnostic-sessions/${diagnosticSessionId}/generate`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, weakness_label: weaknessLabel }),
     });
   },
 

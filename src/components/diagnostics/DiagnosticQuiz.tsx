@@ -1,335 +1,318 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { Question, DiagnosticSession, DiagnosticResult } from '../../types';
+import { DiagnosticQuestion, DiagnosticResult } from '../../types';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
-import Badge from '../ui/Badge';
-import StatusMessage from '../ui/StatusMessage';
-import LoadingState from '../ui/LoadingState';
-import { Trophy, HelpCircle, CheckCircle, XCircle, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { FileQuestion, Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, Trophy, ShieldCheck } from 'lucide-react';
+
+type DiagnosticQuizState = {
+  sessionId: string | null;
+  questions: DiagnosticQuestion[];
+  answers: Record<string, string>;
+  result: DiagnosticResult | null;
+  loading: boolean;
+  submitting: boolean;
+  error: string | null;
+};
 
 interface DiagnosticQuizProps {
   topicId: string;
   topicTitle: string;
+  language?: 'en' | 'bn';
+  conversationId?: string | null;
   onQuizCompleted?: (result: DiagnosticResult) => void;
 }
 
 export default function DiagnosticQuiz({
   topicId,
   topicTitle,
+  language = 'en',
+  conversationId = null,
   onQuizCompleted
 }: DiagnosticQuizProps) {
-  const [session, setSession] = useState<DiagnosticSession | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({}); // { question_id: option_or_text }
-  
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<DiagnosticResult | null>(null);
+  const [state, setState] = useState<DiagnosticQuizState>({
+    sessionId: null,
+    questions: [],
+    answers: {},
+    result: null,
+    loading: false,
+    submitting: false,
+    error: null,
+  });
 
-  // Clear state on topic change
   useEffect(() => {
-    setSession(null);
-    setQuestions([]);
-    setAnswers({});
-    setResult(null);
-    setError(null);
+    setState({
+      sessionId: null,
+      questions: [],
+      answers: {},
+      result: null,
+      loading: false,
+      submitting: false,
+      error: null,
+    });
   }, [topicId]);
 
-  const handleGenerateQuiz = async () => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    setAnswers({});
+  const handleGenerate = async () => {
+    setState(prev => ({ ...prev, loading: true, error: null, result: null, answers: {} }));
     try {
-      // 1. POST generate
-      const sess: DiagnosticSession = await api.generateDiagnosticQuiz(topicId);
-      setSession(sess);
-
-      // 2. GET questions
-      const qList: Question[] = await api.getSessionQuestions(sess.id);
-      setQuestions(qList || []);
+      const sess = await api.generateDiagnosticQuiz(topicId, language, conversationId);
+      const qList: DiagnosticQuestion[] = await api.getSessionQuestions(sess.id);
+      
+      setState(prev => ({
+        ...prev,
+        sessionId: sess.id,
+        questions: qList || [],
+        loading: false
+      }));
     } catch (err: any) {
-      setError(err.message || 'Error occurred while generating diagnostic quiz framework.');
-    } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false, error: err.message || 'Error occurred while generating diagnostic quiz.' }));
     }
   };
 
-  const handleSelectOption = (questionId: string, optionKey: string) => {
-    setAnswers(prev => ({
+  const handleOptionChange = (questionId: string, optionKey: string) => {
+    setState(prev => ({
       ...prev,
-      [questionId]: optionKey
+      answers: { ...prev.answers, [questionId]: optionKey }
     }));
   };
 
-  const handleChangeShortAnswer = (questionId: string, value: string) => {
-    setAnswers(prev => ({
+  const handleTextChange = (questionId: string, value: string) => {
+    setState(prev => ({
       ...prev,
-      [questionId]: value
+      answers: { ...prev.answers, [questionId]: value }
     }));
   };
 
-  const handleSubmitQuiz = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session || questions.length === 0) return;
+    if (!state.sessionId || state.questions.length === 0) return;
 
-    // Check if everything is answered
-    const unansweredCount = questions.filter(q => !answers[q.id]?.trim()).length;
-    if (unansweredCount > 0) {
-      setError(`Please complete all ${questions.length} questions before submitting.`);
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
+    setState(prev => ({ ...prev, submitting: true, error: null }));
     try {
       const payload = {
-        answers: questions.map(q => ({
+        answers: state.questions.map(q => ({
           question_id: q.id,
-          student_answer: answers[q.id] || ''
+          student_answer: state.answers[q.id] || ''
         }))
       };
 
-      // POST submit answers
-      await api.submitSessionAnswers(session.id, payload);
-
-      // GET result
-      const res: DiagnosticResult = await api.getSessionResult(session.id);
-      setResult(res);
+      await api.submitSessionAnswers(state.sessionId, payload);
+      const res: DiagnosticResult = await api.getSessionResult(state.sessionId);
+      
+      setState(prev => ({ ...prev, result: res, submitting: false }));
 
       if (onQuizCompleted) {
         onQuizCompleted(res);
       }
     } catch (err: any) {
-      setError(err.message || 'Quiz submission failed.');
-    } finally {
-      setSubmitting(false);
+      setState(prev => ({ ...prev, submitting: false, error: err.message || 'Quiz submission failed.' }));
     }
   };
 
+  const allAnswered = state.questions.length > 0 && 
+    state.questions.every(q => state.answers[q.id] && state.answers[q.id].trim().length > 0);
+
+  const score = state.result?.session?.score || 0;
+  const maxScore = state.result?.session?.max_score || 0;
+  const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+
   return (
-    <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-5 md:p-6 rounded-2xl space-y-5">
-      {/* Quiz Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <div>
-          <div className="text-[10px] font-black tracking-[0.2em] text-blue-600 dark:text-blue-400">
-            DIAGNOSTIC TEST ENGAGEMENT
-          </div>
-          <h4 className="text-base font-black text-slate-900 dark:text-white heading-font">
-            DIAGNOSTIC QUIZ WORKSPACE
-          </h4>
-        </div>
-        {!session && (
-          <Button size="sm" onClick={handleGenerateQuiz} isLoading={loading}>
-            Generate Diagnostic Quiz
-          </Button>
-        )}
+    <Card className="bg-slate-900 border border-white/10 p-6 rounded-3xl space-y-6">
+      <div className="flex items-center gap-2 pb-4 border-b border-white/5">
+        <FileQuestion className="h-5 w-5 text-emerald-500" />
+        <h3 className="text-sm font-black text-white uppercase tracking-wider">Diagnostic Quiz</h3>
       </div>
 
-      {loading && <LoadingState message="Synthesizing rigorous subject testing parameters..." />}
-
-      {error && (
-        <StatusMessage type="error" message={error} onRetry={handleGenerateQuiz} />
+      {!state.sessionId && !state.result && (
+        <div className="space-y-6 py-4">
+          <div>
+            <p className="text-sm text-slate-300 font-medium">Take a short 5-question quiz to find your strengths and weak points.</p>
+            <p className="text-xs text-slate-500 mt-1 italic">This assessment updates your topic completion status.</p>
+          </div>
+          <Button 
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl" 
+            onClick={handleGenerate} 
+            isLoading={state.loading}
+          >
+            <Sparkles className="h-4 w-4 mr-2" /> Generate Diagnostic Quiz
+          </Button>
+        </div>
       )}
 
-      {/* Active questionnaire form */}
-      {session && questions.length > 0 && !result && (
-        <form onSubmit={handleSubmitQuiz} className="space-y-6">
-          <div className="space-y-5">
-            {questions.map((q, idx) => {
-              const selectedValue = answers[q.id] || '';
-              return (
-                <div key={q.id} className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 space-y-3.5">
-                  <div className="flex gap-2 items-start">
-                    <span className="p-1 px-2 rounded-md bg-slate-900 dark:bg-slate-800 text-white font-mono text-xs font-bold shrink-0 mt-0.5">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-relaxed md:pt-0.5">
-                      {q.question_text}
-                    </p>
-                  </div>
+      {state.loading && (
+        <div className="py-12 flex flex-col items-center justify-center gap-4">
+          <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-black uppercase text-slate-500 tracking-widest">Generating diagnostic quiz...</p>
+        </div>
+      )}
 
-                  {/* Multiple Choice Options */}
-                  {q.question_type === 'mcq' && q.options && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pl-7">
-                      {(Object.keys(q.options) as Array<'A' | 'B' | 'C' | 'D'>).map(key => {
-                        const optValue = q.options![key];
-                        const isChosen = selectedValue === key;
-                        return (
-                          <div
-                            key={key}
-                            onClick={() => handleSelectOption(q.id, key)}
-                            className={`px-4 py-3 rounded-xl border text-xs cursor-pointer select-none transition flex items-center gap-2.5 font-medium
-                              ${isChosen 
-                                ? 'bg-indigo-600 text-white border-transparent dark:bg-blue-400 dark:text-slate-950 font-bold' 
-                                : 'bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                              }`}
-                          >
-                            <span className={`h-5 w-5 rounded-full flex items-center justify-center font-mono text-xs border font-bold ${
-                              isChosen ? 'bg-white/20 border-white/40' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-705 text-slate-500'
-                            }`}>
-                              {key}
-                            </span>
-                            <span className="flex-1">{optValue}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+      {state.error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-xs text-red-500 font-bold uppercase tracking-wider">
+          {state.error}
+        </div>
+      )}
 
-                  {/* Short Answer option */}
-                  {q.question_type === 'short_answer' && (
-                    <div className="pl-7">
-                      <textarea
-                        value={selectedValue}
-                        onChange={(e) => handleChangeShortAnswer(q.id, e.target.value)}
-                        placeholder="Draft your diagnostic proof, calculation details, or physical definitions..."
-                        className="w-full min-h-[70px] p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 placeholder:text-slate-400 dark:placeholder:text-slate-650 outline-hidden focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                  )}
+      {state.sessionId && state.questions.length > 0 && !state.result && (
+        <form onSubmit={handleSubmit} className="space-y-8 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+          {state.questions.map((q, idx) => (
+            <div key={q.id} className="space-y-4 p-5 rounded-2xl bg-white/5 border border-white/10 group focus-within:border-emerald-500/30 transition-colors">
+              <div className="flex gap-3">
+                <span className="w-6 h-6 shrink-0 rounded-lg bg-emerald-600/20 text-emerald-500 text-[10px] font-black flex items-center justify-center border border-emerald-500/20">
+                  {idx + 1}
+                </span>
+                <h4 className="text-sm font-bold text-slate-200 leading-relaxed">{q.question_text}</h4>
+              </div>
+
+              {q.question_type === 'mcq' && q.options ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
+                  {Object.entries(q.options).map(([key, opt]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleOptionChange(q.id, key)}
+                      className={`p-4 text-xs font-medium text-left rounded-xl border transition-all flex items-center gap-3
+                        ${state.answers[q.id] === key 
+                          ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/20' 
+                          : 'bg-slate-950 border-white/5 text-slate-400 hover:border-white/20'
+                        }
+                      `}
+                    >
+                      <span className={`w-5 h-5 shrink-0 rounded-md border flex items-center justify-center font-bold text-[10px]
+                        ${state.answers[q.id] === key ? 'bg-white/20 border-white/40' : 'bg-slate-900 border-white/10'}
+                      `}>
+                        {key}
+                      </span>
+                      {opt}
+                    </button>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              ) : (
+                <div className="pl-9">
+                  <textarea
+                    value={state.answers[q.id] || ''}
+                    onChange={(e) => handleTextChange(q.id, e.target.value)}
+                    placeholder="Type your answer here..."
+                    className="w-full min-h-[100px] p-4 text-xs rounded-xl border border-white/5 bg-slate-950 text-white placeholder:text-slate-700 outline-none focus:border-emerald-500/30"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
 
-          <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-4 gap-4">
-            <span className="text-xs text-slate-500 dark:text-slate-450 font-mono font-medium">
-              Progress: {Object.keys(answers).length} / {questions.length} answered
-            </span>
-            <Button size="md" type="submit" isLoading={submitting}>
-              Submit All Diagnostic Answers <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Button>
+          <div className="sticky bottom-0 bg-slate-900 pt-4 pb-2">
+            <Button 
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl" 
+                type="submit" 
+                isLoading={state.submitting} 
+                disabled={!allAnswered}
+              >
+                Submit Quiz
+              </Button>
+              <p className="text-center text-[9px] font-black uppercase text-slate-600 mt-4 tracking-widest">
+                {allAnswered ? 'All questions answered' : 'Answer all 5 questions to submit'}
+              </p>
           </div>
         </form>
       )}
 
-      {/* Result review section */}
-      {result && (
-        <div className="space-y-5">
-          {/* Summary diagnostic report card */}
-          <Card className="p-5 md:p-6 border-indigo-250 dark:border-indigo-905 bg-indigo-500/5 dark:bg-indigo-400/5 rounded-2xl relative overflow-hidden space-y-4">
-            <div className="flex justify-between items-start">
+      {state.result && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Result Summary Header */}
+          <div className="p-8 rounded-[2rem] bg-gradient-to-br from-indigo-600 to-purple-600 text-white space-y-6 relative overflow-hidden">
+            <Trophy className="absolute top-4 right-4 h-24 w-24 text-white/10 -rotate-12" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase text-indigo-500 tracking-widest block">REPORT CONTEXT</span>
-                <h4 className="text-xl font-black text-slate-900 dark:text-white heading-font">Diagnostic Report</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{topicTitle}</p>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">Outcome Report</span>
+                <h4 className="text-3xl font-black">{Math.round(percentage)}%</h4>
+                <div className="flex items-center gap-2">
+                   <div className="text-xs font-bold px-3 py-1 rounded-full bg-white/20 border border-white/20 uppercase tracking-widest">{state.result.session.outcome}</div>
+                   {state.result.show_checkmark && <div className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-400 text-slate-950 border border-emerald-300 uppercase tracking-widest flex items-center gap-1">Checkmark Earned <ShieldCheck className="h-3 w-3" /></div>}
+                </div>
               </div>
-              <div className="p-3 bg-indigo-500/10 rounded-full text-indigo-500">
-                <Trophy className="h-6 w-6" />
+              
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <div className="text-[10px] font-black uppercase text-white/60 tracking-widest mb-1">Total Score</div>
+                  <div className="text-xl font-bold">{score}/{maxScore}</div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border-t border-b border-indigo-500/10 py-4 my-2">
-              <div className="space-y-0.5">
-                <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Score</span>
-                <p className="text-lg font-extrabold text-slate-900 dark:text-white">{result.score} / {result.max_score}</p>
-              </div>
-              <div className="space-y-0.5 border-l border-indigo-500/10">
-                <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Performance</span>
-                <p className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{result.percentage}%</p>
-              </div>
-              <div className="space-y-0.5 border-l border-indigo-500/10">
-                <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Decision</span>
-                <p className="text-xs font-black uppercase truncate text-indigo-600 dark:text-indigo-400 pt-1.5">{result.outcome || 'Approved'}</p>
-              </div>
-              <div className="space-y-0.5 border-l border-indigo-500/10">
-                <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Completion Checkmark</span>
-                <p className="text-xs pt-1">{result.show_checkmark ? <Badge variant="completed">Earned ✓</Badge> : <Badge variant="not_started">Ongoing</Badge>}</p>
-              </div>
+            <div className="pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+               <div>
+                 <span className="text-[10px] font-black uppercase text-indigo-200 tracking-widest block mb-3">Strengths Detected</span>
+                 <div className="flex flex-wrap gap-2">
+                    {state.result.strengths.length > 0 ? state.result.strengths.map((str, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-[10px] font-black uppercase tracking-tight">✓ {str}</span>
+                    )) : <span className="text-[10px] text-white/50 italic font-bold">No categorical strengths detected.</span>}
+                 </div>
+               </div>
+               <div>
+                  <span className="text-[10px] font-black uppercase text-indigo-200 tracking-widest block mb-3">Remediation Flags</span>
+                  <div className="flex flex-wrap gap-2">
+                    {state.result.weaknesses.length > 0 ? state.result.weaknesses.map((weak, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/30 text-[10px] font-black uppercase tracking-tight">⚠ {weak}</span>
+                    )) : <span className="text-[10px] text-white/50 italic font-bold">Excellent! No weaknesses detected.</span>}
+                 </div>
+               </div>
             </div>
-
-            {/* Strengths & Weaknesses chips */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
-              <div className="space-y-1">
-                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Strengths Detected</span>
-                {result.strengths && result.strengths.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {result.strengths.map((str, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold">
-                        ✓ {str}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-slate-400 italic">No specific strength targets mapped on this run.</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Remediation Flags</span>
-                {result.weaknesses && result.weaknesses.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {result.weaknesses.map((weak, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/20 text-amber-700 dark:text-amber-450 font-bold">
-                        ⚠ {weak}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-slate-400 italic text-emerald-500 font-semibold">Perfect! No learning weaknesses flagged.</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Per question review panel list */}
-          <div className="space-y-4">
-            <h5 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">
-              DETAILED ITEM AUDIT
-            </h5>
-            {result.details && result.details.map((item, idx) => (
-              <div key={idx} className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 bg-white dark:bg-slate-900/20 space-y-3">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex gap-2">
-                    <span className="font-bold text-xs text-slate-450">Q{idx + 1}.</span>
-                    <p className="text-xs font-bold text-[var(--text-primary)]">{item.question_text}</p>
-                  </div>
-                  <div>
-                    {item.is_correct ? (
-                      <Badge variant="completed">Correct</Badge>
-                    ) : (
-                      <Badge variant="refusal">Incorrect</Badge>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs">
-                  <div>
-                    <span className="text-slate-450 font-semibold block mb-0.5">Your Choice / Explanation</span>
-                    <p className={`font-medium ${item.is_correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
-                      {item.student_answer || '(Empty answer submitted)'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-slate-450 font-semibold block mb-0.5">Correct Answer Key</span>
-                    <p className="text-emerald-600 dark:text-emerald-450 font-mono font-bold">
-                      {item.correct_answer}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-1 pl-1">
-                  <span className="text-[10px] uppercase font-bold text-blue-500 block">AI Logic & Explanation</span>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">{item.feedback}</p>
-                  {item.explanation && (
-                    <p className="text-xs text-slate-400 dark:text-slate-550 leading-normal italic mt-1 bg-slate-100/30 dark:bg-slate-800/20 p-2 rounded-lg">
-                      <strong>Deep dive:</strong> {item.explanation}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
           </div>
 
-          {/* Practice/recheck triggers */}
-          <div className="flex justify-center pt-3 gap-3">
-            <Button size="sm" variant="secondary" onClick={handleGenerateQuiz}>
-              <RefreshCw className="h-3 w-3 mr-1" /> Re-trigger Diagnostic Quiz
-            </Button>
+          {/* Detailed Question Review */}
+          <div className="space-y-4">
+             <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] pl-2">Detailed Response Audit</h4>
+             {state.result.answers.map((ans, i) => (
+                <div key={i} className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex gap-3">
+                       <span className="w-5 h-5 rounded-lg bg-slate-800 text-[10px] font-black text-slate-400 flex items-center justify-center shrink-0 mt-0.5">{i+1}</span>
+                       <p className="text-sm font-bold text-white leading-relaxed">{ans.question_text}</p>
+                    </div>
+                    <div className={ans.is_correct ? 'text-emerald-500' : 'text-rose-500'}>
+                       {ans.is_correct ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-white/5">
+                    <div className="space-y-1">
+                       <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest">Your Answer</span>
+                       <div className={`text-xs font-bold ${ans.is_correct ? 'text-emerald-400' : 'text-rose-400'}`}>{ans.student_answer || '(Empty)'}</div>
+                    </div>
+                    <div className="space-y-1">
+                       <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest">Correct Solution</span>
+                       <div className="text-xs font-bold text-emerald-400">{ans.correct_answer}</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                     <div>
+                        <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest block mb-1">Feedback & Logic</span>
+                        <p className="text-xs text-slate-400 leading-relaxed font-medium">{ans.feedback}</p>
+                     </div>
+                     <div className="flex gap-2 items-center">
+                        <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest">Skill Area:</span>
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[9px] font-black uppercase text-blue-400">{ans.skill_label}</span>
+                     </div>
+                     <div>
+                        <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest block mb-1">Explanation</span>
+                        <p className="text-xs text-slate-500 leading-relaxed italic">{ans.explanation}</p>
+                     </div>
+                     {ans.detected_weakness && (
+                        <div className="pt-2">
+                           <span className="text-[9px] font-black uppercase text-amber-500 tracking-widest block mb-1">Detected Weakness</span>
+                           <span className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-black uppercase text-amber-500">{ans.detected_weakness}</span>
+                        </div>
+                     )}
+                  </div>
+                </div>
+             ))}
+          </div>
+
+          <div className="flex flex-col gap-3 py-6 items-center">
+             <Button variant="ghost" className="text-slate-500 hover:text-white" onClick={() => setState(prev => ({ ...prev, result: null, sessionId: null }))}>
+                Retry Diagnostic Quiz
+             </Button>
           </div>
         </div>
       )}
