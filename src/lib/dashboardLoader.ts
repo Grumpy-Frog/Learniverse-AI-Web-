@@ -19,10 +19,23 @@ export function formatSkillLabel(label: string): string {
     .join(" ");
 }
 
-export function getTopicMasteryCategory(topic: DashboardTopic): "weak" | "practice" | "mastered" | "improving" | "not_started" {
+export type TopicMasteryCategory = "weak" | "practice" | "improving" | "mastered" | "not_started";
+
+export function getTopicMasteryCategory(topic: DashboardTopic): TopicMasteryCategory {
+  const latest = topic.latest_score;
+  const best = topic.best_score;
+
   if (
-    topic.latest_score !== null &&
-    topic.latest_score < 40
+    topic.completion_status === "needs_practice" &&
+    latest !== null &&
+    latest < 40
+  ) {
+    return "weak";
+  }
+
+  if (
+    latest !== null &&
+    latest < 40
   ) {
     return "weak";
   }
@@ -33,7 +46,7 @@ export function getTopicMasteryCategory(topic: DashboardTopic): "weak" | "practi
 
   if (
     topic.completion_status === "completed" &&
-    (topic.best_score ?? 0) >= 80
+    (best ?? latest ?? 0) >= 80
   ) {
     return "mastered";
   }
@@ -45,8 +58,32 @@ export function getTopicMasteryCategory(topic: DashboardTopic): "weak" | "practi
   return "not_started";
 }
 
-export function uniqueStrings(items: string[]): string[] {
-  return Array.from(new Set(items.filter(Boolean)));
+export function uniqueStrings(values: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(values.filter(Boolean) as string[]));
+}
+
+export function collectStrengths(
+  topics: DashboardTopic[],
+  subjectSummaries: DashboardSubjectSummary[]
+): string[] {
+  return uniqueStrings([
+    ...topics.flatMap((topic) => topic.strength_labels ?? []),
+    ...subjectSummaries.flatMap((summary) => summary.strength_labels ?? []),
+  ]);
+}
+
+export function collectWeaknesses(
+  topics: DashboardTopic[],
+  subjectSummaries: DashboardSubjectSummary[]
+): string[] {
+  return uniqueStrings([
+    ...topics.flatMap((topic) => topic.weakness_labels ?? []),
+    ...subjectSummaries.flatMap((summary) => summary.weakness_labels ?? []),
+  ]);
+}
+
+export function collectNeedsPracticeTopics(topics: DashboardTopic[]): DashboardTopic[] {
+  return topics.filter((topic) => topic.completion_status === "needs_practice");
 }
 
 export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
@@ -67,7 +104,7 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
       const subjects: Subject[] = await api.getSubjects(grade.id);
       
       await Promise.all(subjects.map(async (subject) => {
-        // 7. Load Subject Summary (requested later in flow but can be done here)
+        // 7. Load Subject Summary
         let subjectSummary: SubjectSummary | null = null;
         try {
           subjectSummary = await api.getSubjectSummary(subject.id);
@@ -99,7 +136,6 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
             try {
               topicStatus = await api.getTopicStatus(topic.id);
             } catch (e) {
-              // Graceful failure as requested
               topicStatus = {
                 topic_id: topic.id,
                 status: 'not_started',
@@ -123,7 +159,7 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
               learning_objective: topic.learning_objective,
               completion_status: topicStatus.status || 'not_started',
               latest_score: topicStatus.last_test_score ?? null,
-              best_score: topicStatus.last_test_score ?? null, // Backend only tracks latest for now
+              best_score: topicStatus.last_test_score ?? null, 
               strength_labels: topicStatus.strengths || [],
               weakness_labels: topicStatus.weaknesses || [],
               show_checkmark: topicStatus.status === 'completed'
@@ -134,9 +170,7 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
     }));
 
     // Post-process to build final DashboardProgressModel
-    const completedTopics = allTopics.filter(t => t.completion_status === "completed");
-    const needsPracticeTopics = allTopics.filter(t => t.completion_status === "needs_practice");
-    const notStartedTopics = allTopics.filter(t => t.completion_status === "not_started");
+    const needsPracticeTopics = collectNeedsPracticeTopics(allTopics);
     
     // Categories for mastery matrix
     const masteredTopics = allTopics.filter(t => getTopicMasteryCategory(t) === "mastered");
@@ -144,34 +178,21 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
     const practiceTopics = allTopics.filter(t => getTopicMasteryCategory(t) === "practice");
     const weakTopics = allTopics.filter(t => getTopicMasteryCategory(t) === "weak");
 
-    // Collect all unique strengths/weaknesses
-    let allStrengths: string[] = [];
-    let allWeaknesses: string[] = [];
-
-    allTopics.forEach(t => {
-      allStrengths.push(...t.strength_labels);
-      allWeaknesses.push(...t.weakness_labels);
-    });
-
-    allSubjectSummaries.forEach(s => {
-      allStrengths.push(...s.strength_labels);
-      allWeaknesses.push(...s.weakness_labels);
-    });
-
     return {
       topics: allTopics,
       subjectSummaries: allSubjectSummaries,
       totalTopics: allTopics.length,
-      completedTopics: completedTopics.length,
+      completedTopics: allTopics.filter(t => t.completion_status === "completed").length,
       needsPracticeTopics,
-      notStartedTopics,
+      notStartedTopics: allTopics.filter(t => t.completion_status === "not_started"),
       masteredTopics,
       improvingTopics,
       practiceTopics,
       weakTopics,
-      strengths: uniqueStrings(allStrengths),
-      weaknesses: uniqueStrings(allWeaknesses)
+      strengths: collectStrengths(allTopics, allSubjectSummaries),
+      weaknesses: collectWeaknesses(allTopics, allSubjectSummaries)
     };
+
 
   } catch (error) {
     console.error("Dashboard loading failed:", error);

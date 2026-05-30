@@ -50,11 +50,16 @@ export default function TopicMasteryMatrix({ topics, onTopicClick }: TopicMaster
           {topics.map((topic) => (
             <div 
               key={topic.topic_id} 
-              className={`h-9 rounded-lg ${getTileColor(topic)} cursor-pointer transition-all hover:scale-110 hover:z-20 group relative`}
+              className={`h-9 rounded-lg ${getTileColor(topic)} cursor-pointer transition-all hover:scale-110 hover:z-20 group relative flex items-center justify-center p-1 px-1.5 overflow-hidden`}
               onClick={() => onTopicClick(topic)}
               onMouseEnter={() => setHoveredTopic(topic)}
               onMouseLeave={() => setHoveredTopic(null)}
+              title={`${topic.topic_title} \u00B7 ${topic.completion_status} \u00B7 ${topic.best_score ?? "No score"}`}
             >
+              <span className="text-[7px] font-black leading-none uppercase text-white/90 truncate text-center pointer-events-none">
+                {topic.topic_title}
+              </span>
+              
               {/* Tooltip implementation */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-[var(--bg-primary)] border border-[var(--glass-border)] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                 <p className="text-[9px] font-mono text-[var(--text-secondary)] uppercase mb-1">{topic.subject_name}</p>

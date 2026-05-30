@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { RemediationDetail, TopicStatus } from '../../types';
+import { RemediationDetail, TopicStatus, DiagnosticResult } from '../../types';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { Zap, Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, BookOpen, HelpCircle, ShieldCheck } from 'lucide-react';
 import MarkdownContent from '../markdown/MarkdownContent';
 
 type FocusedHelpState = {
+  diagnosticResult: DiagnosticResult | null;
   selectedWeakness: string | null;
   remediationSessionId: string | null;
   remediationDetail: RemediationDetail | null;
@@ -14,6 +15,7 @@ type FocusedHelpState = {
   loading: boolean;
   submitting: boolean;
   error: string | null;
+  initialLoading: boolean;
 };
 
 interface RemediationPanelProps {
@@ -23,14 +25,53 @@ interface RemediationPanelProps {
   onRemediationCompleted?: () => void;
 }
 
+function shouldShowFocusedHelp(result: DiagnosticResult | null): boolean {
+  if (!result) return false;
+
+  const weaknesses = result.weaknesses ?? [];
+  const answerWeaknesses = (result.answers ?? [])
+    .map((answer) => answer.detected_weakness)
+    .filter(Boolean);
+
+  const percentage = result.session?.percentage ?? null;
+  const outcome = result.session?.outcome ?? "";
+  const completionStatus = result.completion_status ?? "";
+
+  return (
+    weaknesses.length > 0 ||
+    answerWeaknesses.length > 0 ||
+    outcome === "needs_practice" ||
+    outcome === "needs_diagnostic" ||
+    completionStatus === "needs_practice" ||
+    (percentage !== null && percentage < 70)
+  );
+}
+
+function getFocusedHelpWeaknesses(result: DiagnosticResult | null): string[] {
+  if (!result) return [];
+
+  const fromResult = result.weaknesses ?? [];
+
+  const fromAnswers = (result.answers ?? [])
+    .map((answer) => answer.detected_weakness)
+    .filter(Boolean) as string[];
+
+  const fromWrongAnswers = (result.answers ?? [])
+    .filter((answer) => !answer.is_correct)
+    .map((answer) => answer.skill_label)
+    .filter(Boolean);
+
+  return Array.from(new Set([...fromResult, ...fromAnswers, ...fromWrongAnswers]));
+}
+
 export default function RemediationPanel({
   topicId,
   topicTitle,
   language = 'en',
   onRemediationCompleted
 }: RemediationPanelProps) {
-  const [weaknesses, setWeaknesses] = useState<string[]>([]);
   const [state, setState] = useState<FocusedHelpState>({
+    diagnosticResult: null,
     selectedWeakness: null,
     remediationSessionId: null,
     remediationDetail: null,
@@ -38,35 +79,41 @@ export default function RemediationPanel({
     loading: false,
     submitting: false,
     error: null,
+    initialLoading: true,
   });
 
   useEffect(() => {
-    fetchTopicStatus();
+    fetchInitialData();
   }, [topicId]);
 
-  const fetchTopicStatus = async () => {
+  const fetchInitialData = async () => {
+    setState(prev => ({ ...prev, initialLoading: true, error: null }));
     try {
-      const status: TopicStatus = await api.getTopicStatus(topicId);
-      setWeaknesses(status.weaknesses || []);
-      if (status.weaknesses && status.weaknesses.length > 0 && !state.selectedWeakness) {
-        setState(prev => ({ ...prev, selectedWeakness: status.weaknesses[0] }));
+      const cachedSessionId = sessionStorage.getItem(`learniverse_last_session_id_${topicId}`);
+      if (cachedSessionId) {
+        const result = await api.getSessionResult(cachedSessionId);
+        const weaknesses = getFocusedHelpWeaknesses(result);
+        setState(prev => ({ 
+          ...prev, 
+          diagnosticResult: result, 
+          selectedWeakness: weaknesses.length > 0 ? weaknesses[0] : null,
+          initialLoading: false 
+        }));
+      } else {
+        setState(prev => ({ ...prev, initialLoading: false }));
       }
     } catch (e) {
-      console.warn("Could not load topic status for weaknesses:", e);
+      console.warn("Could not load diagnostic result:", e);
+      setState(prev => ({ ...prev, initialLoading: false }));
     }
   };
 
   const handleGenerateFocusedHelp = async () => {
-    if (!state.selectedWeakness) return;
+    if (!state.selectedWeakness || !state.diagnosticResult) return;
     
     setState(prev => ({ ...prev, loading: true, error: null, remediationDetail: null }));
     try {
-      const cachedSessionId = sessionStorage.getItem(`learniverse_last_session_id_${topicId}`);
-      if (!cachedSessionId) {
-        throw new Error('Submit a Diagnostic Quiz first to unlock focused help.');
-      }
-
-      const sess = await api.generateRemediation(cachedSessionId, state.selectedWeakness, language);
+      const sess = await api.generateRemediation(state.diagnosticResult.session.id, state.selectedWeakness, language);
       const detail: RemediationDetail = await api.getRemediationSession(sess.id);
       
       setState(prev => ({
@@ -99,7 +146,31 @@ export default function RemediationPanel({
     }
   };
 
-  if (weaknesses.length === 0 && !state.remediationDetail) {
+  if (state.initialLoading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs font-black uppercase text-slate-500 tracking-widest">Scanning for gaps...</p>
+      </div>
+    );
+  }
+
+  if (!state.remediationDetail && !state.diagnosticResult) {
+    return (
+      <Card className="bg-slate-900 border border-white/10 p-12 rounded-[2rem] text-center flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-6">
+          <HelpCircle className="h-8 w-8" />
+        </div>
+        <h4 className="text-xl font-black text-white mb-2">No Data Available</h4>
+        <p className="text-xs text-slate-400 font-medium">Complete a diagnostic quiz to unlock focused help.</p>
+      </Card>
+    );
+  }
+
+  const showFocusedHelp = shouldShowFocusedHelp(state.diagnosticResult);
+  const helpWeaknesses = getFocusedHelpWeaknesses(state.diagnosticResult);
+
+  if (!showFocusedHelp && !state.remediationDetail) {
     return (
       <Card className="bg-slate-900 border border-white/10 p-12 rounded-[2rem] text-center flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-6">
@@ -126,7 +197,7 @@ export default function RemediationPanel({
               We found a few areas to improve. Choose one weakness and get focused help.
             </p>
             <div className="flex flex-wrap gap-2">
-               {weaknesses.map((weak, i) => (
+               {helpWeaknesses.map((weak, i) => (
                   <button
                     key={i}
                     onClick={() => setState(prev => ({ ...prev, selectedWeakness: weak }))}
@@ -137,7 +208,7 @@ export default function RemediationPanel({
                       }
                     `}
                   >
-                    {weak.replace('_', ' ')}
+                    {weak.replace(/_/g, ' ')}
                   </button>
                ))}
             </div>
@@ -153,6 +224,7 @@ export default function RemediationPanel({
           </Button>
         </div>
       )}
+
 
       {state.loading && (
         <div className="py-12 flex flex-col items-center justify-center gap-4">
