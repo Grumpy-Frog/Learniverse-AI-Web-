@@ -497,7 +497,7 @@ export default function TutorInbox() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           
           {/* Chat Inbox Visual Area */}
-          <Card className="border-slate-200 dark:border-slate-850 bg-[#FCFDFE] dark:bg-slate-950 flex flex-col h-[540px]">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-[700px] overflow-hidden shadow-sm relative">
             
             {/* Header info */}
             <div className="p-4 border-b border-slate-200 dark:border-slate-855 bg-white dark:bg-slate-900 flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
@@ -518,7 +518,7 @@ export default function TutorInbox() {
             </div>
 
             {/* Bubble contents */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 pb-8">
               {loadingMsg ? (
                 <div className="flex items-center justify-center h-full">
                   <LoadingState message="Restoring discussion context parameters..." />
@@ -555,7 +555,7 @@ export default function TutorInbox() {
                   <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
                     <MessageSquare className="h-6 w-6" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-605">Concept dialogue initialized</h4>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Conversation started</h4>
                   <p className="text-xs leading-relaxed font-normal">
                     No messages yet. Generate a story lesson or ask your first question.
                   </p>
@@ -566,30 +566,32 @@ export default function TutorInbox() {
                   const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
                   const isStory = msg.message_type === 'story';
                   return (
-                    <div key={msg.id || i} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
-                      {/* Name tag */}
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 select-none font-semibold px-1">
-                        {isUser ? 'You (Student)' : isStory ? 'Story Lesson' : 'AI Tutor'}
-                      </span>
+                    <div key={msg.id || i} className={`w-full max-w-4xl mx-auto flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                      {/* AI Avatar */}
+                      {!isUser && (
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                      )}
 
                       {/* Msg bubble container layout styles */}
-                      <div className={`p-4 rounded-xl text-sm leading-relaxed max-w-[85%]
+                      <div className={`text-[15px] leading-relaxed max-w-[85%] md:max-w-[75%]
                         ${isUser 
-                          ? 'bg-blue-600 text-white dark:bg-blue-500 font-medium' 
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-5 py-3.5 rounded-3xl font-medium' 
                           : isRefusal 
-                            ? 'bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-500' 
-                            : 'bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-850 text-slate-800 dark:text-slate-205'
+                            ? 'bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-500 p-4 rounded-2xl' 
+                            : 'text-slate-800 dark:text-slate-200'
                         }`}
                       >
                         {/* Custom label tags for story or refusals */}
                         {isStory && (
-                          <div className="mb-2">
-                            <Badge variant="source_grounded">Story Lesson</Badge>
+                          <div className="mb-3">
+                            <span className="inline-flex items-center rounded-md bg-indigo-100 dark:bg-indigo-500/20 px-2 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-600/20">Story Lesson</span>
                           </div>
                         )}
                         {isRefusal && (
-                          <div className="mb-2">
-                            <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20">Outside selected topic</span>
+                          <div className="mb-3">
+                            <span className="inline-flex items-center rounded-md bg-amber-100 dark:bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">Outside selected topic</span>
                           </div>
                         )}
 
@@ -597,21 +599,23 @@ export default function TutorInbox() {
 
                         {/* Citations/RAG Sources list underneath message if provided */}
                         {msg.sources && msg.sources.length > 0 && (
-                          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
-                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest select-none">
-                              <FileText className="h-3 w-3 shrink-0" />
-                              Source Preview
+                          <div className="mt-5 space-y-3">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 select-none">
+                              <FileText className="h-4 w-4 shrink-0" />
+                              Sources
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
                               {msg.sources.map((src, srcIdx) => (
-                                <div key={srcIdx} className="p-2.5 rounded-lg border border-slate-150 dark:border-slate-805 bg-slate-50 dark:bg-slate-950/60 flex flex-col gap-1 text-[10px] select-text pointer-events-auto leading-normal">
-                                  <div className="flex justify-between font-bold text-slate-800 dark:text-slate-250 truncate">
-                                    <span className="truncate">{src.title || 'Source'}</span>
-                                    <span className="text-slate-400 shrink-0 ml-1.5 font-mono text-[8px]">Pages {src.page_start} - {src.page_end}</span>
+                                <div key={srcIdx} className="w-[280px] shrink-0 snap-start p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-1.5 text-xs select-text pointer-events-auto leading-normal">
+                                  <div className="flex justify-between items-start font-semibold text-slate-800 dark:text-slate-200">
+                                    <span className="line-clamp-1 flex-1 pr-2">{src.title || 'Source text'}</span>
                                   </div>
-                                  <p className="text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed italic">
+                                  <p className="text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed italic">
                                     "{src.content_preview}"
                                   </p>
+                                  <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-1">
+                                    Pages {src.page_start} - {src.page_end}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -623,24 +627,31 @@ export default function TutorInbox() {
                 })
               )}
               {sendingMsg && (
-                <div className="flex items-center gap-2 pl-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" />
-                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-100" />
-                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-200" />
-                  <span className="text-xs text-slate-405 italic ml-1">Tutor is thinking...</span>
+                <div className="w-full max-w-4xl mx-auto flex gap-4 justify-start">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
+                    <Sparkles className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div className="flex items-center gap-1.5 h-10">
+                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce" />
+                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce delay-100" />
+                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce delay-200" />
+                  </div>
                 </div>
               )}
               {lastNote && !sendingMsg && (
-                <div className="p-2 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 italic font-medium">{lastNote}</p>
+                <div className="w-full max-w-4xl mx-auto flex gap-4 justify-start">
+                   <div className="w-8 h-8 shrink-0"></div>
+                   <div className="p-2.5 border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl inline-block max-w-full">
+                     <p className="text-[10px] text-slate-500 dark:text-slate-400 italic font-medium">{lastNote}</p>
+                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input keyboard controls panels */}
-            <form onSubmit={handleSendMessage} className="p-3.5 border-t border-slate-200 dark:border-slate-855 bg-white dark:bg-slate-900 rounded-b-2xl shrink-0">
-              <div className="flex gap-2.5 items-end">
+            <form onSubmit={handleSendMessage} className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-b-2xl shrink-0 z-10 sticky bottom-0 border-t border-slate-100 dark:border-slate-800/50">
+              <div className="max-w-4xl mx-auto relative rounded-3xl bg-slate-100 dark:bg-slate-800 p-2 border-none ring-1 ring-slate-200 dark:ring-slate-700/50 shadow-sm focus-within:ring-indigo-300 dark:focus-within:ring-indigo-700/50 transition-shadow">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -651,20 +662,21 @@ export default function TutorInbox() {
                     }
                   }}
                   placeholder={selectedTopic ? `Ask about "${selectedTopic.topic_title}"...` : "Choose a learning context catalog topic or write here..."}
-                  className="flex-1 min-h-[40px] max-h-[140px] p-2.5 text-xs text-slate-850 dark:text-slate-50 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 placeholder:text-slate-400 dark:placeholder:text-slate-650 outline-hidden focus:outline-hidden focus:border-indigo-500"
-                  rows={2}
+                  className="w-full min-h-[48px] max-h-[200px] p-3 text-base text-slate-850 dark:text-slate-50 bg-transparent placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:outline-none resize-none pr-12"
+                  rows={1}
                 />
-                <Button
+                <button
                   type="submit"
                   disabled={sendingMsg || !typedMessage.trim()}
-                  className="rounded-xl h-[40px] w-[40px] px-0 justify-center flex items-center shrink-0"
+                  className="absolute right-3 bottom-3 h-10 w-10 flex items-center justify-center rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 dark:disabled:text-slate-500 transition-colors"
                 >
-                  <Send className="h-4 w-4 text-white" />
-                </Button>
+                  <Send className="h-4 w-4" />
+                </button>
               </div>
-              <div className="flex justify-between items-center text-[10px] text-slate-450 mt-1.5 select-none">
-                <span>Enter to Send &bull; Shift+Enter to create newline</span>
-                <span>Ask questions related to your selected topic.</span>
+              <div className="max-w-4xl mx-auto flex justify-center mt-3 select-none">
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                  Tutor can make mistakes. Check important info.
+                </p>
               </div>
             </form>
 
