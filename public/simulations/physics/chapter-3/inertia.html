@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inertia in Everyday Motion / দৈনন্দিন গতিতে জড়তা</title>
+  <style>
+    :root {
+      --bg: #f4f7ff;
+      --panel: rgba(255,255,255,0.94);
+      --panel-strong: #ffffff;
+      --ink: #14233c;
+      --muted: #60708a;
+      --primary: #3769ef;
+      --primary-dark: #2452ce;
+      --accent: #17b68b;
+      --warning: #f59e0b;
+      --border: #d9e3f6;
+      --shadow: 0 18px 48px rgba(28, 47, 86, 0.12);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Bengali", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 0%, #dce9ff 0, transparent 36%),
+        radial-gradient(circle at 92% 8%, #ddfff3 0, transparent 30%),
+        var(--bg);
+    }
+
+    body { padding: clamp(14px, 3vw, 30px); }
+
+    .app {
+      max-width: 1260px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--primary-dark);
+      background: #e8efff;
+      font-size: 0.83rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 10px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      font-size: clamp(1.55rem, 2.7vw, 2.45rem);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.94rem, 1.4vw, 1.04rem);
+      max-width: 680px;
+    }
+
+    .language-toggle {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      padding: 5px;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel-strong);
+      box-shadow: 0 5px 15px rgba(35, 55, 90, 0.07);
+    }
+
+    .language-toggle button {
+      appearance: none;
+      border: 0;
+      padding: 9px 14px;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 0.91rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      background: transparent;
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    .language-toggle button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 284px minmax(390px, 1fr) 294px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .controls-panel, .observation-panel {
+      padding: 18px;
+    }
+
+    .panel-heading {
+      margin: 0 0 12px;
+      font-size: 0.83rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .scene-list {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .scene-btn {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      align-items: center;
+      appearance: none;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: #f8faff;
+      border-radius: 14px;
+      padding: 10px;
+      cursor: pointer;
+      color: var(--ink);
+      font: inherit;
+      transition: border-color 170ms ease, background 170ms ease, transform 170ms ease;
+    }
+
+    .scene-btn:hover { transform: translateY(-1px); border-color: #aec3ef; }
+    .scene-btn.active { background: #ecf2ff; border-color: var(--primary); }
+
+    .scene-icon {
+      height: 36px;
+      width: 36px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      border-radius: 10px;
+      background: #e7efff;
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+
+    .scene-btn.active .scene-icon {
+      color: white;
+      background: var(--primary);
+    }
+
+    .scene-name {
+      display: block;
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .scene-number {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      margin-top: 2px;
+    }
+
+    .slider-group {
+      display: grid;
+      gap: 16px;
+      min-height: 130px;
+      padding-top: 3px;
+      border-top: 1px solid var(--border);
+    }
+
+    .control:first-child { margin-top: 14px; }
+
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.88rem;
+      font-weight: 650;
+      margin-bottom: 7px;
+    }
+
+    output {
+      background: #eef3ff;
+      color: var(--primary-dark);
+      padding: 3px 7px;
+      min-width: 65px;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 0.81rem;
+      font-weight: 750;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 0.86fr;
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    .action, .reset {
+      appearance: none;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform 170ms ease, background 170ms ease;
+    }
+
+    .action:hover, .reset:hover { transform: translateY(-1px); }
+
+    .action {
+      border: 1px solid var(--primary-dark);
+      background: var(--primary);
+      color: white;
+    }
+
+    .action:hover { background: var(--primary-dark); }
+
+    .reset {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--ink);
+    }
+
+    .stage-panel { overflow: hidden; padding: 0; }
+
+    .stage-header {
+      min-height: 55px;
+      padding: 14px 16px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stage-title {
+      font-size: 1rem;
+      font-weight: 760;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      background: #f1f4fa;
+      font-size: 0.78rem;
+      font-weight: 730;
+    }
+
+    .status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #93a2bc;
+    }
+
+    .status.running { color: #08795e; background: #def8f0; }
+    .status.running::before { background: var(--accent); animation: pulse 900ms infinite alternate; }
+    .status.complete { color: var(--primary-dark); background: #e8efff; }
+    .status.complete::before { background: var(--primary); }
+
+    @keyframes pulse { from { opacity: 0.42; } to { opacity: 1; } }
+
+    .canvas-wrap {
+      width: 100%;
+      position: relative;
+      background: #eef5ff;
+      border-top: 1px solid var(--border);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 920 / 460;
+      touch-action: none;
+    }
+
+    .canvas-hint {
+      padding: 10px 16px 14px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .law-card {
+      border-radius: 14px;
+      background: #eef4ff;
+      border: 1px solid #d5e1fb;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .law-card strong {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 0.84rem;
+      margin-bottom: 6px;
+    }
+
+    .law-card p {
+      margin: 0;
+      font-size: 0.87rem;
+      line-height: 1.45;
+    }
+
+    .type-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 13px;
+    }
+
+    .type-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 750;
+      letter-spacing: 0.07em;
+      margin-bottom: 5px;
+    }
+
+    .type-value {
+      display: inline-block;
+      border-radius: 9px;
+      padding: 5px 9px;
+      font-size: 0.9rem;
+      color: #08795e;
+      background: #dcf9ee;
+      font-weight: 760;
+    }
+
+    .observation {
+      border-radius: 14px;
+      padding: 13px;
+      min-height: 128px;
+      background: #fffaf0;
+      border: 1px solid #fae6bd;
+    }
+
+    .observation h3 {
+      margin: 0 0 8px;
+      font-size: 0.86rem;
+      color: #a16207;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .observation p {
+      margin: 0;
+      font-size: 0.91rem;
+      line-height: 1.5;
+    }
+
+    .tip {
+      margin-top: 14px;
+      font-size: 0.82rem;
+      line-height: 1.42;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: 270px 1fr; }
+      .observation-panel { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .observation-panel .panel-heading { grid-column: 1 / -1; margin-bottom: 0; }
+      .tip { grid-column: 1 / -1; margin-top: 0; }
+      .law-card, .type-card { margin-bottom: 0; }
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 12px; }
+      header { flex-direction: column; }
+      .layout { grid-template-columns: 1fr; }
+      .controls-panel { order: 1; }
+      .stage-panel { order: 2; }
+      .observation-panel { order: 3; display: block; }
+      .law-card, .type-card { margin-bottom: 13px; }
+      .tip { margin-top: 14px; }
+      .scene-list { grid-template-columns: repeat(3, 1fr); }
+      .scene-btn { flex-direction: column; text-align: center; padding: 9px 5px; gap: 6px; }
+      .scene-name { font-size: 0.8rem; }
+      .scene-number { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <div class="eyebrow" id="eyebrow">Newton's First Law</div>
+        <h1>Inertia in Everyday Motion / দৈনন্দিন গতিতে জড়তা</h1>
+        <p class="subtitle" id="subtitle">Explore why bodies resist a sudden change in motion through three everyday experiments.</p>
+      </div>
+      <div class="language-toggle" aria-label="Language selector">
+        <button id="langEn" class="active" type="button" aria-pressed="true">English</button>
+        <button id="langBn" type="button" aria-pressed="false">বাংলা</button>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="panel controls-panel" aria-label="Simulation controls">
+        <h2 class="panel-heading" id="chooseLabel">Choose an experiment</h2>
+        <div class="scene-list" id="sceneList"></div>
+        <h2 class="panel-heading" id="changeLabel">Change conditions</h2>
+        <div class="slider-group" id="sliderGroup"></div>
+        <div class="button-row">
+          <button class="action" id="runBtn" type="button">Run</button>
+          <button class="reset" id="resetBtn" type="button">Reset</button>
+        </div>
+      </aside>
+
+      <section class="panel stage-panel" aria-label="Animated experiment">
+        <div class="stage-header">
+          <div class="stage-title" id="stageTitle"></div>
+          <div class="status" id="status" aria-live="polite">Ready</div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="simulation" width="920" height="460" role="img" aria-label="Interactive inertia animation"></canvas>
+        </div>
+        <div class="canvas-hint" id="hint"></div>
+      </section>
+
+      <aside class="panel observation-panel" aria-label="Learning observation">
+        <h2 class="panel-heading" id="learnLabel">What to notice</h2>
+        <div class="law-card">
+          <strong id="lawTitle">Newton's First Law</strong>
+          <p id="lawText"></p>
+        </div>
+        <div class="type-card">
+          <div class="type-label" id="typeLabel">Type of inertia</div>
+          <div class="type-value" id="typeValue"></div>
+        </div>
+        <div class="observation" aria-live="polite">
+          <h3 id="observationTitle">Observation</h3>
+          <p id="observationText"></p>
+        </div>
+        <p class="tip" id="tip"></p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const W = 920;
+      const H = 460;
+      const canvas = document.getElementById('simulation');
+      const ctx = canvas.getContext('2d');
+
+      const ui = {
+        eyebrow: document.getElementById('eyebrow'),
+        subtitle: document.getElementById('subtitle'),
+        chooseLabel: document.getElementById('chooseLabel'),
+        changeLabel: document.getElementById('changeLabel'),
+        learnLabel: document.getElementById('learnLabel'),
+        sceneList: document.getElementById('sceneList'),
+        sliderGroup: document.getElementById('sliderGroup'),
+        runBtn: document.getElementById('runBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        stageTitle: document.getElementById('stageTitle'),
+        status: document.getElementById('status'),
+        hint: document.getElementById('hint'),
+        lawTitle: document.getElementById('lawTitle'),
+        lawText: document.getElementById('lawText'),
+        typeLabel: document.getElementById('typeLabel'),
+        typeValue: document.getElementById('typeValue'),
+        observationTitle: document.getElementById('observationTitle'),
+        observationText: document.getElementById('observationText'),
+        tip: document.getElementById('tip'),
+        langEn: document.getElementById('langEn'),
+        langBn: document.getElementById('langBn')
+      };
+
+      const text = {
+        en: {
+          eyebrow: "Newton's First Law",
+          subtitle: 'Explore why bodies resist a sudden change in motion through three everyday experiments.',
+          choose: 'Choose an experiment',
+          change: 'Change conditions',
+          learn: 'What to notice',
+          run: 'Run',
+          reset: 'Reset',
+          ready: 'Ready',
+          running: 'Running',
+          complete: 'Complete',
+          lawTitle: "Newton's First Law",
+          lawText: 'An object stays at rest, or keeps moving uniformly, unless an unbalanced force changes its state.',
+          typeLabel: 'Type of inertia',
+          observation: 'Observation',
+          tipStart: 'Try a gentle start, then increase the acceleration. Compare the passenger’s lean.',
+          tipStop: 'Try changing both speed and braking strength. Which causes the largest lean?',
+          tipCoin: 'Try the same pull speed with low and high grip. The card can transfer some motion by friction.',
+          stageHint: 'Choose conditions, then press Run to observe the effect.',
+          scenes: {
+            start: { name: 'Vehicle starts', number: 'Experiment 1', title: 'A vehicle starts suddenly', type: 'Inertia of rest', icon: '▶' },
+            stop: { name: 'Vehicle stops', number: 'Experiment 2', title: 'A moving vehicle stops suddenly', type: 'Inertia of motion', icon: '■' },
+            coin: { name: 'Coin & glass', number: 'Experiment 3', title: 'Card, coin and glass experiment', type: 'Inertia of rest', icon: '●' }
+          },
+          controls: {
+            startStrength: 'Start acceleration',
+            initialSpeed: 'Initial vehicle speed',
+            brakeStrength: 'Braking strength',
+            pullSpeed: 'Card removal speed',
+            grip: 'Card–coin grip'
+          },
+          before: {
+            start: 'The passenger is initially at rest with the vehicle. Start the vehicle and watch the upper body.',
+            stop: 'The passenger is moving with the vehicle. Apply the brakes and watch the upper body.',
+            coin: 'The coin is at rest on the card. Pull the card and observe where the coin falls.'
+          },
+          during: {
+            start: 'The vehicle gains forward motion, but the passenger’s body tends to remain at rest for a moment.',
+            stop: 'The vehicle slows down, but the passenger’s body tends to keep moving forward.',
+            coin: 'The card is moving away. The coin resists horizontal motion while gravity pulls it downward.'
+          },
+          outcome: {
+            startGentle: 'With a gentle start, the backward lean is small because the change in motion is gradual.',
+            startStrong: 'With a sudden start, the passenger leans farther backward because the body resists rapid forward acceleration.',
+            stopGentle: 'Mild braking causes a small forward lean because the passenger loses forward motion gradually.',
+            stopStrong: 'Sudden braking causes a larger forward lean because the passenger’s body tends to continue moving forward.',
+            coinIn: 'The card moved away quickly, so the coin gained little sideways motion and fell into the glass due to gravity.',
+            coinMiss: 'The card transferred enough sideways motion through friction, so the coin did not fall into the glass. Try pulling faster or reducing grip.'
+          },
+          canvas: {
+            passenger: 'Passenger', vehicle: 'Vehicle', acceleration: 'Acceleration', motion: 'Motion', braking: 'Braking force',
+            tendsRest: 'Body tends to remain at rest', tendsMove: 'Body tends to continue forward',
+            cardPull: 'Pull card', gravity: 'Gravity', coin: 'Coin', card: 'Card', glass: 'Glass',
+            gentle: 'gentle', sudden: 'sudden'
+          }
+        },
+        bn: {
+          eyebrow: 'নিউটনের প্রথম সূত্র',
+          subtitle: 'দৈনন্দিন তিনটি পরীক্ষায় দেখো—কেন বস্তু হঠাৎ গতির পরিবর্তন প্রতিরোধ করে।',
+          choose: 'একটি পরীক্ষা বেছে নাও',
+          change: 'শর্ত পরিবর্তন করো',
+          learn: 'যা লক্ষ্য করবে',
+          run: 'চালাও',
+          reset: 'রিসেট',
+          ready: 'প্রস্তুত',
+          running: 'চলছে',
+          complete: 'সম্পন্ন',
+          lawTitle: 'নিউটনের প্রথম সূত্র',
+          lawText: 'অসম বল কাজ না করলে স্থির বস্তু স্থির থাকে এবং গতিশীল বস্তু সমবেগে চলতে থাকে।',
+          typeLabel: 'জড়তার ধরন',
+          observation: 'পর্যবেক্ষণ',
+          tipStart: 'প্রথমে ধীরে শুরু করো, তারপর ত্বরণ বাড়াও। যাত্রী কতটা হেলে যায় তুলনা করো।',
+          tipStop: 'গতি ও ব্রেকের তীব্রতা বদলে দেখো। কোন অবস্থায় সামনের দিকে বেশি হেলে?',
+          tipCoin: 'একই টানার গতিতে কম ও বেশি ঘর্ষণ দিয়ে দেখো। ঘর্ষণে কার্ড কয়েনকে কিছু গতি দিতে পারে।',
+          stageHint: 'শর্ত বেছে নিয়ে ফল দেখতে চালাও বাটনে চাপ দাও।',
+          scenes: {
+            start: { name: 'গাড়ি চলা শুরু', number: 'পরীক্ষা ১', title: 'গাড়ি হঠাৎ চলা শুরু করে', type: 'স্থিতিজড়তা', icon: '▶' },
+            stop: { name: 'গাড়ি থামে', number: 'পরীক্ষা ২', title: 'চলন্ত গাড়ি হঠাৎ থামে', type: 'গতিজড়তা', icon: '■' },
+            coin: { name: 'কয়েন ও গ্লাস', number: 'পরীক্ষা ৩', title: 'কার্ড, কয়েন ও গ্লাসের পরীক্ষা', type: 'স্থিতিজড়তা', icon: '●' }
+          },
+          controls: {
+            startStrength: 'শুরুর ত্বরণ',
+            initialSpeed: 'গাড়ির প্রাথমিক বেগ',
+            brakeStrength: 'ব্রেকের তীব্রতা',
+            pullSpeed: 'কার্ড সরানোর বেগ',
+            grip: 'কার্ড–কয়েন ঘর্ষণ'
+          },
+          before: {
+            start: 'গাড়ির সঙ্গে যাত্রী শুরুতে স্থির আছে। গাড়ি চালিয়ে শরীরের উপরের অংশ লক্ষ্য করো।',
+            stop: 'গাড়ির সঙ্গে যাত্রীও গতিশীল আছে। ব্রেক করলে শরীরের উপরের অংশ লক্ষ্য করো।',
+            coin: 'কার্ডের উপর কয়েনটি স্থির আছে। কার্ড টেনে কয়েন কোথায় পড়ে দেখো।'
+          },
+          during: {
+            start: 'গাড়ি সামনে ত্বরণ পাচ্ছে, কিন্তু যাত্রীর দেহ মুহূর্তের জন্য স্থির থাকতে চায়।',
+            stop: 'গাড়ি ধীর হচ্ছে, কিন্তু যাত্রীর দেহ সামনে চলতে থাকতে চায়।',
+            coin: 'কার্ড সরে যাচ্ছে। কয়েন অনুভূমিক গতি প্রতিরোধ করে এবং অভিকর্ষে নিচে পড়ে।'
+          },
+          outcome: {
+            startGentle: 'ধীরে শুরু করলে গতির পরিবর্তন ধীরে হয়, তাই যাত্রী অল্প পেছনে হেলে।',
+            startStrong: 'হঠাৎ শুরু করলে যাত্রী বেশি পেছনে হেলে, কারণ দেহ দ্রুত সামনের ত্বরণ প্রতিরোধ করে।',
+            stopGentle: 'কম ব্রেক করলে যাত্রী ধীরে সামনের গতি হারায়, তাই অল্প সামনে হেলে।',
+            stopStrong: 'হঠাৎ ব্রেক করলে যাত্রী বেশি সামনে হেলে, কারণ দেহ সামনে চলতে থাকতে চায়।',
+            coinIn: 'কার্ড দ্রুত সরে যাওয়ায় কয়েন খুব কম পাশের গতি পায় এবং অভিকর্ষের কারণে গ্লাসে পড়ে।',
+            coinMiss: 'ঘর্ষণে কার্ড কয়েনকে যথেষ্ট পাশের গতি দিয়েছে, তাই কয়েন গ্লাসে পড়েনি। দ্রুত টানো বা ঘর্ষণ কমাও।'
+          },
+          canvas: {
+            passenger: 'যাত্রী', vehicle: 'গাড়ি', acceleration: 'ত্বরণ', motion: 'গতি', braking: 'ব্রেক বল',
+            tendsRest: 'দেহ স্থির থাকতে চায়', tendsMove: 'দেহ সামনে চলতে চায়',
+            cardPull: 'কার্ড টান', gravity: 'অভিকর্ষ', coin: 'কয়েন', card: 'কার্ড', glass: 'গ্লাস',
+            gentle: 'ধীরে', sudden: 'হঠাৎ'
+          }
+        }
+      };
+
+      const state = {
+        lang: 'en',
+        scene: 'start',
+        running: false,
+        done: false,
+        lastTime: 0,
+        params: {
+          startStrength: 4.2,
+          initialSpeed: 25,
+          brakeStrength: 4.7,
+          pullSpeed: 4.5,
+          grip: 0.32
+        },
+        vehicle: {},
+        coin: {}
+      };
+
+      function tr() { return text[state.lang]; }
+      function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+      function lerp(a, b, amount) { return a + (b - a) * amount; }
+
+      function roundedRect(x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      function fillRounded(x, y, w, h, r, fill, stroke) {
+        roundedRect(x, y, w, h, r);
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+      }
+
+      function arrow(x1, y1, x2, y2, color, label, labelBelow = false) {
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const head = 11;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - head * Math.cos(angle - Math.PI / 6), y2 - head * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x2 - head * Math.cos(angle + Math.PI / 6), y2 - head * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+        if (label) {
+          ctx.font = '600 14px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, (x1 + x2) / 2, labelBelow ? y1 + 21 : y1 - 10);
+        }
+        ctx.restore();
+      }
+
+      function labelPill(label, x, y, color = '#2452ce') {
+        ctx.save();
+        ctx.font = '600 13px system-ui, sans-serif';
+        const width = ctx.measureText(label).width + 18;
+        fillRounded(x - width / 2, y - 17, width, 25, 12, 'rgba(255,255,255,0.93)', '#dbe5f7');
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x, y);
+        ctx.restore();
+      }
+
+      function resetMotion() {
+        state.running = false;
+        state.done = false;
+        state.lastTime = 0;
+        state.vehicle = {
+          busX: state.scene === 'start' ? 84 : 212,
+          speed: state.scene === 'stop' ? state.params.initialSpeed * 5.15 : 0,
+          lean: 0,
+          road: 0,
+          t: 0
+        };
+        state.coin = {
+          cardX: 350,
+          cardY: 205,
+          coinX: 460,
+          coinY: 187,
+          vx: 0,
+          vy: 0,
+          falling: false,
+          checked: false,
+          success: null,
+          t: 0
+        };
+        updateStatus();
+        updateObservation();
+        draw();
+      }
+
+      function setLanguage(lang) {
+        state.lang = lang;
+        document.documentElement.lang = lang === 'bn' ? 'bn' : 'en';
+        ui.langEn.classList.toggle('active', lang === 'en');
+        ui.langBn.classList.toggle('active', lang === 'bn');
+        ui.langEn.setAttribute('aria-pressed', String(lang === 'en'));
+        ui.langBn.setAttribute('aria-pressed', String(lang === 'bn'));
+        renderStaticText();
+        renderScenes();
+        renderControls();
+        updateStatus();
+        updateObservation();
+        draw();
+      }
+
+      function renderStaticText() {
+        const l = tr();
+        ui.eyebrow.textContent = l.eyebrow;
+        ui.subtitle.textContent = l.subtitle;
+        ui.chooseLabel.textContent = l.choose;
+        ui.changeLabel.textContent = l.change;
+        ui.learnLabel.textContent = l.learn;
+        ui.runBtn.textContent = l.run;
+        ui.resetBtn.textContent = l.reset;
+        ui.lawTitle.textContent = l.lawTitle;
+        ui.lawText.textContent = l.lawText;
+        ui.typeLabel.textContent = l.typeLabel;
+        ui.observationTitle.textContent = l.observation;
+        ui.hint.textContent = l.stageHint;
+      }
+
+      function renderScenes() {
+        const l = tr();
+        ui.sceneList.innerHTML = ['start', 'stop', 'coin'].map(key => {
+          const scene = l.scenes[key];
+          return `<button class="scene-btn ${state.scene === key ? 'active' : ''}" data-scene="${key}" type="button" aria-pressed="${state.scene === key}">
+              <span class="scene-icon">${scene.icon}</span>
+              <span><span class="scene-name">${scene.name}</span><span class="scene-number">${scene.number}</span></span>
+            </button>`;
+        }).join('');
+        ui.sceneList.querySelectorAll('.scene-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            state.scene = button.dataset.scene;
+            renderScenes();
+            renderControls();
+            resetMotion();
+          });
+        });
+      }
+
+      function controlMarkup(key, min, max, step, unit) {
+        const l = tr();
+        const value = state.params[key];
+        const shown = key === 'grip' ? Math.round(value * 100) + '%' : Number(value).toFixed(step < 1 ? 1 : 0) + ' ' + unit;
+        return `<label class="control">
+          <span class="control-head"><span>${l.controls[key]}</span><output data-output="${key}">${shown}</output></span>
+          <input type="range" name="${key}" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${l.controls[key]}">
+        </label>`;
+      }
+
+      function renderControls() {
+        let html = '';
+        if (state.scene === 'start') {
+          html = controlMarkup('startStrength', 1, 8, 0.1, 'm/s²');
+        } else if (state.scene === 'stop') {
+          html = controlMarkup('initialSpeed', 8, 42, 1, 'km/h') + controlMarkup('brakeStrength', 1, 9, 0.1, 'm/s²');
+        } else {
+          html = controlMarkup('pullSpeed', 0.5, 8, 0.1, 'm/s') + controlMarkup('grip', 0.05, 0.75, 0.01, '');
+        }
+        ui.sliderGroup.innerHTML = html;
+        ui.sliderGroup.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', event => {
+            const key = event.target.name;
+            state.params[key] = Number(event.target.value);
+            renderControls();
+            resetMotion();
+          });
+        });
+      }
+
+      function updateStatus() {
+        const l = tr();
+        ui.status.className = 'status' + (state.running ? ' running' : state.done ? ' complete' : '');
+        ui.status.textContent = state.running ? l.running : state.done ? l.complete : l.ready;
+      }
+
+      function observationForState() {
+        const l = tr();
+        if (!state.running && !state.done) return l.before[state.scene];
+        if (state.running) return l.during[state.scene];
+        if (state.scene === 'start') return state.params.startStrength >= 4.4 ? l.outcome.startStrong : l.outcome.startGentle;
+        if (state.scene === 'stop') {
+          const severity = state.params.initialSpeed * state.params.brakeStrength;
+          return severity >= 112 ? l.outcome.stopStrong : l.outcome.stopGentle;
+        }
+        return state.coin.success ? l.outcome.coinIn : l.outcome.coinMiss;
+      }
+
+      function updateObservation() {
+        const l = tr();
+        ui.stageTitle.textContent = l.scenes[state.scene].title;
+        ui.typeValue.textContent = l.scenes[state.scene].type;
+        ui.observationText.textContent = observationForState();
+        ui.tip.textContent = state.scene === 'start' ? l.tipStart : state.scene === 'stop' ? l.tipStop : l.tipCoin;
+      }
+
+      function run() {
+        resetMotion();
+        state.running = true;
+        state.done = false;
+        state.lastTime = performance.now();
+        updateStatus();
+        updateObservation();
+      }
+
+      function finish() {
+        state.running = false;
+        state.done = true;
+        updateStatus();
+        updateObservation();
+      }
+
+      function update(dt) {
+        if (!state.running) return;
+        if (state.scene === 'start') updateStart(dt);
+        else if (state.scene === 'stop') updateStop(dt);
+        else updateCoin(dt);
+      }
+
+      function updateStart(dt) {
+        const v = state.vehicle;
+        v.t += dt;
+        const acceleration = v.t < 1.55 ? state.params.startStrength * 30 : 0;
+        v.speed += acceleration * dt;
+        const movement = v.speed * dt;
+        if (v.busX < 236) v.busX = Math.min(236, v.busX + movement);
+        else v.road += movement;
+        const targetLean = acceleration > 0 ? -clamp(state.params.startStrength * 3.8, 5, 29) : 0;
+        v.lean = lerp(v.lean, targetLean, Math.min(1, dt * 6));
+        if (v.t > 3.3) finish();
+      }
+
+      function updateStop(dt) {
+        const v = state.vehicle;
+        v.t += dt;
+        const braking = v.t > 0.62 && v.speed > 0;
+        const deceleration = braking ? state.params.brakeStrength * 43 : 0;
+        v.speed = Math.max(0, v.speed - deceleration * dt);
+        v.road += v.speed * dt;
+        const targetLean = braking && v.speed > 0 ? clamp(state.params.brakeStrength * 3.7 + state.params.initialSpeed * 0.08, 5, 30) : 0;
+        v.lean = lerp(v.lean, targetLean, Math.min(1, dt * 6));
+        if (v.speed === 0 && v.t > 1.25) {
+          if (Math.abs(v.lean) < 1.2 || v.t > 3.8) finish();
+        }
+      }
+
+      function updateCoin(dt) {
+        const c = state.coin;
+        c.t += dt;
+        const pullVelocity = 42 + state.params.pullSpeed * 103;
+        c.cardX += pullVelocity * dt;
+        const cardLeft = c.cardX;
+        const cardRight = c.cardX + 220;
+        const supported = !c.falling && c.coinX >= cardLeft - 11 && c.coinX <= cardRight + 11;
+        if (supported && c.cardX < 635) {
+          const frictionAcceleration = state.params.grip * 265;
+          c.vx = Math.min(pullVelocity, c.vx + frictionAcceleration * dt);
+          c.coinX += c.vx * dt;
+        } else if (supported && c.cardX >= 635) {
+          c.success = false;
+          finish();
+        } else if (!c.falling) {
+          c.falling = true;
+          c.vy = 0;
+        }
+        if (c.falling) {
+          c.vy += 500 * dt;
+          c.coinY += c.vy * dt;
+          c.coinX += c.vx * dt;
+          if (!c.checked && c.coinY >= 232) {
+            c.checked = true;
+            c.success = c.coinX > 411 && c.coinX < 509;
+          }
+          if (c.checked && !c.success && c.coinY >= 276) {
+            c.coinY = 303;
+            c.vx = 0;
+            c.vy = 0;
+            finish();
+          }
+          if (c.checked && c.success && c.coinY >= 326) {
+            c.coinY = 326;
+            c.vx = 0;
+            c.vy = 0;
+            finish();
+          }
+        }
+        if (c.t > 4.4 && state.running) finish();
+      }
+
+      function paintBackground() {
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#e7f2ff');
+        grad.addColorStop(0.67, '#fbfdff');
+        grad.addColorStop(1, '#f1f5fd');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      function drawSkyline(scroll) {
+        ctx.save();
+        ctx.fillStyle = '#d5e4fa';
+        const buildings = [
+          { x: 26, w: 86, h: 72 }, { x: 135, w: 58, h: 104 }, { x: 214, w: 104, h: 60 },
+          { x: 342, w: 72, h: 94 }, { x: 440, w: 116, h: 74 }, { x: 584, w: 78, h: 107 },
+          { x: 688, w: 98, h: 64 }, { x: 807, w: 72, h: 92 }
+        ];
+        buildings.forEach((b, i) => {
+          const x = ((b.x - scroll * 0.12 + 980) % 980) - 30;
+          ctx.fillRect(x, 256 - b.h, b.w, b.h);
+          ctx.fillStyle = '#e8f1ff';
+          for (let wy = 195; wy < 245; wy += 18) {
+            for (let wx = x + 11; wx < x + b.w - 10; wx += 22) ctx.fillRect(wx, wy, 9, 8);
+          }
+          ctx.fillStyle = '#d5e4fa';
+        });
+        ctx.restore();
+      }
+
+      function drawRoad(scroll) {
+        ctx.fillStyle = '#c9d7e7';
+        ctx.fillRect(0, 333, W, 3);
+        ctx.fillStyle = '#303b4c';
+        ctx.fillRect(0, 336, W, 124);
+        ctx.strokeStyle = '#eef3f8';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([38, 28]);
+        ctx.lineDashOffset = -scroll % 66;
+        ctx.beginPath();
+        ctx.moveTo(0, 409);
+        ctx.lineTo(W, 409);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function drawPassenger(busX, leanDegrees) {
+        const hipX = busX + 171;
+        const hipY = 282;
+        ctx.save();
+        ctx.fillStyle = '#56657c';
+        fillRounded(busX + 143, 261, 47, 12, 5, '#42516a');
+        fillRounded(busX + 144, 229, 8, 42, 4, '#42516a');
+        ctx.translate(hipX, hipY);
+        ctx.rotate(leanDegrees * Math.PI / 180);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#24486a';
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(0, -53);
+        ctx.stroke();
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(0, -39);
+        ctx.lineTo(-17, -20);
+        ctx.moveTo(0, -37);
+        ctx.lineTo(20, -27);
+        ctx.stroke();
+        ctx.fillStyle = '#f1bd86';
+        ctx.beginPath();
+        ctx.arc(0, -71, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.save();
+        ctx.strokeStyle = '#25324b';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(hipX - 2, hipY - 2);
+        ctx.lineTo(hipX - 2, 310);
+        ctx.moveTo(hipX + 5, hipY - 2);
+        ctx.lineTo(hipX + 21, 310);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawBus(busX, lean, mode) {
+        const l = tr().canvas;
+        ctx.save();
+        ctx.fillStyle = 'rgba(16, 31, 60, 0.10)';
+        ctx.beginPath();
+        ctx.ellipse(busX + 159, 343, 158, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        fillRounded(busX, 212, 323, 106, 18, '#3769ef', '#2452ce');
+        fillRounded(busX + 18, 226, 193, 45, 10, '#cfe6ff');
+        fillRounded(busX + 220, 226, 68, 45, 10, '#cfe6ff');
+        ctx.fillStyle = '#8ec1f7';
+        ctx.fillRect(busX + 78, 227, 3, 44);
+        ctx.fillRect(busX + 144, 227, 3, 44);
+        ctx.fillRect(busX + 255, 227, 3, 44);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 14px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(l.vehicle, busX + 23, 298);
+        [busX + 62, busX + 267].forEach(x => {
+          ctx.fillStyle = '#263246';
+          ctx.beginPath();
+          ctx.arc(x, 318, 20, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#cad5e4';
+          ctx.beginPath();
+          ctx.arc(x, 318, 9, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        drawPassenger(busX, lean);
+        labelPill(l.passenger, busX + 171, 174);
+        ctx.restore();
+
+        if (mode === 'start' && (state.running || state.done)) {
+          arrow(busX + 75, 186, busX + 157, 186, '#17a77f', l.acceleration);
+          arrow(busX + 178, 205, busX + 121, 205, '#f18a11', l.tendsRest, false);
+        } else if (mode === 'stop' && (state.running || state.done)) {
+          arrow(busX + 28, 187, busX + 102, 187, '#17a77f', l.motion);
+          if (state.vehicle.t > 0.55) {
+            arrow(busX + 138, 204, busX + 75, 204, '#e35656', l.braking, false);
+            arrow(busX + 183, 188, busX + 266, 188, '#f18a11', l.tendsMove);
+          }
+        }
+      }
+
+      function drawVehicleScene(mode) {
+        paintBackground();
+        drawSkyline(state.vehicle.road);
+        drawRoad(state.vehicle.road);
+        drawBus(state.vehicle.busX, state.vehicle.lean, mode);
+        if (!state.running && !state.done) {
+          const note = mode === 'start' ? tr().canvas.gentle + ' ↔ ' + tr().canvas.sudden : tr().canvas.motion;
+          labelPill(note, 112, 59, '#60708a');
+        }
+      }
+
+      function drawGlass() {
+        const gx = 400;
+        const gy = 222;
+        ctx.save();
+        ctx.fillStyle = 'rgba(94, 167, 211, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(gx + 9, gy);
+        ctx.lineTo(gx + 20, 339);
+        ctx.quadraticCurveTo(gx + 23, 350, gx + 39, 351);
+        ctx.lineTo(gx + 81, 351);
+        ctx.quadraticCurveTo(gx + 98, 350, gx + 101, 339);
+        ctx.lineTo(gx + 112, gy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#6ba6ca';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(gx + 60, gy, 52, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawCoinScene() {
+        const l = tr().canvas;
+        paintBackground();
+        ctx.fillStyle = '#f0dfc4';
+        ctx.fillRect(0, 350, W, 110);
+        ctx.fillStyle = '#c69563';
+        ctx.fillRect(0, 350, W, 8);
+        ctx.fillStyle = '#e9f5ff';
+        ctx.beginPath();
+        ctx.ellipse(460, 356, 79, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        drawGlass();
+
+        const c = state.coin;
+        fillRounded(c.cardX, c.cardY, 220, 12, 4, '#f17756', '#d9563c');
+        labelPill(l.card, c.cardX + 178, c.cardY - 10, '#d9563c');
+
+        ctx.save();
+        ctx.fillStyle = '#f4bd38';
+        ctx.strokeStyle = '#b57a13';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(c.coinX, c.coinY, 17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(181,122,19,0.5)';
+        ctx.beginPath();
+        ctx.arc(c.coinX, c.coinY, 10, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        labelPill(l.coin, c.coinX, Math.max(44, c.coinY - 30), '#a16207');
+        labelPill(l.glass, 460, 385, '#397695');
+
+        if (state.running || state.done) {
+          arrow(Math.min(c.cardX + 30, 690), 179, Math.min(c.cardX + 112, 772), 179, '#e35656', l.cardPull);
+          if (c.falling) arrow(c.coinX - 31, c.coinY - 10, c.coinX - 31, c.coinY + 45, '#2452ce', l.gravity, true);
+        } else {
+          arrow(560, 169, 650, 169, '#e35656', l.cardPull);
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        if (state.scene === 'coin') drawCoinScene();
+        else drawVehicleScene(state.scene);
+      }
+
+      function animate(time) {
+        if (state.running) {
+          const dt = clamp((time - state.lastTime) / 1000, 0, 0.035);
+          state.lastTime = time;
+          update(dt);
+          draw();
+        }
+        requestAnimationFrame(animate);
+      }
+
+      ui.runBtn.addEventListener('click', run);
+      ui.resetBtn.addEventListener('click', resetMotion);
+      ui.langEn.addEventListener('click', () => setLanguage('en'));
+      ui.langBn.addEventListener('click', () => setLanguage('bn'));
+
+      renderStaticText();
+      renderScenes();
+      renderControls();
+      resetMotion();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

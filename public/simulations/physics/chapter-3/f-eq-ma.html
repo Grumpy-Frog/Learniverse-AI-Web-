@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newton's Second Law: F = ma / নিউটনের দ্বিতীয় সূত্র: F = ma</title>
+<style>
+:root{--bg:#f0f4f9;--card:rgba(255,255,255,0.95);--ink:#1a2b42;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--orange:#f97316;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;--shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);--radius:16px}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;overflow-x:hidden}.app{max-width:1200px;margin:0 auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.brand h1{margin:0;font-size:24px;letter-spacing:-0.02em}.brand p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.lang-toggle{display:flex;background:#fff;padding:4px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}.lang-toggle button{border:0;background:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}.lang-toggle button.active{background:var(--blue);color:#fff}
+.layout{display:grid;grid-template-columns:320px 1fr;gap:20px}@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.sidebar{display:flex;flex-direction:column;gap:20px}.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--line)}
+h2{margin:0 0 16px;font-size:16px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:flex;align-items:center;gap:8px}
+.control-group{display:flex;flex-direction:column;gap:16px}.control{display:flex;flex-direction:column;gap:8px}.label-row{display:flex;justify-content:space-between;align-items:center}.label-row span{font-size:14px;font-weight:600}.value{color:var(--blue);font-family:monospace;font-size:14px}
+input[type=range]{width:100%;height:6px;background:#e2e8f0;border-radius:5px;appearance:none;outline:none}input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;background:var(--blue);border-radius:50%;cursor:pointer;border:3px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{border:0;padding:10px;border-radius:10px;font-weight:600;cursor:pointer;transition:transform 0.1s,opacity 0.2s}.btn:active{transform:scale(0.98)}.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:var(--line);color:var(--ink)}
+.main-stage{display:flex;flex-direction:column;gap:20px}.visualizer{height:340px;position:relative;background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
+.track{position:absolute;bottom:80px;left:0;right:0;height:4px;background:#cbd5e1}.marks{position:absolute;bottom:60px;left:0;right:0;display:flex;justify-content:space-between;padding:0 40px}.mark{display:flex;flex-direction:column;align-items:center;gap:4px}.mark-line{width:2px;height:10px;background:#94a3b8}.mark-label{font-size:10px;color:var(--muted)}
+.object{position:absolute;bottom:84px;width:100px;height:60px;background:var(--blue);border-radius:8px 8px 4px 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;transition:left 0.016s linear;box-shadow:0 4px 10px rgba(37,99,235,0.3)}.object::before,.object::after{content:"";position:absolute;bottom:-8px;width:20px;height:20px;background:#334155;border-radius:50%;border:3px solid #fff}
+.object::before{left:10px}.object::after{right:10px}
+.force-arrow{position:absolute;height:4px;background:var(--orange);transform-origin:left center;display:flex;align-items:center}.force-arrow::after{content:"";position:absolute;right:-10px;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:12px solid var(--orange)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.stat-card{background:#fff;padding:12px;border-radius:12px;border:1px solid var(--line);text-align:center}.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}.stat-value{font-size:18px;font-weight:bold;color:var(--ink);font-family:monospace}
+.formula-box{background:var(--blue);color:#fff;padding:24px;border-radius:var(--radius);text-align:center;position:relative;overflow:hidden}.formula-box::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);pointer-events:none}
+.formula{font-size:48px;font-weight:800;margin-bottom:8px;letter-spacing:2px}.formula-desc{font-size:14px;opacity:0.9}
+.explanation{font-size:14px;color:var(--muted);line-height:1.6}
+.history{margin-top:20px}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--line)}td{padding:8px;border-bottom:1px solid var(--line);font-family:monospace}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="brand">
+<h1 id="title">Newton's Second Law</h1>
+<p id="tagline">Explore the relationship between Force, Mass, and Acceleration</p>
+</div>
+<div class="lang-toggle">
+<button id="en-btn" class="active">EN</button>
+<button id="bn-btn">বাংলা</button>
+</div>
+</header>
+<div class="layout">
+<aside class="sidebar">
+<div class="card">
+<h2 id="settings-title">Simulation Settings</h2>
+<div class="control-group">
+<div class="control">
+<div class="label-row">
+<span id="force-label">Applied Force (F)</span>
+<span class="value"><span id="force-val">10</span> N</span>
+</div>
+<input type="range" id="force-input" min="0" max="50" value="10">
+</div>
+<div class="control">
+<div class="label-row">
+<span id="mass-label">Object Mass (m)</span>
+<span class="value"><span id="mass-val">5</span> kg</span>
+</div>
+<input type="range" id="mass-input" min="1" max="20" value="5">
+</div>
+<div class="actions">
+<button id="start-btn" class="btn btn-primary">Start</button>
+<button id="reset-btn" class="btn btn-secondary">Reset</button>
+</div>
+</div>
+</div>
+<div class="card explanation">
+<h2 id="about-title">About the Law</h2>
+<p id="about-text">The acceleration of an object as produced by a net force is directly proportional to the magnitude of the net force, in the same direction as the net force, and inversely proportional to the magnitude of the object's mass.</p>
+</div>
+</aside>
+<main class="main-stage">
+<div class="formula-box">
+<div class="formula">F = m × a</div>
+<p id="formula-desc" class="formula-desc">Force equals Mass times Acceleration</p>
+</div>
+<div class="visualizer" id="visualizer">
+<div class="marks" id="marks"></div>
+<div class="track"></div>
+<div class="force-arrow" id="force-arrow"></div>
+<div class="object" id="object">5kg</div>
+</div>
+<div class="stats">
+<div class="stat-card">
+<div class="stat-label" id="stat-f">Force (N)</div>
+<div class="stat-value" id="disp-f">10.00</div>
+</div>
+<div class="stat-card">
+<div class="stat-label" id="stat-m">Mass (kg)</div>
+<div class="stat-value" id="disp-m">5.00</div>
+</div>
+<div class="stat-card">
+<div class="stat-label" id="stat-a">Acceleration (m/s²)</div>
+<div class="stat-value" id="disp-a" style="color:var(--green)">2.00</div>
+</div>
+<div class="stat-card">
+<div class="stat-label" id="stat-v">Velocity (m/s)</div>
+<div class="stat-value" id="disp-v">0.00</div>
+</div>
+</div>
+<div class="card history">
+<h2 id="history-title">Experiment LOG</h2>
+<div style="overflow-x:auto;">
+<table>
+<thead>
+<tr>
+<th id="th-trial">Trial</th>
+<th id="th-f">Force (N)</th>
+<th id="th-m">Mass (kg)</th>
+<th id="th-a">Accel (m/s²)</th>
+<th id="th-t">Time (s)</th>
+</tr>
+</thead>
+<tbody id="history-body"></tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script>
+const translations = {
+en: {
+title: "Newton's Second Law",
+tagline: "Explore the relationship between Force, Mass, and Acceleration",
+settings: "Simulation Settings",
+force: "Applied Force (F)",
+mass: "Object Mass (m)",
+start: "Start",
+reset: "Reset",
+about: "About the Law",
+aboutText: "The acceleration of an object as produced by a net force is directly proportional to the magnitude of the net force, and inversely proportional to the magnitude of the object's mass.",
+formulaDesc: "Force equals Mass times Acceleration",
+statF: "Force (N)",
+statM: "Mass (kg)",
+statA: "Acceleration (m/s²)",
+statV: "Velocity (m/s)",
+history: "Experiment Log",
+thTrial: "Trial",
+thF: "Force (N)",
+thM: "Mass (kg)",
+thA: "Accel (m/s²)",
+thT: "Time (s)"
+},
+bn: {
+title: "নিউটনের দ্বিতীয় সূত্র",
+tagline: "বল (F), ভর (m) এবং ত্বরণ (a) এর সম্পর্ক অন্বেষণ করুন",
+settings: "সিমুলেশন সেটিংস",
+force: "প্রযুক্ত বল (F)",
+mass: "বস্তুর ভর (m)",
+start: "শুরু করুন",
+reset: "রিসেট",
+about: "সূত্র সম্পর্কে",
+aboutText: "কোন বস্তুর ওপর প্রযুক্ত নিট বল বস্তুর ত্বরণের সমানুপাতিক এবং ভরের ব্যস্তানুপাতিক। বল যেদিকে কাজ করে ত্বরণও সেদিকে হয়।",
+formulaDesc: "বল সমান ভর গুণ ত্বরণ",
+statF: "বল (N)",
+statM: "ভর (kg)",
+statA: "ত্বরণ (m/s²)",
+statV: "বেগ (m/s)",
+history: "পরীক্ষার লগ",
+thTrial: "বার",
+thF: "বল (N)",
+thM: "ভর (kg)",
+thA: "ত্বরণ (m/s²)",
+thT: "সময় (s)"
+}
+};
+let lang = 'en';
+let force = 10;
+let mass = 5;
+let acceleration = 2;
+let velocity = 0;
+let position = 40;
+let time = 0;
+let isRunning = false;
+let trialCount = 0;
+let startTime = null;
+const forceInput = document.getElementById('force-input');
+const massInput = document.getElementById('mass-input');
+const forceVal = document.getElementById('force-val');
+const massVal = document.getElementById('mass-val');
+const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
+const obj = document.getElementById('object');
+const arrow = document.getElementById('force-arrow');
+const dispF = document.getElementById('disp-f');
+const dispM = document.getElementById('disp-m');
+const dispA = document.getElementById('disp-a');
+const dispV = document.getElementById('disp-v');
+const historyBody = document.getElementById('history-body');
+function updateStats() {
+acceleration = force / mass;
+forceVal.textContent = force;
+massVal.textContent = mass;
+dispF.textContent = force.toFixed(2);
+dispM.textContent = mass.toFixed(2);
+dispA.textContent = acceleration.toFixed(2);
+obj.textContent = mass + 'kg';
+const arrowWidth = Math.min(force * 3, 150);
+arrow.style.width = arrowWidth + 'px';
+arrow.style.left = (position - arrowWidth - 10) + 'px';
+arrow.style.bottom = '114px';
+arrow.style.opacity = isRunning || force > 0 ? 1 : 0;
+}
+function setLanguage(l) {
+lang = l;
+document.getElementById('en-btn').classList.toggle('active', lang === 'en');
+document.getElementById('bn-btn').classList.toggle('active', lang === 'bn');
+const t = translations[lang];
+document.getElementById('title').textContent = t.title;
+document.getElementById('tagline').textContent = t.tagline;
+document.getElementById('settings-title').textContent = t.settings;
+document.getElementById('force-label').textContent = t.force;
+document.getElementById('mass-label').textContent = t.mass;
+document.getElementById('start-btn').textContent = t.start;
+document.getElementById('reset-btn').textContent = t.reset;
+document.getElementById('about-title').textContent = t.about;
+document.getElementById('about-text').textContent = t.aboutText;
+document.getElementById('formula-desc').textContent = t.formulaDesc;
+document.getElementById('stat-f').textContent = t.statF;
+document.getElementById('stat-m').textContent = t.statM;
+document.getElementById('stat-a').textContent = t.statA;
+document.getElementById('stat-v').textContent = t.statV;
+document.getElementById('history-title').textContent = t.history;
+document.getElementById('th-trial').textContent = t.thTrial;
+document.getElementById('th-f').textContent = t.thF;
+document.getElementById('th-m').textContent = t.thM;
+document.getElementById('th-a').textContent = t.thA;
+document.getElementById('th-t').textContent = t.thT;
+}
+forceInput.addEventListener('input', (e) => {
+force = parseInt(e.target.value);
+updateStats();
+});
+massInput.addEventListener('input', (e) => {
+mass = parseInt(e.target.value);
+updateStats();
+});
+startBtn.addEventListener('click', () => {
+if (isRunning) return;
+isRunning = true;
+startBtn.disabled = true;
+forceInput.disabled = true;
+massInput.disabled = true;
+startTime = Date.now();
+requestAnimationFrame(animate);
+});
+resetBtn.addEventListener('click', () => {
+isRunning = false;
+startBtn.disabled = false;
+forceInput.disabled = false;
+massInput.disabled = false;
+velocity = 0;
+position = 40;
+time = 0;
+obj.style.left = position + 'px';
+updateStats();
+dispV.textContent = '0.00';
+});
+function animate() {
+if (!isRunning) return;
+const elapsed = (Date.now() - startTime) / 1000;
+time = elapsed;
+velocity = acceleration * time;
+position = 40 + (0.5 * acceleration * time * time * 50);
+obj.style.left = position + 'px';
+const arrowWidth = Math.min(force * 3, 150);
+arrow.style.left = (position - arrowWidth - 10) + 'px';
+dispV.textContent = velocity.toFixed(2);
+const visualizerWidth = document.getElementById('visualizer').clientWidth;
+if (position > visualizerWidth + 100) {
+isRunning = false;
+addHistory();
+startBtn.disabled = false;
+forceInput.disabled = false;
+massInput.disabled = false;
+return;
+}
+requestAnimationFrame(animate);
+}
+function addHistory() {
+trialCount++;
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>#${trialCount}</td>
+<td>${force}</td>
+<td>${mass}</td>
+<td>${acceleration.toFixed(2)}</td>
+<td>${time.toFixed(2)}</td>
+`;
+historyBody.prepend(row);
+}
+function createMarks() {
+const marks = document.getElementById('marks');
+for (let i = 0; i <= 10; i++) {
+const mark = document.createElement('div');
+mark.className = 'mark';
+mark.innerHTML = `<div class="mark-line"></div><div class="mark-label">${i}m</div>`;
+marks.appendChild(mark);
+}
+}
+document.getElementById('en-btn').onclick = () => setLanguage('en');
+document.getElementById('bn-btn').onclick = () => setLanguage('bn');
+createMarks();
+updateStats();
+</script>
+</body>
+</html>
