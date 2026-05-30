@@ -113,13 +113,15 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
         }
 
         if (subjectSummary) {
+          const total_topics = subjectSummary.total_topics ?? 0;
+          const completed_topics = subjectSummary.completed_topics ?? 0;
           allSubjectSummaries.push({
             subject_id: subject.id,
-            total_topics: subjectSummary.total_topics,
-            completed_topics: subjectSummary.completed_topics,
-            is_completed: subjectSummary.completion_percentage === 100,
-            strength_labels: subjectSummary.strengths || [],
-            weakness_labels: subjectSummary.weaknesses || []
+            total_topics,
+            completed_topics,
+            is_completed: subjectSummary.is_completed ?? (total_topics > 0 && total_topics === completed_topics),
+            strength_labels: subjectSummary.strength_labels ?? subjectSummary.strengths ?? [],
+            weakness_labels: subjectSummary.weakness_labels ?? subjectSummary.weaknesses ?? []
           });
         }
 
@@ -146,6 +148,7 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
               };
             }
 
+            const completion_status = topicStatus.completion_status ?? topicStatus.status ?? 'not_started';
             allTopics.push({
               grade_id: grade.id,
               grade_name: grade.name,
@@ -157,12 +160,12 @@ export async function loadDashboardProgress(): Promise<DashboardProgressModel> {
               topic_title: topic.title,
               topic_description: topic.description,
               learning_objective: topic.learning_objective,
-              completion_status: topicStatus.status || 'not_started',
-              latest_score: topicStatus.last_test_score ?? null,
-              best_score: topicStatus.last_test_score ?? null, 
-              strength_labels: topicStatus.strengths || [],
-              weakness_labels: topicStatus.weaknesses || [],
-              show_checkmark: topicStatus.status === 'completed'
+              completion_status,
+              latest_score: topicStatus.latest_score ?? topicStatus.last_test_score ?? null,
+              best_score: topicStatus.best_score ?? topicStatus.latest_score ?? topicStatus.last_test_score ?? null, 
+              strength_labels: topicStatus.strength_labels ?? topicStatus.strengths ?? [],
+              weakness_labels: topicStatus.weakness_labels ?? topicStatus.weaknesses ?? [],
+              show_checkmark: topicStatus.show_checkmark ?? completion_status === 'completed'
             });
           }));
         }));

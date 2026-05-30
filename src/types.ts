@@ -282,11 +282,20 @@ export interface RemediationDetail {
 
 export interface TopicStatus {
   topic_id: string;
-  status: 'not_started' | 'needs_practice' | 'completed';
-  completion_percentage: number;
+  status?: 'not_started' | 'needs_practice' | 'completed';
+  completion_percentage?: number;
   last_test_score?: number;
-  strengths: string[];
-  weaknesses: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+
+  // New backend fields
+  completion_status?: 'not_started' | 'needs_practice' | 'completed';
+  latest_score?: number | null;
+  best_score?: number | null;
+  strength_labels?: string[];
+  weakness_labels?: string[];
+  show_checkmark?: boolean;
+  completed_at?: string | null;
 }
 
 export interface DashboardTopic {
@@ -347,12 +356,17 @@ export interface SelectedTopic {
 
 export interface SubjectSummary {
   subject_id: string;
-  subject_name: string;
+  subject_name?: string;
   total_topics: number;
   completed_topics: number;
-  completion_percentage: number;
-  strengths: string[];
-  weaknesses: string[];
+  completion_percentage?: number;
+  strengths?: string[];
+  weaknesses?: string[];
+
+  // New backend fields
+  is_completed?: boolean;
+  strength_labels?: string[];
+  weakness_labels?: string[];
 }
 
 export interface RemediationSession {
