@@ -20,6 +20,8 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
 
   // Load drafted blog post result
   const [generatedDraft, setGeneratedDraft] = useState<BlogPost | null>(null);
+  const [validationReason, setValidationReason] = useState<string | null>(null);
+  const [generationNote, setGenerationNote] = useState<string | null>(null);
 
   // States
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -40,8 +42,10 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
 
     try {
       const response = await api.generateBlogDraft(topic, description, language);
-      setGeneratedDraft(response);
-      setSuccessMsg(`Blog draft '${response.title}' generated successfully!`);
+      setGeneratedDraft(response.post);
+      setValidationReason(response.validation_reason);
+      setGenerationNote(response.note);
+      setSuccessMsg(`Blog draft '${response.post.title}' generated successfully!`);
       
       // Clear forms
       setTopic('');
@@ -103,7 +107,7 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Concept Description Constraints
+                  Concept Description Constraints <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   value={description}
@@ -111,6 +115,7 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
                   placeholder="e.g. Focus on physical vector equations, make it suitable for high-school mechanics curriculum..."
                   className="w-full text-xs p-3 border rounded bg-slate-50/50 dark:bg-slate-950/20 text-slate-910 placeholder:text-slate-400 focus:outline-hidden"
                   rows={4}
+                  required
                   disabled={isGenerating}
                 />
               </div>
@@ -129,15 +134,15 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
               </div>
 
               <div className="pt-2">
-                <Button
-                  type="submit"
-                  disabled={isGenerating || !topic.trim()}
-                  isLoading={isGenerating}
-                  variant="primary"
-                  className="w-full uppercase text-xs font-black tracking-widest py-3"
-                >
-                  ✨ AI Auto-Generate educational Draft
-                </Button>
+                  <Button
+                    type="submit"
+                    disabled={isGenerating || !topic.trim() || !description.trim()}
+                    isLoading={isGenerating}
+                    variant="primary"
+                    className="w-full uppercase text-xs font-black tracking-widest py-3"
+                  >
+                    ✨ AI Auto-Generate Blog Draft
+                  </Button>
               </div>
             </form>
           </Card>
@@ -164,12 +169,23 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
               <h2 className="text-lg font-black uppercase text-slate-950">{generatedDraft.title}</h2>
               <p className="text-xs text-slate-500 leading-normal italic font-medium">Excerpt Abstract: {generatedDraft.excerpt}</p>
               
+              {validationReason && (
+                <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
+                  <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight mb-1">Validation Intelligence</p>
+                  <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">{validationReason}</p>
+                </div>
+              )}
+
               <div className="border-t pt-4 space-y-2">
                 <p className="text-[9px] font-mono uppercase text-slate-400 font-black block">Drafted Markdown content preview</p>
                 <div className="bg-white p-4 rounded border font-sans text-xs text-slate-750 leading-relaxed max-w-none prose dark:prose-invert">
                   <MarkdownContent content={generatedDraft.content_markdown} />
                 </div>
               </div>
+
+              {generationNote && (
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 italic mt-2">{generationNote}</p>
+              )}
 
               <Button
                 onClick={() => onNavigate('/admin/blog')}

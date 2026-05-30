@@ -152,7 +152,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
                   onClick={() => handleNavItemClick('/admin/blog')}
                   className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/blog' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
-                  Edu Publisher
+                  AI Blog Generator
                 </button>
                 {/* Visual student preview path */}
                 <button
@@ -271,7 +271,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <button onClick={() => handleNavItemClick('/admin/catalog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">Curriculum Builder</button>
               <button onClick={() => handleNavItemClick('/admin/simulations')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">Simulation Registry</button>
               <button onClick={() => handleNavItemClick('/admin/documents')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">RAG Embedder</button>
-              <button onClick={() => handleNavItemClick('/admin/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">Edu Publisher</button>
+              <button onClick={() => handleNavItemClick('/admin/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">AI Blog Generator</button>
               <button onClick={() => handleNavItemClick('/dashboard')} className="block w-full text-left py-2 font-extrabold text-xs text-blue-500">Student Dashboard View</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
                 <div className="mb-2 cursor-pointer" onClick={() => handleNavItemClick('/profile')}>

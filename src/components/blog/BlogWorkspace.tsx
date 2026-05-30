@@ -157,7 +157,7 @@ export default function BlogWorkspace({ initialSlug, onNavigate }: BlogWorkspace
             <div className="flex items-center gap-3 select-none">
               <Badge variant="source_grounded">{activeBlog.category || 'Science'}</Badge>
               <span className="text-xs uppercase font-mono text-slate-400 dark:text-slate-500">
-                {activeBlog.language === 'bn' ? 'Bangla en' : 'English en'} &bull; {formatDate(activeBlog.created_at)}
+                {activeBlog.language === 'bn' ? 'Bangla bn' : 'English en'} &bull; {formatDate(activeBlog.created_at)}
               </span>
             </div>
 
