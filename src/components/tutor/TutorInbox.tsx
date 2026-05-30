@@ -49,9 +49,40 @@ export default function TutorInbox() {
   // Error states
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
   const [activeDiagnosticTab, setActiveDiagnosticTab] = useState<'none' | 'check' | 'quiz' | 'remediation'>('none');
+  const [lastNote, setLastNote] = useState<string | null>(null);
 
   // Selected Topic context
-  const selectedTopic = getSelectedTopic();
+  const [selectedTopic, setSelectedTopicState] = useState<any | null>(getSelectedTopic());
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('?')) {
+      const qs = hash.split('?')[1];
+      const params = new URLSearchParams(qs);
+      const topicId = params.get('topicId');
+      if (topicId && (!selectedTopic || selectedTopic.topic_id !== topicId)) {
+        // Fetch topic details
+        api.getTopicDetail(topicId).then((data) => {
+          // It would be nice to have the full context but at least we have the topic details
+          const simulatedContext = {
+            grade_id: 'unknown',
+            grade_name: 'Grade',
+            subject_id: 'unknown',
+            subject_name: 'Subject',
+            chapter_id: data.chapter_id,
+            chapter_title: 'Chapter',
+            topic_id: data.id,
+            topic_title: data.title,
+            topic_description: data.description,
+            learning_objective: data.learning_objective
+          };
+          setSelectedTopicState(simulatedContext);
+        }).catch(err => {
+          console.error("Could not fetch topic from url parameter:", err);
+        });
+      }
+    }
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -120,6 +151,7 @@ export default function TutorInbox() {
     setLanguage(conv.language);
     setLoadingMsg(true);
     setMessages([]);
+    setLastNote(null);
     try {
       const msgs = await api.getMessages(conv.id);
       setMessages(msgs || []);
@@ -142,6 +174,7 @@ export default function TutorInbox() {
       setConversations(prev => [newConv, ...prev]);
       setActiveConversation(newConv);
       setMessages([]);
+      setLastNote(null);
     } catch (err: any) {
       setErrorHeader(`Failed to initialize learning conversation: ${err.message}`);
     } finally {
@@ -164,6 +197,23 @@ export default function TutorInbox() {
     }
   };
 
+  const processTurnResponse = (response: any) => {
+    if (response) {
+      if (response.reply) {
+        if (response.sources) {
+          response.reply.sources = response.sources;
+        }
+        setMessages(prev => [...prev, response.reply]);
+      }
+      if (response.note) {
+        setLastNote(response.note);
+      }
+      if (response.conversation) {
+        setActiveConversation(response.conversation);
+      }
+    }
+  };
+
   const handleGenerateStoryLesson = async () => {
     if (!activeConversation) {
       if (!selectedTopic) {
@@ -173,14 +223,14 @@ export default function TutorInbox() {
       // Auto create conversation
       setGeneratingStory(true);
       setErrorHeader(null);
+      setLastNote(null);
       try {
         const newConv = await api.createConversation(selectedTopic.topic_id, language, useRag);
         setConversations(prev => [newConv, ...prev]);
         setActiveConversation(newConv);
         
-        const storyPayload = await api.generateStoryLesson(newConv.id, studentPreference || 'Explain cleanly through interactive science examples.');
-        const msgs = await api.getMessages(newConv.id);
-        setMessages(msgs || []);
+        const response = await api.generateStoryLesson(newConv.id, studentPreference || 'Explain cleanly through interactive science examples.');
+        processTurnResponse(response);
         setStudentPreference('');
       } catch (err: any) {
         setErrorHeader(err.message || 'Error occurred while synthesizing story-guided lesson.');
@@ -192,10 +242,10 @@ export default function TutorInbox() {
 
     setGeneratingStory(true);
     setErrorHeader(null);
+    setLastNote(null);
     try {
-      await api.generateStoryLesson(activeConversation.id, studentPreference || 'Explain cleanly through interactive science examples.');
-      const msgs = await api.getMessages(activeConversation.id);
-      setMessages(msgs || []);
+      const response = await api.generateStoryLesson(activeConversation.id, studentPreference || 'Explain cleanly through interactive science examples.');
+      processTurnResponse(response);
       setStudentPreference('');
     } catch (err: any) {
       setErrorHeader(err.message || 'Error compiling lesson narrative.');
@@ -210,6 +260,7 @@ export default function TutorInbox() {
 
     let targetConv = activeConversation;
     setErrorHeader(null);
+    setLastNote(null);
 
     setSendingMsg(true);
     try {
@@ -226,14 +277,26 @@ export default function TutorInbox() {
       const msgContent = typedMessage;
       setTypedMessage('');
 
-      // Send
-      await api.sendMessage(targetConv.id, msgContent);
+      // Optimistically append user message
+      const tempUserMsg: ChatMessage = {
+        id: 'temp-' + Date.now(),
+        conversation_id: targetConv.id,
+        role: 'user',
+        message_type: 'chat',
+        content: msgContent,
+        is_in_scope: true,
+        is_source_grounded: false,
+        created_at: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, tempUserMsg]);
 
-      // Reload messages list
-      const msgs = await api.getMessages(targetConv.id);
-      setMessages(msgs || []);
+      // Send
+      const response = await api.sendMessage(targetConv.id, msgContent);
+      processTurnResponse(response);
+      
     } catch (err: any) {
       setErrorHeader(err.message || 'Could not send message.');
+      // Keep the user message so they can see what failed, arguably, or remove it. We'll leave it since it's temp, we can see the sent message.
     } finally {
       setSendingMsg(false);
     }
@@ -344,8 +407,8 @@ export default function TutorInbox() {
                   className="rounded-md border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500/20 shadow-xs h-4 w-4 shrink-0 transition"
                 />
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-slate-850 dark:text-slate-105 block">Enable AI Textbook RAG</span>
-                  <p className="text-[10px] text-slate-450 leading-relaxed">Let AI read compiled textbooks details for precise answers.</p>
+                  <span className="text-xs font-bold text-slate-850 dark:text-slate-105 block">Use textbook/RAG sources</span>
+                  <p className="text-[10px] text-slate-450 leading-relaxed">When enabled, the tutor uses approved source chunks for this topic.</p>
                 </div>
               </label>
             </div>
@@ -460,44 +523,73 @@ export default function TutorInbox() {
                 <div className="flex items-center justify-center h-full">
                   <LoadingState message="Restoring discussion context parameters..." />
                 </div>
+              ) : (!selectedTopic && !activeConversation) ? (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-3 select-none">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-205">Select a topic first</h4>
+                  <p className="text-xs leading-relaxed font-normal">
+                    Choose a grade, subject, chapter, and topic from the Catalog before starting the tutor.
+                  </p>
+                  <Button onClick={() => window.location.hash = '#/catalog'}>Open Catalog</Button>
+                </div>
+              ) : (selectedTopic && !activeConversation) ? (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-4 select-none">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-blue-500 shrink-0 border border-slate-100 dark:border-slate-805">
+                    <MessageSquare className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-205">Ready to learn {selectedTopic.topic_title}</h4>
+                  <p className="text-xs leading-relaxed font-normal">
+                    Start a new tutor conversation, generate a story lesson, or ask a question about this topic.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button onClick={handleCreateConversation}>New Conversation</Button>
+                    <Button variant="secondary" onClick={handleGenerateStoryLesson} disabled={generatingStory}>
+                      {generatingStory ? 'Generating...' : 'Generate Story Lesson'}
+                    </Button>
+                  </div>
+                </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-3 select-none">
                   <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
                     <MessageSquare className="h-6 w-6" />
                   </div>
                   <h4 className="text-xs font-bold text-slate-605">Concept dialogue initialized</h4>
-                  <p className="text-[10px] leading-relaxed font-normal">
-                    Draft a custom clarifying question in the input panel below, or compile a tailored **Scenario Narrative Story** using style prefs in the sidebar!
+                  <p className="text-xs leading-relaxed font-normal">
+                    No messages yet. Generate a story lesson or ask your first question.
                   </p>
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isUser = msg.sender === 'student';
+                  const isUser = msg.role === 'user';
+                  const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
+                  const isStory = msg.message_type === 'story';
                   return (
                     <div key={msg.id || i} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
                       {/* Name tag */}
                       <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 select-none font-semibold px-1">
-                        {isUser ? 'You (Student)' : msg.is_story ? 'AI Story-Guided Lesson' : 'AI Tutor'}
+                        {isUser ? 'You (Student)' : isStory ? 'Story Lesson' : 'AI Tutor'}
                       </span>
 
                       {/* Msg bubble container layout styles */}
                       <div className={`p-4 rounded-xl text-sm leading-relaxed max-w-[85%]
                         ${isUser 
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-medium' 
-                          : msg.is_refusal 
-                            ? 'bg-rose-50 border border-rose-200 dark:bg-rose-955/15 dark:border-rose-905/30 text-rose-800 dark:text-rose-400' 
+                          ? 'bg-blue-600 text-white dark:bg-blue-500 font-medium' 
+                          : isRefusal 
+                            ? 'bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-500' 
                             : 'bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-850 text-slate-800 dark:text-slate-205'
                         }`}
                       >
                         {/* Custom label tags for story or refusals */}
-                        {msg.is_story && (
+                        {isStory && (
                           <div className="mb-2">
-                            <Badge variant="source_grounded">Story lesson compile</Badge>
+                            <Badge variant="source_grounded">Story Lesson</Badge>
                           </div>
                         )}
-                        {msg.is_refusal && (
+                        {isRefusal && (
                           <div className="mb-2">
-                            <Badge variant="refusal">Knowledge refusal block</Badge>
+                            <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20">Outside selected topic</span>
                           </div>
                         )}
 
@@ -508,17 +600,17 @@ export default function TutorInbox() {
                           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
                             <div className="flex items-center gap-1.5 text-[9px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest select-none">
                               <FileText className="h-3 w-3 shrink-0" />
-                              GROUNDED SOURCE CITATIONS ({msg.sources.length})
+                              Source Preview
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               {msg.sources.map((src, srcIdx) => (
                                 <div key={srcIdx} className="p-2.5 rounded-lg border border-slate-150 dark:border-slate-805 bg-slate-50 dark:bg-slate-950/60 flex flex-col gap-1 text-[10px] select-text pointer-events-auto leading-normal">
                                   <div className="flex justify-between font-bold text-slate-800 dark:text-slate-250 truncate">
-                                    <span className="truncate">{src.title || 'Source Textbook'}</span>
-                                    <span className="text-slate-400 shrink-0 ml-1.5 font-mono text-[8px]">Pages {src.page_start}-{src.page_end}</span>
+                                    <span className="truncate">{src.title || 'Source'}</span>
+                                    <span className="text-slate-400 shrink-0 ml-1.5 font-mono text-[8px]">Pages {src.page_start} - {src.page_end}</span>
                                   </div>
                                   <p className="text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed italic">
-                                    "{src.text_preview}"
+                                    "{src.content_preview}"
                                   </p>
                                 </div>
                               ))}
@@ -535,7 +627,12 @@ export default function TutorInbox() {
                   <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" />
                   <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-100" />
                   <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-200" />
-                  <span className="text-xs text-slate-405 italic ml-1">AI synthesis parsing...</span>
+                  <span className="text-xs text-slate-405 italic ml-1">Tutor is thinking...</span>
+                </div>
+              )}
+              {lastNote && !sendingMsg && (
+                <div className="p-2 border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 italic font-medium">{lastNote}</p>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -567,7 +664,7 @@ export default function TutorInbox() {
               </div>
               <div className="flex justify-between items-center text-[10px] text-slate-450 mt-1.5 select-none">
                 <span>Enter to Send &bull; Shift+Enter to create newline</span>
-                <span>Directly Grounded securely inside Render backend sandbox</span>
+                <span>Ask questions related to your selected topic.</span>
               </div>
             </form>
 

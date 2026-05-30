@@ -118,16 +118,20 @@ export interface Conversation {
 export interface ChatMessage {
   id: string;
   conversation_id: string;
-  sender: 'student' | 'tutor' | 'system';
+  role: 'user' | 'assistant';
+  message_type: 'story' | 'chat' | 'refusal';
   content: string;
-  is_story?: boolean;
-  is_refusal?: boolean;
+  is_in_scope: boolean;
+  is_source_grounded: boolean;
+  prompt_tokens?: number | null;
+  completion_tokens?: number | null;
+  finish_reason?: string | null;
   sources?: {
-    title: string;
     document_id: string;
     page_start: number;
     page_end: number;
-    text_preview: string;
+    content_preview: string;
+    title?: string;
   }[];
   created_at: string;
 }

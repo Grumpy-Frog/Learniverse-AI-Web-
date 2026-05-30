@@ -44,13 +44,16 @@ export default function App() {
 
   // Render proper views base on hash route path
   const renderView = () => {
+    // Determine base path by stripping query parameters if present
+    const basePath = currentPath.split('?')[0];
+
     // 1. Parse slugs inside blog routes if present
-    if (currentPath.startsWith('/blog/')) {
-      const slug = currentPath.substring(6); // Extract slug
+    if (basePath.startsWith('/blog/')) {
+      const slug = basePath.substring(6); // Extract slug
       return <BlogWorkspace initialSlug={slug} onNavigate={navigateTo} />;
     }
 
-    switch (currentPath) {
+    switch (basePath) {
       case '/':
         return <LandingHero onNavigate={navigateTo} />;
       
