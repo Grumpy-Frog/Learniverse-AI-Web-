@@ -5,13 +5,12 @@
 
 // Read environment variables or fallback values.
 // We support both NEXT_PUBLIC_API_BASE_URL (which can be injected into window or process) and VITE_API_BASE_URL.
-const DEFAULT_URL = 'https://learniverse-ai-backend.onrender.com/api/v1';
-const PLACEHOLDER_URL = 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1';
+const DEFAULT_URL = 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1';
 
 export function getApiBaseUrl(): string {
   // Let the user dynamically change/configure the backend URL at runtime too, saved in localStorage
   const savedOverride = localStorage.getItem('learniverse_api_override');
-  if (savedOverride && savedOverride !== PLACEHOLDER_URL) return savedOverride;
+  if (savedOverride) return savedOverride;
 
   const envUrl = (import.meta as any).env?.VITE_NEXT_PUBLIC_API_BASE_URL || 
                  (import.meta as any).env?.VITE_API_BASE_URL ||
