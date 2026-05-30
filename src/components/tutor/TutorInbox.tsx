@@ -380,7 +380,7 @@ export default function TutorInbox() {
         isOpen={activeDiagnosticTab === 'simulations'}
         onClose={() => setActiveDiagnosticTab('none')}
         title="Interactive Lab Simulations"
-        maxWidth="max-w-[1400px]"
+        maxWidth="max-w-[1600px]"
       >
         {selectedTopic && (
           <SimulationViewer

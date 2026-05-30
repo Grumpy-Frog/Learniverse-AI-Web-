@@ -86,7 +86,7 @@ export default function SimulationViewer({ topicId, chapterId, topicTitle }: Sim
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           
           {/* Left Simulations List */}
-          <div className="lg:col-span-3 space-y-2.5 max-h-[700px] overflow-y-auto pr-1">
+          <div className="lg:col-span-3 space-y-2.5 max-h-[850px] overflow-y-auto pr-1">
             {simulations.map(sim => (
               <div key={sim.id}>
                 <Card
@@ -131,7 +131,7 @@ export default function SimulationViewer({ topicId, chapterId, topicTitle }: Sim
                 </div>
                 
                 {/* The iframe viewport */}
-                <div className="w-full relative aspect-video bg-white min-h-[500px] md:min-h-[650px]">
+                <div className="w-full relative aspect-video bg-white min-h-[600px] md:min-h-[800px]">
                   <iframe
                     src={selectedSim.simulation_url}
                     title={selectedSim.title}
