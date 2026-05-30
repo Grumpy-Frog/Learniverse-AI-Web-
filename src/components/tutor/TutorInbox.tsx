@@ -11,6 +11,7 @@ import MarkdownContent from '../markdown/MarkdownContent';
 import UnderstandingCheck from '../diagnostics/UnderstandingCheck';
 import DiagnosticQuiz from '../diagnostics/DiagnosticQuiz';
 import RemediationPanel from '../remediation/RemediationPanel';
+import SimulationViewer from '../simulations/SimulationViewer';
 import Modal from '../ui/Modal';
 import {
   MessageSquare,
@@ -27,7 +28,8 @@ import {
   FileText,
   SearchCheck,
   FileQuestion,
-  Zap
+  Zap,
+  MonitorPlay
 } from 'lucide-react';
 
 export default function TutorInbox() {
@@ -52,7 +54,7 @@ export default function TutorInbox() {
   
   // Error states
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
-  const [activeDiagnosticTab, setActiveDiagnosticTab] = useState<'none' | 'check' | 'quiz' | 'remediation'>('none');
+  const [activeDiagnosticTab, setActiveDiagnosticTab] = useState<'none' | 'check' | 'quiz' | 'remediation' | 'simulations'>('none');
   const [lastNote, setLastNote] = useState<string | null>(null);
 
   // Selected Topic context
@@ -374,6 +376,21 @@ export default function TutorInbox() {
         )}
       </Modal>
 
+      <Modal
+        isOpen={activeDiagnosticTab === 'simulations'}
+        onClose={() => setActiveDiagnosticTab('none')}
+        title="Interactive Lab Simulations"
+        maxWidth="max-w-6xl"
+      >
+        {selectedTopic && (
+          <SimulationViewer
+            topicId={selectedTopic.topic_id}
+            chapterId={selectedTopic.chapter_id}
+            topicTitle={selectedTopic.topic_title}
+          />
+        )}
+      </Modal>
+
       {/* Left Sidebar - Compact Setup & Inbox */}
       <aside className="w-[320px] shrink-0 border-r border-slate-800/60 bg-slate-900/40 flex flex-col min-h-0">
         
@@ -583,6 +600,16 @@ export default function TutorInbox() {
                     }`}
                 >
                   <Zap className="h-4 w-4" /> Focused help & Study
+                </button>
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'simulations' ? 'none' : 'simulations')}
+                  className={`flex-1 max-w-[280px] h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border flex items-center justify-center gap-2 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]
+                    ${activeDiagnosticTab === 'simulations' 
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-purple-600/30 ring-2 ring-purple-500/50' 
+                      : 'bg-slate-900/80 border-purple-500/20 text-purple-400 hover:bg-purple-500/10'
+                    }`}
+                >
+                  <MonitorPlay className="h-4 w-4" /> Simulations
                 </button>
             </div>
           )}

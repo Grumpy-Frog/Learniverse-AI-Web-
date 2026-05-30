@@ -9,10 +9,11 @@ import { Play, Sparkles, AlertTriangle, MonitorPlay, XCircle } from 'lucide-reac
 
 interface SimulationViewerProps {
   topicId: string;
+  chapterId?: string;
   topicTitle?: string;
 }
 
-export default function SimulationViewer({ topicId, topicTitle }: SimulationViewerProps) {
+export default function SimulationViewer({ topicId, chapterId, topicTitle }: SimulationViewerProps) {
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [selectedSim, setSelectedSim] = useState<Simulation | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -22,14 +23,20 @@ export default function SimulationViewer({ topicId, topicTitle }: SimulationView
     if (topicId) {
       fetchSimulations();
     }
-  }, [topicId]);
+  }, [topicId, chapterId]);
 
   const fetchSimulations = async () => {
     setIsLoading(true);
     setErrorMsg(null);
     setSelectedSim(null);
     try {
-      const data = await api.getSimulationsByTopic(topicId);
+      let data = await api.getSimulationsByTopic(topicId);
+      
+      // If no simulations for topic, fallback to chapter
+      if ((!data || data.length === 0) && chapterId) {
+        data = await api.getSimulationsByChapter(chapterId);
+      }
+
       // Filter active simulations
       const activeSims = data.filter((s: Simulation) => s.is_active !== false);
       setSimulations(activeSims);
