@@ -308,17 +308,17 @@ export default function TutorInbox() {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 md:px-6 h-[calc(100vh-80px)] flex flex-col gap-4 overflow-hidden pt-4 pb-4">
+    <div className="w-full mx-auto px-4 md:px-6 h-[calc(100vh-64px)] flex flex-col gap-3 overflow-hidden pt-3 pb-3 bg-slate-950/20">
       
-      {/* Page Header - Compact but Prominent */}
-      <div className="flex justify-between items-end border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+      {/* Page Header - Ultra Compact */}
+      <div className="flex justify-between items-center border-b border-slate-100/10 pb-3 shrink-0">
         <div>
-          <div className="text-[11px] font-black tracking-[0.25em] text-blue-500 uppercase mb-0.5">Interactive Classroom</div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
+          <div className="text-[10px] font-black tracking-[0.3em] text-blue-500 uppercase mb-0.5 opacity-80">Interactive Classroom</div>
+          <h1 className="text-xl md:text-2xl font-black tracking-tight text-white heading-font">
             AI TUTOR STUDY LAB
           </h1>
         </div>
-        <p className="hidden md:block text-[11px] text-slate-400 dark:text-slate-500 font-bold max-w-md text-right uppercase tracking-wider">
+        <p className="hidden md:block text-[9px] text-slate-500 font-bold max-w-md text-right uppercase tracking-widest">
           Topic-bound study companion &bull; Real-time grounding
         </p>
       </div>
@@ -329,11 +329,11 @@ export default function TutorInbox() {
         </div>
       )}
 
-      {/* Main Grid - Fixed Height Fill */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+      {/* Main Grid - Fixed Height Fill, No Outside Scroll */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-0">
         
         {/* Left Column / Setup & Inbox List - Scrollable */}
-        <div className="lg:col-span-4 flex flex-col gap-5 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
           
           {/* Active Binder Info */}
           <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
@@ -498,24 +498,24 @@ export default function TutorInbox() {
         </div>
 
         {/* Right Column / Conversations and diagnostics - Fixed Height Chat */}
-        <div className="lg:col-span-8 flex flex-col min-h-0">
+        <div className="lg:col-span-9 xl:col-span-9 flex flex-col min-h-0">
           
           {/* Chat Inbox Visual Area */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-full overflow-hidden shadow-sm relative rounded-2xl">
+          <Card className="border-slate-200/50 dark:border-slate-800 bg-slate-950/40 flex flex-col h-full overflow-hidden shadow-2xl relative rounded-3xl">
             
             {/* Header info */}
-            <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--bg-surface)] flex justify-between items-center gap-4 select-none shrink-0">
+            <div className="p-5 border-b border-[var(--glass-border)] bg-slate-900/40 flex justify-between items-center gap-4 select-none shrink-0">
               <div className="space-y-0.5 max-w-[70%]">
-                <span className="text-[9px] font-black uppercase text-blue-500 tracking-wider">
+                <span className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] opacity-80">
                   Dialogue Channel
                 </span>
-                <h3 className="font-black text-sm text-[var(--text-primary)] heading-font truncate">
+                <h3 className="font-black text-base text-[var(--text-primary)] heading-font truncate">
                   {activeConversation ? activeConversation.title || 'Classroom Discussion' : 'Learniverse AI Tutoring desk'}
                 </h3>
               </div>
 
               {/* Settings labels status items */}
-              <div className="flex gap-1.5 text-[10px] font-semibold tracking-wider uppercase shrink-0">
+              <div className="flex gap-1.5 text-[10px] font-black tracking-wider uppercase shrink-0">
                 {useRag ? <Badge variant="rag_on">RAG: Grounded</Badge> : <Badge variant="not_started">Base Model</Badge>}
                 <Badge variant="student">{language === 'bn' ? 'Bangla bn' : 'English en'}</Badge>
               </div>
@@ -523,33 +523,33 @@ export default function TutorInbox() {
 
             {/* Diagnostic Toolbar - Sticky below header */}
             {selectedTopic && (
-              <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-[var(--glass-border)] flex flex-wrap gap-2 justify-center shrink-0">
+              <div className="px-6 py-4 bg-slate-900/60 backdrop-blur-md border-b border-[var(--glass-border)] flex flex-wrap gap-3 justify-center shrink-0">
                 <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check')}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
                     ${activeDiagnosticTab === 'check' 
-                      ? 'bg-blue-600 border-blue-700 text-white shadow-lg shadow-blue-500/20' 
-                      : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 dark:bg-slate-950 dark:border-blue-900/30'
+                      ? 'bg-blue-600 border-blue-700 text-white shadow-blue-500/30' 
+                      : 'bg-slate-900 border-blue-900/30 text-blue-500 hover:bg-blue-500/10'
                     }`}
                 >
                   Quick Understanding check
                 </button>
                 <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
                     ${activeDiagnosticTab === 'quiz' 
-                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-lg shadow-emerald-500/20' 
-                      : 'bg-white border-emerald-100 text-emerald-600 hover:bg-emerald-50 dark:bg-slate-950 dark:border-emerald-900/30'
+                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-emerald-500/30' 
+                      : 'bg-slate-900 border-emerald-900/30 text-emerald-500 hover:bg-emerald-500/10'
                     }`}
                 >
                   Diagnostic Quiz
                 </button>
                 <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
                     ${activeDiagnosticTab === 'remediation' 
-                      ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' 
-                      : 'bg-white border-amber-100 text-amber-600 hover:bg-amber-50 dark:bg-slate-950 dark:border-amber-900/30'
+                      ? 'bg-amber-500 border-amber-600 text-white shadow-amber-500/30' 
+                      : 'bg-slate-900 border-amber-900/30 text-amber-500 hover:bg-amber-500/10'
                     }`}
                 >
                   Focused help & Study
@@ -558,12 +558,12 @@ export default function TutorInbox() {
             )}
 
             {/* Bubble contents - Main Scroll Volume */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-10">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-10 pb-12 custom-scrollbar">
               
               {/* Inline diagnostic expansion areas */}
               {selectedTopic && activeDiagnosticTab !== 'none' && (
-                <div className="max-w-5xl mx-auto mb-12">
-                  <div className="p-1 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-[var(--glass-border)] shadow-inner">
+                <div className="max-w-[1400px] mx-auto mb-16">
+                  <div className="p-1 rounded-3xl bg-slate-900/80 border border-[var(--glass-border)] shadow-2xl">
                     {activeDiagnosticTab === 'check' && (
                       <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                         <UnderstandingCheck
@@ -658,7 +658,7 @@ export default function TutorInbox() {
                   const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
                   const isStory = msg.message_type === 'story';
                   return (
-                    <div key={msg.id || i} className={`w-full max-w-5xl mx-auto flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg.id || i} className={`w-full max-w-6xl mx-auto flex gap-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
                       {/* AI Avatar */}
                       {!isUser && (
                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
@@ -742,8 +742,8 @@ export default function TutorInbox() {
             </div>
 
             {/* Input keyboard controls panels */}
-            <form onSubmit={handleSendMessage} className="p-4 bg-[var(--bg-primary)]/80 backdrop-blur-md rounded-b-2xl shrink-0 z-10 sticky bottom-0 border-t border-[var(--glass-border)]">
-              <div className="max-w-5xl mx-auto relative rounded-3xl bg-[var(--bg-surface)] p-2 border-none ring-1 ring-[var(--glass-border)] shadow-sm focus-within:ring-[var(--accent-primary)] transition-shadow">
+            <form onSubmit={handleSendMessage} className="p-6 bg-slate-900/60 backdrop-blur-xl shrink-0 z-10 sticky bottom-0 border-t border-[var(--glass-border)]">
+              <div className="max-w-6xl mx-auto relative rounded-[2.5rem] bg-slate-900/80 p-3 border-none ring-1 ring-[var(--glass-border)] shadow-2xl focus-within:ring-[var(--accent-primary)] transition-all">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -765,7 +765,7 @@ export default function TutorInbox() {
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <div className="max-w-5xl mx-auto flex justify-center mt-3 select-none">
+              <div className="max-w-6xl mx-auto flex justify-center mt-3 select-none">
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   Tutor can make mistakes. Check important info.
                 </p>

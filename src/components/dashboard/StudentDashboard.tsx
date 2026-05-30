@@ -552,6 +552,41 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
               </div>
             </Card>
 
+            {/* Weaknesses Card - Moved up for cognitive grouping */}
+            <Card className="p-6 bg-rose-500/5 border-rose-500/20">
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-[10px] uppercase tracking-widest font-black text-rose-500">Needs Attention</p>
+                <ShieldAlert className="h-5 w-5 text-rose-500" />
+              </div>
+              <h4 className="text-3xl font-black text-rose-500 mb-1">{stats.weaknessCount}</h4>
+              <p className="text-[11px] font-bold text-[var(--text-secondary)] mb-4">Concepts with lower mastery scores</p>
+              
+              <div className="flex flex-wrap gap-2">
+                {stats.weaknesses.length > 0 ? (
+                  stats.weaknesses.slice(0, 6).map((w, idx) => (
+                    <span key={idx} className="text-[10px] font-black bg-rose-500/10 text-rose-600 px-2 py-1 rounded-lg border border-rose-500/20 uppercase tracking-tighter">
+                      {w.replace(/_/g, ' ')}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-[var(--text-secondary)] italic">No critical conceptual gaps identified yet.</p>
+                )}
+              </div>
+              
+              {stats.weaknesses.length > 0 && (
+                <Button 
+                  variant="secondary" 
+                  className="w-full mt-5 text-[10px] uppercase font-black"
+                  onClick={() => {
+                    const firstWeak = allDashboardTopics.find(t => t.completion_status === 'needs_practice');
+                    if (firstWeak) handleContinueTopic(firstWeak);
+                  }}
+                >
+                  Practice Weaknesses
+                </Button>
+              )}
+            </Card>
+
           </div>
 
           {/* Continue Learning Action Panel */}
@@ -638,40 +673,6 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
             </Card>
           )}
 
-          {/* Weaknesses Card */}
-          <Card className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] uppercase tracking-widest font-black text-rose-500">Needs Attention</p>
-              <ShieldAlert className="h-5 w-5 text-rose-500" />
-            </div>
-            <h4 className="text-3xl font-black text-rose-500 mb-1">{stats.weaknessCount}</h4>
-            <p className="text-[11px] font-bold text-[var(--text-secondary)] mb-4">Concepts with lower mastery scores</p>
-            
-            <div className="flex flex-wrap gap-2">
-              {stats.weaknesses.length > 0 ? (
-                stats.weaknesses.slice(0, 6).map((w, idx) => (
-                  <span key={idx} className="text-[10px] font-black bg-rose-500/10 text-rose-600 px-2 py-1 rounded-lg border border-rose-500/20 uppercase tracking-tighter">
-                    {w.replace(/_/g, ' ')}
-                  </span>
-                ))
-              ) : (
-                <p className="text-[10px] text-[var(--text-secondary)] italic">No critical conceptual gaps identified yet.</p>
-              )}
-            </div>
-            
-            {stats.weaknesses.length > 0 && (
-              <Button 
-                variant="secondary" 
-                className="w-full mt-5 text-[10px] uppercase font-black"
-                onClick={() => {
-                  const firstWeak = allDashboardTopics.find(t => t.completion_status === 'needs_practice');
-                  if (firstWeak) handleContinueTopic(firstWeak);
-                }}
-              >
-                Practice Weaknesses
-              </Button>
-            )}
-          </Card>
 
         </div>
       </div>
