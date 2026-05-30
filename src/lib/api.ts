@@ -419,11 +419,11 @@ export const api = {
     return request('/blog/admin/all', { method: 'GET' });
   },
 
-  async generateBlogDraft(topic: string, description: string, language: string = 'en') {
+  async generateBlogDraft(topic: string, short_description: string, language: string = 'en') {
     return request('/blog/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, description, language }),
+      body: JSON.stringify({ topic, short_description, language }),
     });
   },
 

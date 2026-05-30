@@ -41,7 +41,7 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
     try {
       const response = await api.generateBlogDraft(topic, description, language);
       setGeneratedDraft(response);
-      setSuccessMsg(`Cognitive draft lesson '${response.title}' generated successfully! Verified and saved in draft collections.`);
+      setSuccessMsg(`Blog draft '${response.title}' generated successfully!`);
       
       // Clear forms
       setTopic('');
@@ -68,8 +68,8 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
             <ChevronLeft className="h-3 w-3" /> Back
           </button>
           <div>
-            <span className="text-[10px] font-mono tracking-[0.25em] font-black text-rose-500 uppercase">
-              AI cognitive draft assistant
+            <span className="text-[10px] font-mono tracking-[0.25em] font-black text-blue-500 uppercase">
+              AI Generated Blog
             </span>
             <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white mt-1">
               Create AI Blog Draft
@@ -147,7 +147,7 @@ export default function AdminBlogNew({ onNavigate }: AdminBlogNewProps) {
         <div className="lg:col-span-7">
           {isGenerating ? (
             <Card className="p-12 border border-slate-200 dark:border-neutral-800 text-center rounded-xl min-h-[420px] flex items-center justify-center bg-white">
-              <LoadingState message="Awaiting deep cognitive synthesis of textbook references..." size="lg" />
+              <LoadingState message="Generating blog draft..." size="lg" />
             </Card>
           ) : generatedDraft ? (
             <Card className="p-6 border-2 border-slate-900 dark:border-white rounded-xl bg-[#fbfbfc] space-y-4 max-h-[640px] overflow-y-auto">

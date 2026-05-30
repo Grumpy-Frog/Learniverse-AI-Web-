@@ -224,13 +224,19 @@ export interface RemediationSession {
 
 export interface BlogPost {
   id: string;
+  author_id?: string;
   title: string;
   slug: string;
+  topic?: string;
+  short_description?: string;
   category: string;
   language: 'en' | 'bn';
   excerpt: string;
   content_markdown: string;
-  is_published: boolean;
+  status?: 'draft' | 'published';
+  is_published?: boolean;
+  is_ai_generated?: boolean;
+  model_name?: string;
   created_at: string;
   updated_at: string;
 }
