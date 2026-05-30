@@ -82,26 +82,51 @@ export interface TextbookDocument {
   chapter_id: string;
   title: string;
   language: 'en' | 'bn';
+  source_type: string;
+  original_filename: string;
+  storage_path: string;
+  file_hash: string;
+  file_size_bytes: number;
   page_count: number;
+  processing_status: string;
   is_approved: boolean;
-  status: 'processing' | 'processed' | 'failed' | string;
+  uploaded_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DocumentPage {
   id: string;
   document_id: string;
   page_number: number;
-  text_content: string;
+  extracted_text: string;
   has_text: boolean;
+  created_at: string;
 }
 
-export interface RAGChunk {
+export interface DocumentChunk {
   id: string;
   document_id: string;
-  topic_id?: string;
-  page_number: number;
+  chapter_id: string;
+  topic_id: string;
+  language: "en" | "bn";
+  chunk_index: number;
   content: string;
+  page_start: number;
+  page_end: number;
   word_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface RagSearchResult extends DocumentChunk {
+  score: number;
+}
+
+export interface RagSearchResponse {
+  query: string;
+  retrieval_method: string;
+  results: RagSearchResult[];
 }
 
 export interface Conversation {

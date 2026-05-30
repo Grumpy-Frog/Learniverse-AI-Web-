@@ -297,11 +297,11 @@ export const api = {
     return request(`/rag/documents/${documentId}/topics/${topicId}/chunks`, { method: 'GET' });
   },
 
-  async testRagSearch(query: string, language: string = 'en', topic_id?: string, k: number = 3) {
+  async testRagSearch(query: string, language: string = 'en', topic_id?: string, limit: number = 5) {
     return request('/rag/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, language, topic_id, k }),
+      body: JSON.stringify({ query, language, topic_id, limit }),
     });
   },
 

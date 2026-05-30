@@ -16,7 +16,7 @@ import UserProfile from './components/profile/UserProfile';
 // Admin Pages
 import AdminCatalogManager from './components/admin/AdminCatalogManager';
 import AdminSimulationManager from './components/admin/AdminSimulationManager';
-import AdminDocumentsRagManager from './components/admin/AdminDocumentsRagManager';
+import AdminDocumentsPage from './components/admin/AdminDocumentsPage';
 import AdminBlogManager from './components/admin/AdminBlogManager';
 import AdminBlogNew from './components/admin/AdminBlogNew';
 
@@ -115,7 +115,7 @@ export default function App() {
         return (
           <AuthGuard onRedirect={navigateTo}>
             <AdminGate onRedirect={navigateTo}>
-              <AdminDocumentsRagManager />
+              <AdminDocumentsPage />
             </AdminGate>
           </AuthGuard>
         );
