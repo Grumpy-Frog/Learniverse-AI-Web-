@@ -308,7 +308,7 @@ export default function TutorInbox() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 h-full flex flex-col gap-6">
+    <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 h-full flex flex-col gap-6">
       
       {/* Page Header */}
       <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
@@ -497,7 +497,7 @@ export default function TutorInbox() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           
           {/* Chat Inbox Visual Area */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-[700px] overflow-hidden shadow-sm relative">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-[850px] overflow-hidden shadow-sm relative">
             
             {/* Header info */}
             <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--bg-surface)] flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
@@ -519,6 +519,89 @@ export default function TutorInbox() {
 
             {/* Bubble contents */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 pb-8">
+              {/* Diagnostic Buttons Toolbar Inside Chat for visibility */}
+              {selectedTopic && (
+                <div className="max-w-5xl mx-auto mb-8 flex flex-wrap gap-2.5 justify-center border-b border-[var(--glass-border)] pb-6">
+                  <button
+                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check')}
+                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
+                      ${activeDiagnosticTab === 'check' 
+                        ? 'bg-blue-600 border-blue-700 text-white shadow-blue-500/20' 
+                        : 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30'
+                      }`}
+                  >
+                    Quick Understanding check
+                  </button>
+                  <button
+                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
+                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
+                      ${activeDiagnosticTab === 'quiz' 
+                        ? 'bg-emerald-600 border-emerald-700 text-white shadow-emerald-500/20' 
+                        : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30'
+                      }`}
+                  >
+                    Diagnostic Quiz
+                  </button>
+                  <button
+                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
+                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
+                      ${activeDiagnosticTab === 'remediation' 
+                        ? 'bg-amber-500 border-amber-600 text-white shadow-amber-500/20' 
+                        : 'bg-amber-50 border-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-900/30'
+                      }`}
+                  >
+                    Focused help & Study
+                  </button>
+                </div>
+              )}
+
+              {/* Toggle diagnostic areas inline */}
+              <div className="max-w-5xl mx-auto">
+                {activeDiagnosticTab === 'check' && (
+                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <UnderstandingCheck
+                      topicId={selectedTopic.topic_id}
+                      topicTitle={selectedTopic.topic_title}
+                      onWeaknessDetected={() => {
+                        setActiveDiagnosticTab('quiz');
+                        refreshWorkspace();
+                      }}
+                      onSuccessCheck={() => {
+                        refreshWorkspace();
+                      }}
+                    />
+                  </div>
+                )}
+
+                {activeDiagnosticTab === 'quiz' && (
+                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <DiagnosticQuiz
+                      topicId={selectedTopic.topic_id}
+                      topicTitle={selectedTopic.topic_title}
+                      onQuizCompleted={(res) => {
+                        sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
+                        if (res.weaknesses && res.weaknesses.length > 0) {
+                          setActiveDiagnosticTab('remediation');
+                        }
+                        refreshWorkspace();
+                      }}
+                    />
+                  </div>
+                )}
+
+                {activeDiagnosticTab === 'remediation' && (
+                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <RemediationPanel
+                      topicId={selectedTopic.topic_id}
+                      topicTitle={selectedTopic.topic_title}
+                      onRemediationCompleted={() => {
+                        refreshWorkspace();
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
               {loadingMsg ? (
                 <div className="flex items-center justify-center h-full">
                   <LoadingState message="Restoring discussion context parameters..." />
@@ -566,7 +649,7 @@ export default function TutorInbox() {
                   const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
                   const isStory = msg.message_type === 'story';
                   return (
-                    <div key={msg.id || i} className={`w-full max-w-4xl mx-auto flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg.id || i} className={`w-full max-w-5xl mx-auto flex gap-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
                       {/* AI Avatar */}
                       {!isUser && (
                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
@@ -627,7 +710,7 @@ export default function TutorInbox() {
                 })
               )}
               {sendingMsg && (
-                <div className="w-full max-w-4xl mx-auto flex gap-4 justify-start">
+                <div className="w-full max-w-5xl mx-auto flex gap-4 justify-start">
                   <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
                     <Sparkles className="w-5 h-5 animate-pulse" />
                   </div>
@@ -639,7 +722,7 @@ export default function TutorInbox() {
                 </div>
               )}
               {lastNote && !sendingMsg && (
-                <div className="w-full max-w-4xl mx-auto flex gap-4 justify-start">
+                <div className="w-full max-w-5xl mx-auto flex gap-4 justify-start">
                    <div className="w-8 h-8 shrink-0"></div>
                    <div className="p-2.5 border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl inline-block max-w-full">
                      <p className="text-[10px] text-slate-500 dark:text-slate-400 italic font-medium">{lastNote}</p>
@@ -651,7 +734,7 @@ export default function TutorInbox() {
 
             {/* Input keyboard controls panels */}
             <form onSubmit={handleSendMessage} className="p-4 bg-[var(--bg-primary)]/80 backdrop-blur-md rounded-b-2xl shrink-0 z-10 sticky bottom-0 border-t border-[var(--glass-border)]">
-              <div className="max-w-4xl mx-auto relative rounded-3xl bg-[var(--bg-surface)] p-2 border-none ring-1 ring-[var(--glass-border)] shadow-sm focus-within:ring-[var(--accent-primary)] transition-shadow">
+              <div className="max-w-5xl mx-auto relative rounded-3xl bg-[var(--bg-surface)] p-2 border-none ring-1 ring-[var(--glass-border)] shadow-sm focus-within:ring-[var(--accent-primary)] transition-shadow">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -673,7 +756,7 @@ export default function TutorInbox() {
                   <Send className="h-4 w-4" />
                 </button>
               </div>
-              <div className="max-w-4xl mx-auto flex justify-center mt-3 select-none">
+              <div className="max-w-5xl mx-auto flex justify-center mt-3 select-none">
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   Tutor can make mistakes. Check important info.
                 </p>
@@ -681,100 +764,8 @@ export default function TutorInbox() {
             </form>
 
           </Card>
-
-          {/* Interactive Diagnostic Probe Tabs Selector */}
-          {selectedTopic && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 border-b border-[var(--glass-border)] pb-2">
-                <button
-                  onClick={() => {
-                    setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check');
-                    // Cache last topic sessionId to prompt remediation checks
-                  }}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
-                    ${activeDiagnosticTab === 'check' 
-                      ? 'bg-[var(--accent-primary)] text-white font-black' 
-                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
-                    }`}
-                >
-                  Quick Understanding check
-                </button>
-                <button
-                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
-                    ${activeDiagnosticTab === 'quiz' 
-                      ? 'bg-[var(--accent-primary)] text-white font-black' 
-                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
-                    }`}
-                >
-                  Diagnostic Quiz
-                </button>
-                {/* Only toggle remedial when weaknesses are established */}
-                <button
-                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'reremedy' || activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
-                    ${activeDiagnosticTab === 'remediation' 
-                      ? 'bg-[var(--warning)] text-white font-black' 
-                      : 'bg-[var(--bg-surface)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
-                    }`}
-                >
-                  Focused help & Study
-                </button>
-              </div>
-
-              {/* Toggle diagnostic areas */}
-              {activeDiagnosticTab === 'check' && (
-                <div className="transition-all duration-300">
-                  <UnderstandingCheck
-                    topicId={selectedTopic.topic_id}
-                    topicTitle={selectedTopic.topic_title}
-                    onWeaknessDetected={() => {
-                      setActiveDiagnosticTab('quiz');
-                      refreshWorkspace();
-                    }}
-                    onSuccessCheck={() => {
-                      refreshWorkspace();
-                    }}
-                  />
-                </div>
-              )}
-
-              {activeDiagnosticTab === 'quiz' && (
-                <div className="transition-all duration-300">
-                  <DiagnosticQuiz
-                    topicId={selectedTopic.topic_id}
-                    topicTitle={selectedTopic.topic_title}
-                    onQuizCompleted={(res) => {
-                      // Save the session ID to prompt remediation easily in the diagnostic tab
-                      sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
-                      if (res.weaknesses && res.weaknesses.length > 0) {
-                        // Switch panel to focused remedial helper automatically!
-                        setActiveDiagnosticTab('remediation');
-                      }
-                      refreshWorkspace();
-                    }}
-                  />
-                </div>
-              )}
-
-              {activeDiagnosticTab === 'remediation' && (
-                <div className="transition-all duration-300">
-                  <RemediationPanel
-                    topicId={selectedTopic.topic_id}
-                    topicTitle={selectedTopic.topic_title}
-                    onRemediationCompleted={() => {
-                      refreshWorkspace();
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
         </div>
-
       </div>
-
     </div>
   );
 }
