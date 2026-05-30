@@ -27,6 +27,22 @@ const isUuid = (value: unknown): value is string =>
   typeof value === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
+function getResultPercentage(result: DiagnosticResult): number {
+  return Math.round(result.session?.percentage ?? 0);
+}
+
+function getEarnedScore(result: DiagnosticResult): number {
+  return result.session?.score ?? result.answers.filter(a => a.is_correct).length;
+}
+
+function getTotalScore(result: DiagnosticResult): number {
+  return result.session?.question_count || result.answers.length || 0;
+}
+
+function getOutcome(result: DiagnosticResult): string {
+  return result.session?.outcome || result.completion_status || "pending";
+}
+
 export default function DiagnosticQuiz({
   topicId,
   topicTitle,
@@ -113,13 +129,21 @@ export default function DiagnosticQuiz({
         }))
       };
 
-      await api.submitSessionAnswers(state.sessionId, payload);
-      const res: DiagnosticResult = await api.getSessionResult(state.sessionId);
+      const res: DiagnosticResult = await api.submitSessionAnswers(state.sessionId, payload);
       
-      setState(prev => ({ ...prev, result: res, submitting: false }));
+      // Verification: if result doesn't have answers or session data, fallback to detailed fetch
+      let fullRes = res;
+      if (!res.answers || res.answers.length === 0 || !res.session) {
+        fullRes = await api.getSessionResult(state.sessionId);
+      }
+      
+      setState(prev => ({ ...prev, result: fullRes, submitting: false }));
+
+      // Refresh topic status in background
+      api.getTopicStatus(topicId).catch(() => null);
 
       if (onQuizCompleted) {
-        onQuizCompleted(res);
+        onQuizCompleted(fullRes);
       }
     } catch (err: any) {
       setState(prev => ({ ...prev, submitting: false, error: err.message || 'Quiz submission failed.' }));
@@ -128,10 +152,6 @@ export default function DiagnosticQuiz({
 
   const allAnswered = state.questions.length > 0 && 
     state.questions.every(q => state.answers[q.id] && state.answers[q.id].trim().length > 0);
-
-  const score = state.result?.session?.score || 0;
-  const maxScore = state.result?.session?.max_score || 0;
-  const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
   return (
     <Card className="bg-slate-900 border border-white/10 p-6 rounded-3xl space-y-6">
@@ -241,9 +261,11 @@ export default function DiagnosticQuiz({
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">Outcome Report</span>
-                <h4 className="text-3xl font-black">{Math.round(percentage)}%</h4>
+                <h4 className="text-3xl font-black">{getResultPercentage(state.result)}%</h4>
                 <div className="flex items-center gap-2">
-                   <div className="text-xs font-bold px-3 py-1 rounded-full bg-white/20 border border-white/20 uppercase tracking-widest">{state.result.session.outcome}</div>
+                   <div className="text-xs font-bold px-3 py-1 rounded-full bg-white/20 border border-white/20 uppercase tracking-widest">
+                     {getOutcome(state.result)}
+                   </div>
                    {state.result.show_checkmark && <div className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-400 text-slate-950 border border-emerald-300 uppercase tracking-widest flex items-center gap-1">Checkmark Earned <ShieldCheck className="h-3 w-3" /></div>}
                 </div>
               </div>
@@ -251,7 +273,9 @@ export default function DiagnosticQuiz({
               <div className="flex gap-4">
                 <div className="text-center">
                   <div className="text-[10px] font-black uppercase text-white/60 tracking-widest mb-1">Total Score</div>
-                  <div className="text-xl font-bold">{score}/{maxScore}</div>
+                  <div className="text-xl font-bold">
+                    {getEarnedScore(state.result)}/{getTotalScore(state.result)}
+                  </div>
                 </div>
               </div>
             </div>
