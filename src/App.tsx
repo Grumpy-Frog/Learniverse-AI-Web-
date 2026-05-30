@@ -47,6 +47,7 @@ export default function App() {
   const renderView = () => {
     // Determine base path by stripping query parameters if present
     const basePath = currentPath.split('?')[0];
+    const isTutorPage = basePath === '/tutor';
 
     // 1. Parse slugs inside blog routes if present
     if (basePath.startsWith('/blog/')) {
@@ -143,28 +144,32 @@ export default function App() {
     }
   };
 
+  const isTutorPage = currentPath.split('?')[0] === '/tutor';
+
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300 antialiased font-sans">
+    <div className="flex flex-col h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300 antialiased font-sans overflow-hidden">
       
       {/* Global Navbar */}
       <Navbar currentPath={currentPath} onNavigate={navigateTo} />
 
       {/* Main Pages Content with transition effects */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24">
+      <main className={`flex-1 w-full ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24 overflow-y-auto'}`}>
         {renderView()}
       </main>
 
       {/* Footer Area */}
-      <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
-          <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI &bull; BILINGUAL TUTOR SERVER</span>
-          <div className="flex gap-4">
-            <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
-            <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>
-            <button onClick={() => navigateTo('/blog')} className="hover:text-[var(--accent-primary)] transition-colors">Journal</button>
+      {!isTutorPage && (
+        <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
+            <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI &bull; BILINGUAL TUTOR SERVER</span>
+            <div className="flex gap-4">
+              <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
+              <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>
+              <button onClick={() => navigateTo('/blog')} className="hover:text-[var(--accent-primary)] transition-colors">Journal</button>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
     </div>
   );

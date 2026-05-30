@@ -23,7 +23,10 @@ import {
   ChevronDown,
   RotateCcw,
   Book,
-  FileText
+  FileText,
+  SearchCheck,
+  FileQuestion,
+  Zap
 } from 'lucide-react';
 
 export default function TutorInbox() {
@@ -308,45 +311,28 @@ export default function TutorInbox() {
   };
 
   return (
-    <div className="w-full mx-auto px-4 md:px-6 h-[calc(100vh-64px)] flex flex-col gap-3 overflow-hidden pt-3 pb-3 bg-slate-950/20">
+    <div className="w-full h-full flex overflow-hidden bg-slate-950">
       
-      {/* Page Header - Ultra Compact */}
-      <div className="flex justify-between items-center border-b border-slate-100/10 pb-3 shrink-0">
-        <div>
-          <div className="text-[10px] font-black tracking-[0.3em] text-blue-500 uppercase mb-0.5 opacity-80">Interactive Classroom</div>
-          <h1 className="text-xl md:text-2xl font-black tracking-tight text-white heading-font">
-            AI TUTOR STUDY LAB
-          </h1>
-        </div>
-        <p className="hidden md:block text-[9px] text-slate-500 font-bold max-w-md text-right uppercase tracking-widest">
-          Topic-bound study companion &bull; Real-time grounding
-        </p>
-      </div>
-
-      {errorHeader && (
-        <div className="shrink-0">
-          <StatusMessage type="error" message={errorHeader} />
-        </div>
-      )}
-
-      {/* Main Grid - Fixed Height Fill, No Outside Scroll */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-0">
+      {/* Left Sidebar - Compact Setup & Inbox */}
+      <div className="w-[320px] shrink-0 border-r border-slate-800/60 bg-slate-900/30 flex flex-col min-h-0 overflow-y-auto custom-scrollbar p-4 gap-5">
         
-        {/* Left Column / Setup & Inbox List - Scrollable */}
-        <div className="lg:col-span-3 xl:col-span-3 flex flex-col gap-4 overflow-y-auto pr-1 custom-scrollbar">
-          
-          {/* Active Binder Info */}
-          <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
-            <span className="text-[9px] font-black uppercase text-indigo-500 tracking-wider">Active Workspace Binder</span>
-            {selectedTopic ? (
-              <div className="space-y-3 mt-1.5">
-                <div className="border-l-2 border-indigo-500 pl-2.5">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedTopic.grade_name} &bull; {selectedTopic.subject_name}</h4>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-1 heading-font">{selectedTopic.topic_title}</h3>
-                </div>
+        <div className="flex items-center gap-2 pb-4 border-b border-white/5">
+          <Book className="h-5 w-5 text-blue-500" />
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white">Study Workspace</h2>
+        </div>
 
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-slate-450 uppercase text-[9px] font-black">Status:</span>
+        {/* Active Binder Info */}
+        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+          <span className="text-[9px] font-black uppercase text-indigo-400 tracking-wider">Loaded Topic</span>
+          {selectedTopic ? (
+            <div className="space-y-4 mt-2">
+              <div className="border-l-2 border-indigo-500 pl-3">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedTopic.grade_name} &bull; {selectedTopic.subject_name}</h4>
+                <h3 className="text-sm font-black text-white leading-tight mt-0.5">{selectedTopic.topic_title}</h3>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                <div className="flex items-center gap-2">
                   {topicStatus?.status === 'completed' ? (
                     <Badge variant="completed">Completed ✓</Badge>
                   ) : topicStatus?.status === 'needs_practice' ? (
@@ -354,396 +340,349 @@ export default function TutorInbox() {
                   ) : (
                     <Badge variant="not_started">Not Started</Badge>
                   )}
-                  {topicStatus && topicStatus.completion_percentage > 0 && (
-                    <span className="text-xs font-mono font-extrabold text-slate-700 dark:text-slate-350">
-                      {topicStatus.completion_percentage}%
-                    </span>
-                  )}
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-4 text-xs italic text-slate-450">
-                No syllabus topic selected. Go to learning catalog to load one.
-              </div>
-            )}
-          </Card>
-
-          {/* Configuration and settings Pane */}
-          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-4">
-            <span className="text-[9px] font-black uppercase text-slate-450 tracking-wider block">TUTOR PREFERENCES</span>
-
-            {/* Language Selection */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 capitalize block">Dialect Language</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleToggleSettings(useRag, 'en')}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${
-                    language === 'en' 
-                      ? 'bg-blue-600 text-white border-transparent dark:bg-blue-400 dark:text-slate-950 shadow-xs' 
-                      : 'bg-white dark:bg-slate-950 text-slate-705 border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  English (en)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleSettings(useRag, 'bn')}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${
-                    language === 'bn' 
-                      ? 'bg-blue-600 text-white border-transparent dark:bg-blue-400 dark:text-slate-950 shadow-xs' 
-                      : 'bg-white dark:bg-slate-950 text-slate-705 border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  Bangla (bn)
-                </button>
+                {topicStatus && topicStatus.completion_percentage > 0 && (
+                  <span className="text-xs font-mono font-black text-blue-400">
+                    {topicStatus.completion_percentage}%
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* RAG Toggle */}
-            <div className="pt-2">
-              <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={useRag}
-                  onChange={(e) => handleToggleSettings(e.target.checked, language)}
-                  className="rounded-md border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500/20 shadow-xs h-4 w-4 shrink-0 transition"
-                />
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-slate-850 dark:text-slate-105 block">Use textbook/RAG sources</span>
-                  <p className="text-[10px] text-slate-450 leading-relaxed">When enabled, the tutor uses approved source chunks for this topic.</p>
-                </div>
-              </label>
+          ) : (
+            <div className="text-center py-4 text-xs italic text-slate-500">
+              Select a concept from catalog.
             </div>
-
-            {/* Explanatory Story preference */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/85">
-              <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Learning Style preference</label>
-              <textarea
-                value={studentPreference}
-                onChange={(e) => setStudentPreference(e.target.value)}
-                placeholder="e.g., Explain through a bicycle story, a visual recipe, or step-by-step math solver proofs..."
-                className="w-full text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 outline-hidden focus:border-indigo-500"
-                rows={2}
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleGenerateStoryLesson}
-                isLoading={generatingStory}
-                className="w-full justify-center text-[10px] font-black uppercase tracking-wider bg-slate-900 border-none text-white dark:bg-white dark:text-slate-950"
-              >
-                <Sparkles className="h-3.5 w-3.5 mr-1.5" /> Synthesize Story Lesson
-              </Button>
-            </div>
-
-            {/* Controls */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/85 flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCreateConversation}
-                disabled={loadingConv}
-                className="flex-1 justify-center border border-dashed border-slate-300 dark:border-indigo-950 hover:bg-slate-50 dark:hover:bg-slate-950/20 text-xs"
-              >
-                <PlusCircle className="h-3.5 w-3.5 mr-1.5 text-blue-500" /> New Chat
-              </Button>
-            </div>
-          </Card>
-
-          {/* Conversations History List */}
-          <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-3">
-            <span className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">LEARNING CHANNELS ({conversations.length})</span>
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              {loadingConv ? (
-                <LoadingState message="Loading channels..." size="sm" />
-              ) : conversations.length === 0 ? (
-                <p className="text-xs text-slate-400 italic text-center py-4">No dialogues synthesized yet.</p>
-              ) : (
-                conversations.map(conv => {
-                  const isActive = activeConversation?.id === conv.id;
-                  const targetTopic = selectedTopic && selectedTopic.topic_id === conv.topic_id ? selectedTopic.topic_title : 'Chapter Concept Topic';
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => handleSelectConversation(conv)}
-                      className={`p-2.5 rounded-xl border text-xs cursor-pointer transition select-none flex justify-between items-start gap-2
-                        ${isActive 
-                          ? 'bg-slate-105 border-indigo-500 dark:bg-slate-905 dark:border-blue-400' 
-                          : 'bg-white dark:bg-slate-950 hover:border-slate-300 dark:hover:border-slate-800 border-slate-200 dark:border-slate-850'
-                        }`}
-                    >
-                      <div className="space-y-0.5 truncate max-w-[190px]">
-                        <p className="font-extrabold text-slate-800 dark:text-slate-100 truncate">
-                          {conv.title || 'Learning Dialogue'}
-                        </p>
-                        <p className="text-[10px] text-slate-450 truncate">
-                          Topic Focus: {conv.topic_id === selectedTopic?.topic_id ? selectedTopic.topic_title : 'Physics / Science Theme'}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 font-mono text-[8px] opacity-70 shrink-0">
-                        <Badge variant={conv.use_rag ? 'rag_on' : 'rag_off'}>
-                          {conv.use_rag ? 'RAG' : 'Base'}
-                        </Badge>
-                        <span className="uppercase text-[8px] font-semibold text-slate-450">{conv.language}</span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </Card>
-
+          )}
         </div>
 
-        {/* Right Column / Conversations and diagnostics - Fixed Height Chat */}
-        <div className="lg:col-span-9 xl:col-span-9 flex flex-col min-h-0">
-          
-          {/* Chat Inbox Visual Area */}
-          <Card className="border-slate-200/50 dark:border-slate-800 bg-slate-950/40 flex flex-col h-full overflow-hidden shadow-2xl relative rounded-3xl">
-            
-            {/* Header info */}
-            <div className="p-5 border-b border-[var(--glass-border)] bg-slate-900/40 flex justify-between items-center gap-4 select-none shrink-0">
-              <div className="space-y-0.5 max-w-[70%]">
-                <span className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] opacity-80">
-                  Dialogue Channel
-                </span>
-                <h3 className="font-black text-base text-[var(--text-primary)] heading-font truncate">
-                  {activeConversation ? activeConversation.title || 'Classroom Discussion' : 'Learniverse AI Tutoring desk'}
-                </h3>
-              </div>
+        {/* Configuration Toggle Panels */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Dialect & Mode</span>
+            <Settings className="h-3 w-3 text-slate-600" />
+          </div>
 
-              {/* Settings labels status items */}
-              <div className="flex gap-1.5 text-[10px] font-black tracking-wider uppercase shrink-0">
-                {useRag ? <Badge variant="rag_on">RAG: Grounded</Badge> : <Badge variant="not_started">Base Model</Badge>}
-                <Badge variant="student">{language === 'bn' ? 'Bangla bn' : 'English en'}</Badge>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleToggleSettings(useRag, 'en')}
+              className={`py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${
+                language === 'en' ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-900 border-white/10 text-slate-400 hover:border-white/20'
+              }`}
+            >
+              English
+            </button>
+            <button
+              onClick={() => handleToggleSettings(useRag, 'bn')}
+              className={`py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${
+                language === 'bn' ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-900 border-white/10 text-slate-400 hover:border-white/20'
+              }`}
+            >
+              Bangla
+            </button>
+          </div>
+
+          <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+            <input
+              type="checkbox"
+              checked={useRag}
+              onChange={(e) => handleToggleSettings(e.target.checked, language)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-0 focus:ring-offset-0"
+            />
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-slate-200">Grounded Search</span>
+              <span className="text-[9px] text-slate-500 font-medium tracking-tight">AI utilizes textbook sources</span>
+            </div>
+          </label>
+        </div>
+
+        {/* AI Story Synthesizer */}
+        <div className="space-y-2 pt-2">
+           <textarea
+            value={studentPreference}
+            onChange={(e) => setStudentPreference(e.target.value)}
+            placeholder="Customize story theme (e.g., Space Explorer, Detective)..."
+            className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleGenerateStoryLesson}
+            disabled={generatingStory}
+            className="w-full h-10 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:scale-[0.98] transition-transform active:scale-95 disabled:opacity-50"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> 
+            {generatingStory ? 'Synthesizing...' : 'Synthesize Story'}
+          </button>
+        </div>
+
+        {/* History List */}
+        <div className="flex-1 min-h-0 flex flex-col space-y-3 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Learning Channels</span>
+            <button onClick={handleCreateConversation} className="p-1 hover:bg-white/5 rounded-full text-blue-400 transition-colors">
+              <PlusCircle className="h-4 w-4" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+            {loadingConv ? (
+              <div className="py-10 flex justify-center"><div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>
+            ) : conversations.map(conv => {
+              const isActive = activeConversation?.id === conv.id;
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => handleSelectConversation(conv)}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer group ${
+                    isActive 
+                      ? 'bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-500/5' 
+                      : 'bg-slate-900/50 border-white/5 hover:border-white/20'
+                  }`}
+                >
+                  <p className={`text-xs font-black truncate mb-1 ${isActive ? 'text-blue-400' : 'text-slate-200 group-hover:text-white'}`}>
+                    {conv.title || 'Untitled Dialogue'}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8px] font-black uppercase text-slate-600 tracking-widest">
+                      {conv.language.toUpperCase()} &bull; {conv.use_rag ? 'Grounded' : 'Base'}
+                    </span>
+                    <span className="text-[8px] font-mono text-slate-700">{new Date(conv.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Right Column - Chat Content */}
+      <div className="flex-1 flex flex-col min-w-0 h-full relative">
+        
+        {/* Chat Header and Diagnostic Bar */}
+        <div className="shrink-0 z-30">
+          {/* Main Title Header */}
+          <div className="bg-slate-950/80 backdrop-blur-xl border-b border-white/5 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                <MessageSquare className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-tight">
+                  {activeConversation?.title || 'Dialogue Channel'}
+                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Tutoring Desk</span>
+                </div>
               </div>
             </div>
 
-            {/* Diagnostic Toolbar - Sticky below header */}
-            {selectedTopic && (
-              <div className="px-6 py-4 bg-slate-900/60 backdrop-blur-md border-b border-[var(--glass-border)] flex flex-wrap gap-3 justify-center shrink-0">
-                <button
+            {activeConversation && (
+              <div className="flex items-center gap-3">
+                 <Badge variant={useRag ? 'rag_on' : 'not_started'}>{useRag ? 'RAG: Grounded' : 'Base Model'}</Badge>
+                 <Badge variant="student">{language === 'bn' ? 'Bangla bn' : 'English en'}</Badge>
+              </div>
+            )}
+          </div>
+
+          {/* Diagnostic Prominent Buttons Bar */}
+          {selectedTopic && (
+            <div className="bg-slate-900/40 backdrop-blur-md border-b border-white/5 py-3 px-6 flex items-center justify-center gap-4">
+               <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check')}
-                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
+                  className={`flex-1 max-w-[280px] h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border flex items-center justify-center gap-2 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]
                     ${activeDiagnosticTab === 'check' 
-                      ? 'bg-blue-600 border-blue-700 text-white shadow-blue-500/30' 
-                      : 'bg-slate-900 border-blue-900/30 text-blue-500 hover:bg-blue-500/10'
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-blue-600/30 ring-2 ring-blue-500/50' 
+                      : 'bg-slate-900/80 border-blue-500/20 text-blue-400 hover:bg-blue-500/10'
                     }`}
                 >
-                  Quick Understanding check
+                  <SearchCheck className="h-4 w-4" /> Understanding Check
                 </button>
                 <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
-                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
+                  className={`flex-1 max-w-[280px] h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border flex items-center justify-center gap-2 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]
                     ${activeDiagnosticTab === 'quiz' 
-                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-emerald-500/30' 
-                      : 'bg-slate-900 border-emerald-900/30 text-emerald-500 hover:bg-emerald-500/10'
+                      ? 'bg-emerald-600 border-emerald-500 text-white shadow-emerald-600/30 ring-2 ring-emerald-500/50' 
+                      : 'bg-slate-900/80 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10'
                     }`}
                 >
-                  Diagnostic Quiz
+                  <FileQuestion className="h-4 w-4" /> Diagnostic Quiz
                 </button>
                 <button
                   onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
-                  className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border shadow-lg
+                  className={`flex-1 max-w-[280px] h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border flex items-center justify-center gap-2 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]
                     ${activeDiagnosticTab === 'remediation' 
-                      ? 'bg-amber-500 border-amber-600 text-white shadow-amber-500/30' 
-                      : 'bg-slate-900 border-amber-900/30 text-amber-500 hover:bg-amber-500/10'
+                      ? 'bg-amber-500 border-amber-500 text-white shadow-amber-600/30 ring-2 ring-amber-500/50' 
+                      : 'bg-slate-900/80 border-amber-500/20 text-amber-400 hover:bg-amber-500/10'
                     }`}
                 >
-                  Focused help & Study
+                  <Zap className="h-4 w-4" /> Focused help & Study
                 </button>
-              </div>
-            )}
+            </div>
+          )}
+        </div>
 
-            {/* Bubble contents - Main Scroll Volume */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-10 pb-12 custom-scrollbar">
-              
-              {/* Inline diagnostic expansion areas */}
-              {selectedTopic && activeDiagnosticTab !== 'none' && (
-                <div className="max-w-[1400px] mx-auto mb-16">
-                  <div className="p-1 rounded-3xl bg-slate-900/80 border border-[var(--glass-border)] shadow-2xl">
-                    {activeDiagnosticTab === 'check' && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        <UnderstandingCheck
-                          topicId={selectedTopic.topic_id}
-                          topicTitle={selectedTopic.topic_title}
-                          onWeaknessDetected={() => {
-                            setActiveDiagnosticTab('quiz');
-                            refreshWorkspace();
-                          }}
-                          onSuccessCheck={() => {
-                            refreshWorkspace();
-                          }}
-                        />
-                      </div>
-                    )}
+        {/* Message View Area */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+           
+           <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12 pb-32">
+             
+             {/* Diagnostic Overlays */}
+             {selectedTopic && activeDiagnosticTab !== 'none' && (
+                <div className="animate-in fade-in zoom-in-95 duration-500 bg-slate-900/90 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl p-1 overflow-hidden">
+                   {activeDiagnosticTab === 'check' && (
+                      <UnderstandingCheck
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
+                        onSuccessCheck={() => { refreshWorkspace(); }}
+                      />
+                   )}
+                   {activeDiagnosticTab === 'quiz' && (
+                      <DiagnosticQuiz
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        onQuizCompleted={(res) => {
+                          sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
+                          if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
+                          refreshWorkspace();
+                        }}
+                      />
+                   )}
+                   {activeDiagnosticTab === 'remediation' && (
+                      <RemediationPanel
+                        topicId={selectedTopic.topic_id}
+                        topicTitle={selectedTopic.topic_title}
+                        onRemediationCompleted={() => { refreshWorkspace(); }}
+                      />
+                   )}
+                </div>
+             )}
 
-                    {activeDiagnosticTab === 'quiz' && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        <DiagnosticQuiz
-                          topicId={selectedTopic.topic_id}
-                          topicTitle={selectedTopic.topic_title}
-                          onQuizCompleted={(res) => {
-                            sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
-                            if (res.weaknesses && res.weaknesses.length > 0) {
-                              setActiveDiagnosticTab('remediation');
-                            }
-                            refreshWorkspace();
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    {activeDiagnosticTab === 'remediation' && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        <RemediationPanel
-                          topicId={selectedTopic.topic_id}
-                          topicTitle={selectedTopic.topic_title}
-                          onRemediationCompleted={() => {
-                            refreshWorkspace();
-                          }}
-                        />
-                      </div>
-                    )}
+             {loadingMsg ? (
+               <div className="flex min-h-[400px] items-center justify-center">
+                 <div className="flex flex-col items-center gap-4">
+                    <div className="h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-xs font-black uppercase text-slate-500 tracking-widest">Restoring session...</p>
+                 </div>
+               </div>
+             ) : (!selectedTopic && !activeConversation) ? (
+               <div className="min-h-[400px] flex flex-col items-center justify-center text-center max-w-sm mx-auto">
+                  <div className="w-16 h-16 rounded-3xl bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500 mb-6">
+                    <BookOpen className="h-8 w-8" />
                   </div>
-                </div>
-              )}
-
-              {loadingMsg ? (
-                <div className="flex items-center justify-center h-full">
-                  <LoadingState message="Restoring discussion context parameters..." />
-                </div>
-              ) : (!selectedTopic && !activeConversation) ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-3 select-none">
-                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--text-secondary)] shrink-0 border border-[var(--glass-border)]">
-                    <BookOpen className="h-6 w-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Select a topic first</h4>
-                  <p className="text-xs leading-relaxed font-normal">
-                    Choose a grade, subject, chapter, and topic from the Catalog before starting the tutor.
-                  </p>
-                  <Button onClick={() => window.location.hash = '#/catalog'}>Open Catalog</Button>
-                </div>
-              ) : (selectedTopic && !activeConversation) ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-4 select-none">
-                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--accent-primary)] shrink-0 border border-[var(--glass-border)]">
-                    <MessageSquare className="h-6 w-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Ready to learn {selectedTopic.topic_title}</h4>
-                  <p className="text-xs leading-relaxed font-normal">
-                    Start a new tutor conversation, generate a story lesson, or ask a question about this topic.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button onClick={handleCreateConversation}>New Conversation</Button>
-                    <Button variant="secondary" onClick={handleGenerateStoryLesson} disabled={generatingStory}>
-                      {generatingStory ? 'Generating...' : 'Generate Story Lesson'}
-                    </Button>
-                  </div>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-[var(--text-secondary)] max-w-sm mx-auto space-y-3 select-none">
-                  <div className="p-3 bg-[var(--bg-surface)] rounded-full text-[var(--text-secondary)] shrink-0 border border-[var(--glass-border)]">
-                    <MessageSquare className="h-6 w-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)]">Conversation started</h4>
-                  <p className="text-xs leading-relaxed font-normal">
-                    No messages yet. Generate a story lesson or ask your first question.
-                  </p>
-                </div>
-              ) : (
-                messages.map((msg, i) => {
-                  const isUser = msg.role === 'user';
-                  const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
-                  const isStory = msg.message_type === 'story';
-                  return (
-                    <div key={msg.id || i} className={`w-full max-w-6xl mx-auto flex gap-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                      {/* AI Avatar */}
-                      {!isUser && (
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
-                          <Sparkles className="w-5 h-5" />
+                  <h4 className="text-xl font-black text-white mb-3">Topic Required</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-8 font-medium">Please select a specific concept from the curriculm catalog to unlock the AI tutor's workspace.</p>
+                  <Button className="w-full" onClick={() => window.location.hash = '#/catalog'}>Browse Catalog</Button>
+               </div>
+             ) : messages.length === 0 ? (
+               <div className="min-h-[400px] flex flex-col items-center justify-center text-center">
+                   <div className="w-20 h-20 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 animate-pulse">
+                     <Sparkles className="h-10 w-10" />
+                   </div>
+                   <h4 className="text-2xl font-black text-white mb-2">Hello! I'm your AI Tutor.</h4>
+                   <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed mb-10 font-medium">I'm ready to help you master <strong>{selectedTopic?.topic_title}</strong>. Ask me anything or start a story-guided lesson above.</p>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-xl">
+                      <button onClick={handleCreateConversation} className="p-6 bg-slate-900/50 border border-white/5 rounded-3xl hover:border-blue-500/30 transition-all text-left">
+                        <MessageSquare className="h-5 w-5 text-blue-500 mb-3" />
+                        <h5 className="text-xs font-black text-white uppercase tracking-wider mb-1">Interactive Chat</h5>
+                        <p className="text-[10px] text-slate-500 leading-normal">Ask any question or clear your doubts instantly.</p>
+                      </button>
+                      <button onClick={handleGenerateStoryLesson} className="p-6 bg-slate-900/50 border border-white/5 rounded-3xl hover:border-purple-500/30 transition-all text-left">
+                        <Sparkles className="h-5 w-5 text-purple-500 mb-3" />
+                        <h5 className="text-xs font-black text-white uppercase tracking-wider mb-1">Synthesize Lesson</h5>
+                        <p className="text-[10px] text-slate-500 leading-normal">Let me build a personalized narrative lesson for you.</p>
+                      </button>
+                   </div>
+               </div>
+             ) : (
+                <div className="space-y-12">
+                  {messages.map((msg, i) => {
+                    const isUser = msg.role === 'user';
+                    const isRefusal = msg.message_type === 'refusal' || msg.is_in_scope === false;
+                    const isStory = msg.message_type === 'story';
+                    return (
+                      <div key={msg.id || i} className={`flex gap-8 group animate-in fade-in slide-in-from-bottom-4 duration-500 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {/* Avatar Cell */}
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+                          isUser 
+                            ? 'bg-slate-800 border-slate-700 text-slate-300' 
+                            : 'bg-indigo-600/10 border-indigo-500/20 text-indigo-400'
+                        }`}>
+                          {isUser ? <div className="text-[10px] font-black uppercase tracking-tighter">ME</div> : <Sparkles className="w-6 h-6" />}
                         </div>
-                      )}
 
-                      {/* Msg bubble container layout styles */}
-                      <div className={`text-[15px] leading-relaxed max-w-[85%] md:max-w-[75%]
-                        ${isUser 
-                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-5 py-3.5 rounded-3xl font-medium' 
-                          : isRefusal 
-                            ? 'bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-500 p-4 rounded-2xl' 
-                            : 'text-slate-800 dark:text-slate-200'
-                        }`}
-                      >
-                        {/* Custom label tags for story or refusals */}
-                        {isStory && (
-                          <div className="mb-3">
-                            <span className="inline-flex items-center rounded-md bg-indigo-100 dark:bg-indigo-500/20 px-2 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-600/20">Story Lesson</span>
-                          </div>
-                        )}
-                        {isRefusal && (
-                          <div className="mb-3">
-                            <span className="inline-flex items-center rounded-md bg-amber-100 dark:bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300 ring-1 ring-inset ring-amber-600/20">Outside selected topic</span>
-                          </div>
-                        )}
+                        {/* Content Cell */}
+                        <div className={`flex flex-col max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
+                           {/* Context labels */}
+                           {!isUser && (isStory || isRefusal) && (
+                              <div className="mb-2 flex gap-2">
+                                 {isStory && <span className="text-[9px] font-black bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-500/20 uppercase tracking-widest">Story Narrative</span>}
+                                 {isRefusal && <span className="text-[9px] font-black bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-lg border border-amber-500/20 uppercase tracking-widest">Off-Topic</span>}
+                              </div>
+                           )}
 
-                        <MarkdownContent content={msg.content} />
+                           <div className={`text-[15px] leading-[1.7] w-full ${isUser ? 'text-right' : 'text-left'}`}>
+                              <div className={isUser ? 'bg-slate-900/80 border border-white/5 rounded-3xl px-6 py-4 shadow-xl' : ''}>
+                                <MarkdownContent content={msg.content} />
+                              </div>
 
-                        {/* Citations/RAG Sources list underneath message if provided */}
-                        {msg.sources && msg.sources.length > 0 && (
-                          <div className="mt-5 space-y-3">
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 select-none">
-                              <FileText className="h-4 w-4 shrink-0" />
-                              Sources
-                            </div>
-                            <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
-                              {msg.sources.map((src, srcIdx) => (
-                                <div key={srcIdx} className="w-[280px] shrink-0 snap-start p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-1.5 text-xs select-text pointer-events-auto leading-normal">
-                                  <div className="flex justify-between items-start font-semibold text-slate-800 dark:text-slate-200">
-                                    <span className="line-clamp-1 flex-1 pr-2">{src.title || 'Source text'}</span>
-                                  </div>
-                                  <p className="text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed italic">
-                                    "{src.content_preview}"
-                                  </p>
-                                  <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-1">
-                                    Pages {src.page_start} - {src.page_end}
-                                  </div>
+                              {/* Sources Block */}
+                              {!isUser && msg.sources && msg.sources.length > 0 && (
+                                <div className="mt-8">
+                                   <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">
+                                      <FileText className="h-3.5 w-3.5" /> Reference Material
+                                   </div>
+                                   <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar -mx-2 px-2">
+                                      {msg.sources.map((src, sIdx) => (
+                                        <div key={sIdx} className="w-[300px] shrink-0 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                           <h6 className="text-[11px] font-bold text-white line-clamp-1 mb-2">{src.title}</h6>
+                                           <p className="text-[10px] text-slate-400 line-clamp-3 leading-relaxed mb-3 italic">"{src.content_preview}"</p>
+                                           <span className="text-[9px] font-mono text-blue-500">PAGES {src.page_start}-{src.page_end}</span>
+                                        </div>
+                                      ))}
+                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                              )}
+                           </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {sendingMsg && (
+                    <div className="flex gap-8 animate-pulse">
+                      <div className="w-10 h-10 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <Sparkles className="w-6 h-6 animate-spin-slow" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-4">
+                         <div className="h-2 w-2 rounded-full bg-blue-500" />
+                         <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]" />
+                         <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]" />
                       </div>
                     </div>
-                  );
-                })
-              )}
-              {sendingMsg && (
-                <div className="w-full max-w-5xl mx-auto flex gap-4 justify-start">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-1 mt-0">
-                    <Sparkles className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <div className="flex items-center gap-1.5 h-10">
-                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce" />
-                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce delay-100" />
-                    <div className="h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce delay-200" />
-                  </div>
+                  )}
+                  {lastNote && !sendingMsg && (
+                    <div className="flex gap-8 opacity-60">
+                      <div className="w-10 h-10 shrink-0" />
+                      <div className="bg-slate-900/40 p-3 rounded-2xl border border-white/5">
+                        <p className="text-[10px] text-slate-500 font-medium italic">{lastNote}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} className="h-1" />
                 </div>
-              )}
-              {lastNote && !sendingMsg && (
-                <div className="w-full max-w-5xl mx-auto flex gap-4 justify-start">
-                   <div className="w-8 h-8 shrink-0"></div>
-                   <div className="p-2.5 border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl inline-block max-w-full">
-                     <p className="text-[10px] text-slate-500 dark:text-slate-400 italic font-medium">{lastNote}</p>
-                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+             )}
+           </div>
+        </div>
 
-            {/* Input keyboard controls panels */}
-            <form onSubmit={handleSendMessage} className="p-6 bg-slate-900/60 backdrop-blur-xl shrink-0 z-10 sticky bottom-0 border-t border-[var(--glass-border)]">
-              <div className="max-w-6xl mx-auto relative rounded-[2.5rem] bg-slate-900/80 p-3 border-none ring-1 ring-[var(--glass-border)] shadow-2xl focus-within:ring-[var(--accent-primary)] transition-all">
+        {/* Floating Input Area */}
+        <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none z-40">
+           <form 
+            onSubmit={handleSendMessage} 
+            className="max-w-[900px] mx-auto relative pointer-events-auto group pb-4"
+          >
+             <div className="relative rounded-[2rem] bg-slate-900/90 border border-white/10 shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 p-2 backdrop-blur-3xl transition-all duration-300">
                 <textarea
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
@@ -753,27 +692,26 @@ export default function TutorInbox() {
                       handleSendMessage();
                     }
                   }}
-                  placeholder={selectedTopic ? `Ask about "${selectedTopic.topic_title}"...` : "Choose a learning context catalog topic or write here..."}
-                  className="w-full min-h-[48px] max-h-[200px] p-3 text-sm text-[var(--text-primary)] bg-transparent placeholder:text-[var(--text-secondary)] outline-none focus:outline-none resize-none pr-12"
+                  placeholder={selectedTopic ? `Message your AI tutor about "${selectedTopic.topic_title}"...` : "Choose a concept to start learning..."}
+                  className="w-full min-h-[56px] max-h-[300px] py-4 px-6 text-sm text-white bg-transparent placeholder:text-slate-500 outline-none resize-none pr-16 custom-scrollbar"
                   rows={1}
                 />
                 <button
                   type="submit"
                   disabled={sendingMsg || !typedMessage.trim()}
-                  className="absolute right-3 bottom-3 h-10 w-10 flex items-center justify-center rounded-full bg-[var(--accent-primary)] text-white disabled:opacity-30 disabled:bg-[var(--glass-bg)] disabled:text-[var(--text-secondary)] transition-colors"
+                  className={`absolute right-3 bottom-3 h-12 w-12 flex items-center justify-center rounded-2xl transition-all
+                    ${typedMessage.trim() ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}
+                  `}
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 </button>
-              </div>
-              <div className="max-w-6xl mx-auto flex justify-center mt-3 select-none">
-                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
-                  Tutor can make mistakes. Check important info.
-                </p>
-              </div>
-            </form>
-
-          </Card>
+             </div>
+             <p className="text-center text-[9px] font-black uppercase text-slate-600 mt-4 tracking-widest select-none">
+               Learniverse AI Tutor &bull; Precision Grounded Engine &bull; Verify Output
+             </p>
+           </form>
         </div>
+
       </div>
     </div>
   );
