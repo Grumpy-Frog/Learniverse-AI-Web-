@@ -308,28 +308,32 @@ export default function TutorInbox() {
   };
 
   return (
-    <div className="max-w-[1500px] mx-auto px-4 md:px-8 py-8 h-full flex flex-col gap-6">
+    <div className="max-w-[1600px] mx-auto px-4 md:px-6 h-[calc(100vh-80px)] flex flex-col gap-4 overflow-hidden pt-4 pb-4">
       
-      {/* Page Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
-        <div className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase mb-1">Interactive Classroom</div>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
-          AI TUTOR STUDY LAB
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-semibold">
-          Your topic-bound study companion. Ask clarifying questions, synthesize fun scenario stories, and trigger quick checks.
+      {/* Page Header - Compact but Prominent */}
+      <div className="flex justify-between items-end border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+        <div>
+          <div className="text-[11px] font-black tracking-[0.25em] text-blue-500 uppercase mb-0.5">Interactive Classroom</div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
+            AI TUTOR STUDY LAB
+          </h1>
+        </div>
+        <p className="hidden md:block text-[11px] text-slate-400 dark:text-slate-500 font-bold max-w-md text-right uppercase tracking-wider">
+          Topic-bound study companion &bull; Real-time grounding
         </p>
       </div>
 
       {errorHeader && (
-        <StatusMessage type="error" message={errorHeader} />
+        <div className="shrink-0">
+          <StatusMessage type="error" message={errorHeader} />
+        </div>
       )}
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Grid - Fixed Height Fill */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
         
-        {/* Left Column / Setup & Inbox List */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Left Column / Setup & Inbox List - Scrollable */}
+        <div className="lg:col-span-4 flex flex-col gap-5 overflow-y-auto pr-2 custom-scrollbar">
           
           {/* Active Binder Info */}
           <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
@@ -493,14 +497,14 @@ export default function TutorInbox() {
 
         </div>
 
-        {/* Right Column / Conversations and diagnostics */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
+        {/* Right Column / Conversations and diagnostics - Fixed Height Chat */}
+        <div className="lg:col-span-8 flex flex-col min-h-0">
           
           {/* Chat Inbox Visual Area */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-[850px] overflow-hidden shadow-sm relative">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-full overflow-hidden shadow-sm relative rounded-2xl">
             
             {/* Header info */}
-            <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--bg-surface)] flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
+            <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--bg-surface)] flex justify-between items-center gap-4 select-none shrink-0">
               <div className="space-y-0.5 max-w-[70%]">
                 <span className="text-[9px] font-black uppercase text-blue-500 tracking-wider">
                   Dialogue Channel
@@ -517,90 +521,95 @@ export default function TutorInbox() {
               </div>
             </div>
 
-            {/* Bubble contents */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 pb-8">
-              {/* Diagnostic Buttons Toolbar Inside Chat for visibility */}
-              {selectedTopic && (
-                <div className="max-w-5xl mx-auto mb-8 flex flex-wrap gap-2.5 justify-center border-b border-[var(--glass-border)] pb-6">
-                  <button
-                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check')}
-                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
-                      ${activeDiagnosticTab === 'check' 
-                        ? 'bg-blue-600 border-blue-700 text-white shadow-blue-500/20' 
-                        : 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/10 dark:border-blue-900/30'
-                      }`}
-                  >
-                    Quick Understanding check
-                  </button>
-                  <button
-                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
-                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
-                      ${activeDiagnosticTab === 'quiz' 
-                        ? 'bg-emerald-600 border-emerald-700 text-white shadow-emerald-500/20' 
-                        : 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30'
-                      }`}
-                  >
-                    Diagnostic Quiz
-                  </button>
-                  <button
-                    onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
-                    className={`px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm border
-                      ${activeDiagnosticTab === 'remediation' 
-                        ? 'bg-amber-500 border-amber-600 text-white shadow-amber-500/20' 
-                        : 'bg-amber-50 border-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:border-amber-900/30'
-                      }`}
-                  >
-                    Focused help & Study
-                  </button>
+            {/* Diagnostic Toolbar - Sticky below header */}
+            {selectedTopic && (
+              <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-[var(--glass-border)] flex flex-wrap gap-2 justify-center shrink-0">
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check')}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                    ${activeDiagnosticTab === 'check' 
+                      ? 'bg-blue-600 border-blue-700 text-white shadow-lg shadow-blue-500/20' 
+                      : 'bg-white border-blue-100 text-blue-600 hover:bg-blue-50 dark:bg-slate-950 dark:border-blue-900/30'
+                    }`}
+                >
+                  Quick Understanding check
+                </button>
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                    ${activeDiagnosticTab === 'quiz' 
+                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-lg shadow-emerald-500/20' 
+                      : 'bg-white border-emerald-100 text-emerald-600 hover:bg-emerald-50 dark:bg-slate-950 dark:border-emerald-900/30'
+                    }`}
+                >
+                  Diagnostic Quiz
+                </button>
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                    ${activeDiagnosticTab === 'remediation' 
+                      ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' 
+                      : 'bg-white border-amber-100 text-amber-600 hover:bg-amber-50 dark:bg-slate-950 dark:border-amber-900/30'
+                    }`}
+                >
+                  Focused help & Study
+                </button>
+              </div>
+            )}
+
+            {/* Bubble contents - Main Scroll Volume */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-10">
+              
+              {/* Inline diagnostic expansion areas */}
+              {selectedTopic && activeDiagnosticTab !== 'none' && (
+                <div className="max-w-5xl mx-auto mb-12">
+                  <div className="p-1 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-[var(--glass-border)] shadow-inner">
+                    {activeDiagnosticTab === 'check' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <UnderstandingCheck
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          onWeaknessDetected={() => {
+                            setActiveDiagnosticTab('quiz');
+                            refreshWorkspace();
+                          }}
+                          onSuccessCheck={() => {
+                            refreshWorkspace();
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {activeDiagnosticTab === 'quiz' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <DiagnosticQuiz
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          onQuizCompleted={(res) => {
+                            sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
+                            if (res.weaknesses && res.weaknesses.length > 0) {
+                              setActiveDiagnosticTab('remediation');
+                            }
+                            refreshWorkspace();
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {activeDiagnosticTab === 'remediation' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <RemediationPanel
+                          topicId={selectedTopic.topic_id}
+                          topicTitle={selectedTopic.topic_title}
+                          onRemediationCompleted={() => {
+                            refreshWorkspace();
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-
-              {/* Toggle diagnostic areas inline */}
-              <div className="max-w-5xl mx-auto">
-                {activeDiagnosticTab === 'check' && (
-                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <UnderstandingCheck
-                      topicId={selectedTopic.topic_id}
-                      topicTitle={selectedTopic.topic_title}
-                      onWeaknessDetected={() => {
-                        setActiveDiagnosticTab('quiz');
-                        refreshWorkspace();
-                      }}
-                      onSuccessCheck={() => {
-                        refreshWorkspace();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {activeDiagnosticTab === 'quiz' && (
-                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <DiagnosticQuiz
-                      topicId={selectedTopic.topic_id}
-                      topicTitle={selectedTopic.topic_title}
-                      onQuizCompleted={(res) => {
-                        sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
-                        if (res.weaknesses && res.weaknesses.length > 0) {
-                          setActiveDiagnosticTab('remediation');
-                        }
-                        refreshWorkspace();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {activeDiagnosticTab === 'remediation' && (
-                  <div className="mb-10 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <RemediationPanel
-                      topicId={selectedTopic.topic_id}
-                      topicTitle={selectedTopic.topic_title}
-                      onRemediationCompleted={() => {
-                        refreshWorkspace();
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
 
               {loadingMsg ? (
                 <div className="flex items-center justify-center h-full">
