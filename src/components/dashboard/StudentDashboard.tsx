@@ -1,13 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../../lib/api';
 import { getProfile, getCurrentUser } from '../../lib/auth';
-import { Grade, Subject, SubjectSummary } from '../../types';
+import { Grade, Subject, SubjectSummary, Topic, Chapter, User } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import LoadingState from '../ui/LoadingState';
 import StatusMessage from '../ui/StatusMessage';
-import { Award, BookOpen, Compass, Flame, CheckCircle, ShieldAlert, CheckCircle2, ChevronRight } from 'lucide-react';
+import { 
+   Award, 
+   BookOpen, 
+   Compass, 
+   Flame, 
+   CheckCircle, 
+   ShieldAlert, 
+   CheckCircle2, 
+   ChevronRight, 
+   LayoutDashboard,
+   Settings,
+   Database,
+   Newspaper,
+   Zap,
+   Target,
+   Info
+} from 'lucide-react';
 
 interface StudentDashboardProps {
   onNavigate: (path: string) => void;
@@ -18,21 +34,36 @@ interface SubjectWithSummary {
   summary: SubjectSummary | null;
 }
 
+interface DashboardTopic {
+  grade_id: string;
+  grade_name: string;
+  subject_id: string;
+  subject_name: string;
+  chapter_id: string;
+  chapter_title: string;
+  topic_id: string;
+  topic_title: string;
+  completion_status: "not_started" | "needs_practice" | "completed";
+  latest_score: number | null;
+  best_score: number | null;
+  strength_labels: string[];
+  weakness_labels: string[];
+  show_checkmark: boolean;
+  topic_description: string;
+  learning_objective: string;
+}
+
 export default function StudentDashboard({ onNavigate }: StudentDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGradeId, setSelectedGradeId] = useState<string>('');
   const [subjectsWithSummary, setSubjectsWithSummary] = useState<SubjectWithSummary[]>([]);
+  const [allDashboardTopics, setAllDashboardTopics] = useState<DashboardTopic[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
 
-  // Aggregated Stats
-  const [stats, setStats] = useState({
-    completedTopics: 0,
-    overallCompletionRate: 0,
-    strengthsCount: 0,
-    weaknessesCount: 0,
-  });
+  // States for Tooltip
+  const [hoveredTopic, setHoveredTopic] = useState<DashboardTopic | null>(null);
 
   useEffect(() => {
     fetchInitialData();
@@ -42,17 +73,24 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      let profile = getProfile();
-      setUserProfile(profile);
-      getCurrentUser().then(user => {
-        if (user) setUserProfile(user);
-      }).catch(console.error);
+      // 1. Load Profile
+      try {
+        const me = await api.getMe();
+        setUserProfile(me);
+      } catch (err) {
+        console.warn('Silent profile fetch failed', err);
+        const local = getProfile();
+        if (local) setUserProfile(local as any);
+      }
 
+      // 2. Load Grades
       const gList = await api.getGrades();
       setGrades(gList);
+      
       if (gList.length > 0) {
-        setSelectedGradeId(gList[0].id);
-        await fetchGradeSummaries(gList[0].id);
+        const defaultGradeId = gList[0].id;
+        setSelectedGradeId(defaultGradeId);
+        await refreshDashboardData(defaultGradeId);
       } else {
         setIsLoading(false);
       }
@@ -62,48 +100,98 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     }
   };
 
-  const fetchGradeSummaries = async (gradeId: string) => {
+  const refreshDashboardData = async (gradeId: string) => {
     setIsLoading(true);
     try {
+      const selectedGrade = grades.find(g => g.id === gradeId);
+      const gradeName = selectedGrade?.name || 'Class';
+
+      // 3. Load Subjects
       const subjects = await api.getSubjects(gradeId);
-      const withSummary: SubjectWithSummary[] = [];
+      
+      const subWithSummary: SubjectWithSummary[] = [];
+      const dashTopics: DashboardTopic[] = [];
 
-      let totalCompleted = 0;
-      let totalTopics = 0;
-      let totalStrengths = 0;
-      let totalWeaknesses = 0;
-
-      for (const sub of subjects) {
-        let summary: any = null;
+      // 4. Traverse Catalog and Diagnostics in parallel where possible
+      const subjectPromises = subjects.map(async (sub) => {
+        // Get summary
+        let summary: SubjectSummary | null = null;
         try {
           summary = await api.getSubjectSummary(sub.id);
-          if (summary) {
-            const completed = summary.completed_topics ?? summary.completed_topics_count ?? 0;
-            const total = summary.total_topics ?? summary.total_topics_count ?? 0;
-            const strengths = summary.strengths?.length ?? summary.strengths_count ?? 0;
-            const weaknesses = summary.weaknesses?.length ?? summary.weaknesses_count ?? 0;
-
-            totalCompleted += completed;
-            totalTopics += total;
-            totalStrengths += strengths;
-            totalWeaknesses += weaknesses;
-          }
         } catch (e) {
-          console.warn(`Could not load summary details for subject ${sub.id}`, e);
+          console.warn(`Summary fail sub ${sub.id}`);
         }
-        withSummary.push({ subject: sub, summary });
-      }
 
-      setSubjectsWithSummary(withSummary);
+        // Get chapters to reach topics
+        let chapters: Chapter[] = [];
+        try {
+          chapters = await api.getChapters(sub.id);
+        } catch (e) {
+          console.warn(`Chapters fail sub ${sub.id}`);
+        }
 
-      // Save aggregated stats
-      const completionRate = totalTopics > 0 ? Math.round((totalCompleted / totalTopics) * 100) : 0;
-      setStats({
-        completedTopics: totalCompleted,
-        overallCompletionRate: completionRate,
-        strengthsCount: totalStrengths,
-        weaknessesCount: totalWeaknesses,
+        // For each chapter, get topics
+        for (const chap of chapters) {
+          let topics: Topic[] = [];
+          try {
+            topics = await api.getTopics(chap.id);
+          } catch (e) {
+            console.warn(`Topics fail chap ${chap.id}`);
+          }
+
+          // For each topic, get status
+          const topicStatusPromises = topics.map(async (top) => {
+            try {
+              const status = await api.getTopicStatus(top.id);
+              dashTopics.push({
+                grade_id: gradeId,
+                grade_name: gradeName,
+                subject_id: sub.id,
+                subject_name: sub.name,
+                chapter_id: chap.id,
+                chapter_title: chap.title,
+                topic_id: top.id,
+                topic_title: top.title,
+                completion_status: status.status || 'not_started',
+                latest_score: status.last_test_score ?? null,
+                best_score: status.last_test_score ?? null, // Backend doesn't differentiate best vs latest in basic status yet
+                strength_labels: status.strengths || [],
+                weakness_labels: status.weaknesses || [],
+                show_checkmark: status.status === 'completed',
+                topic_description: top.description,
+                learning_objective: top.learning_objective
+              });
+            } catch (e) {
+              // Add as not started if fails
+              dashTopics.push({
+                grade_id: gradeId,
+                grade_name: gradeName,
+                subject_id: sub.id,
+                subject_name: sub.name,
+                chapter_id: chap.id,
+                chapter_title: chap.title,
+                topic_id: top.id,
+                topic_title: top.title,
+                completion_status: 'not_started',
+                latest_score: null,
+                best_score: null,
+                strength_labels: [],
+                weakness_labels: [],
+                show_checkmark: false,
+                topic_description: top.description,
+                learning_objective: top.learning_objective
+              });
+            }
+          });
+          await Promise.all(topicStatusPromises);
+        }
+
+        return { subject: sub, summary };
       });
+
+      const results = await Promise.all(subjectPromises);
+      setSubjectsWithSummary(results);
+      setAllDashboardTopics(dashTopics);
 
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed generating grade detail summaries.');
@@ -116,227 +204,475 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     const id = e.target.value;
     setSelectedGradeId(id);
     if (id) {
-      await fetchGradeSummaries(id);
+      await refreshDashboardData(id);
     }
   };
+
+  // Derived Stats Helper
+  const stats = useMemo(() => {
+    const completedTopics = allDashboardTopics.filter(t => t.completion_status === 'completed').length;
+    const totalTopics = allDashboardTopics.length;
+    const overallPercent = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+    
+    // Unique strengths/weaknesses from all topics
+    const strengthsSet = new Set<string>();
+    const weaknessesSet = new Set<string>();
+    allDashboardTopics.forEach(t => {
+      t.strength_labels.forEach(s => strengthsSet.add(s));
+      t.weakness_labels.forEach(w => weaknessesSet.add(w));
+    });
+
+    const strengthCount = strengthsSet.size;
+    const weaknessCount = weaknessesSet.size;
+
+    const xp = (completedTopics * 250) + (strengthCount * 40);
+    
+    // Level logic
+    let level = 1;
+    let requiredForNext = 500;
+    let nextLevel = 2;
+
+    if (xp >= 3000) { level = 5; requiredForNext = 5000; nextLevel = 6; }
+    else if (xp >= 1800) { level = 4; requiredForNext = 3000; nextLevel = 5; }
+    else if (xp >= 1000) { level = 3; requiredForNext = 1800; nextLevel = 4; }
+    else if (xp >= 500) { level = 2; requiredForNext = 1000; nextLevel = 3; }
+
+    const xpToNext = requiredForNext - xp;
+    const levelProgress = Math.min(100, Math.round((xp / requiredForNext) * 100));
+
+    // Streak prototype
+    const hasActivity = completedTopics > 0;
+    const streakDays = hasActivity ? 1 : 0;
+
+    return {
+      completedTopics,
+      totalTopics,
+      overallPercent,
+      strengthCount,
+      weaknessCount,
+      strengths: Array.from(strengthsSet),
+      weaknesses: Array.from(weaknessesSet),
+      xp,
+      level,
+      nextLevel,
+      xpToNext,
+      levelProgress,
+      streakDays
+    };
+  }, [allDashboardTopics]);
+
+  // Heatmap helper
+  const getTileColor = (topic: DashboardTopic) => {
+    if (topic.completion_status === 'completed') {
+      return (topic.best_score || 0) >= 85 ? 'bg-[var(--success)] shadow-lg shadow-[var(--success)]/20' : 'bg-cyan-500 shadow-lg shadow-cyan-500/20';
+    }
+    if (topic.completion_status === 'needs_practice') return 'bg-[var(--warning)] shadow-lg shadow-[var(--warning)]/20';
+    if (topic.latest_score !== null && topic.latest_score < 40) return 'bg-[var(--danger)] shadow-lg shadow-[var(--danger)]/20';
+    return 'bg-[var(--glass-bg)] border border-[var(--glass-border)] opacity-40';
+  };
+
+  const handleContinueTopic = (topic: DashboardTopic) => {
+    const context = {
+      grade_id: topic.grade_id,
+      grade_name: topic.grade_name,
+      subject_id: topic.subject_id,
+      subject_name: topic.subject_name,
+      chapter_id: topic.chapter_id,
+      chapter_title: topic.chapter_title,
+      topic_id: topic.topic_id,
+      topic_title: topic.topic_title,
+      topic_description: topic.topic_description,
+      learning_objective: topic.learning_objective
+    };
+    sessionStorage.setItem('learniverse_selected_topic', JSON.stringify(context));
+    onNavigate('/tutor');
+  };
+
+  const continueLearningTopic = useMemo(() => {
+    // 1. Needs practice
+    const needsPractice = allDashboardTopics.find(t => t.completion_status === 'needs_practice');
+    if (needsPractice) return needsPractice;
+    
+    // 2. Not started
+    const notStarted = allDashboardTopics.find(t => t.completion_status === 'not_started');
+    if (notStarted) return notStarted;
+    
+    // 3. Review first completed
+    return allDashboardTopics.find(t => t.completion_status === 'completed');
+  }, [allDashboardTopics]);
 
   if (isLoading) {
     return <LoadingState message="Calculating student progress charts..." size="lg" />;
   }
 
+  const isAdmin = userProfile?.role === 'admin';
+
   return (
     <div className="space-y-8 select-none">
       
       {/* Gamified Header Layer */}
-      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[24px] p-5 relative overflow-hidden backdrop-blur-md">
-        <div className="flex items-start justify-between z-10 relative">
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[24px] p-6 relative overflow-hidden backdrop-blur-md">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between z-10 relative gap-4">
           <div>
-            <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--accent-secondary)] flex items-center gap-1">
-               Level 4 Scholar
+            <span className="text-[10px] font-black tracking-widest uppercase text-blue-500 flex items-center gap-1.5 mb-1 bg-blue-500/10 w-fit px-2 py-0.5 rounded">
+               <Award className="h-3 w-3" /> LEVEL {stats.level} SCHOLAR
             </span>
-            <h1 className="text-2xl font-black mt-1">
-              Welcome back, {userProfile?.fullname || userProfile?.name || userProfile?.email || 'Student'}!
+            <h1 className="text-2xl md:text-3xl font-black mt-1 text-[var(--text-primary)]">
+              Welcome back, {userProfile?.fullname || userProfile?.email || 'Student'}!
             </h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="source_grounded">{userProfile?.role?.toUpperCase() || 'LEARNER'}</Badge>
+              <span className="text-[10px] font-mono text-[var(--text-secondary)]">{userProfile?.email}</span>
+            </div>
           </div>
           
-          <div className="flex items-center gap-2 bg-gradient-to-br from-[#FF9800] to-[#F57C00] px-3 py-1.5 rounded-full shadow-lg">
-            <Flame className="w-4 h-4 text-white" />
-            <span className="text-white text-xs font-bold tracking-wide">12 Day Streak</span>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl shadow-xl transition-all ${stats.streakDays > 0 ? 'bg-gradient-to-br from-orange-500 to-rose-600 scale-105' : 'bg-[var(--glass-bg)] border border-[var(--glass-border)]'}`}>
+            <Flame className={`w-5 h-5 ${stats.streakDays > 0 ? 'text-white' : 'text-[var(--text-secondary)]'}`} />
+            <span className={`text-sm font-black tracking-tight ${stats.streakDays > 0 ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
+              {stats.streakDays > 0 ? `${stats.streakDays} Day Streak` : 'Start Streak'}
+            </span>
           </div>
         </div>
 
         {/* XP Bar */}
-        <div className="mt-6 z-10 relative">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-xs font-semibold text-[var(--text-secondary)]">2,450 XP</span>
-            <span className="text-[10px] font-bold uppercase text-[var(--accent-primary)]">550 To Level 5</span>
+        <div className="mt-8 z-10 relative max-w-2xl">
+          <div className="flex justify-between items-end mb-2.5">
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-black text-[var(--text-primary)]">{stats.xp.toLocaleString()}</span>
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Total XP acquired</span>
+            </div>
+            <span className="text-[10px] font-black uppercase text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 px-2 py-0.5 rounded tracking-tighter">
+              {stats.xpToNext} To Level {stats.nextLevel}
+            </span>
           </div>
-          <div className="w-full h-[10px] rounded-full overflow-hidden bg-white/10 shadow-inner relative">
-            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]" style={{ width: '82%' }}></div>
-            <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)] -translate-x-[100%] animate-[shimmer_2s_infinite]"></div>
+          <div className="w-full h-[12px] rounded-full overflow-hidden bg-[var(--bg-surface)] border border-[var(--glass-border)] shadow-inner relative">
+            <div 
+              className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] transition-all duration-1000 ease-in-out" 
+              style={{ width: `${stats.levelProgress}%` }}
+            ></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)] -translate-x-[100%] animate-[shimmer_3s_infinite]"></div>
           </div>
         </div>
 
         {/* Floating Orb Background */}
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[var(--accent-primary)]/20 rounded-full blur-[40px] pointer-events-none"></div>
+        <div className="absolute -top-10 -right-10 w-48 h-48 bg-[var(--accent-primary)]/10 rounded-full blur-[60px] pointer-events-none animate-pulse"></div>
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none"></div>
       </div>
 
       {errorMsg && <StatusMessage type="error" message={errorMsg} />}
 
-      {/* Aggregate Stats Gamification Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Mastery Heatmap 5x2 */}
-        <Card className="col-span-2 p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Topic Mastery Heatmap</p>
-            <span className="text-xs font-bold text-[var(--success)]">Top 15% Class</span>
-          </div>
-          <div className="grid grid-cols-5 gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((cell) => {
-              let colorClass = "bg-[var(--glass-bg)] border border-[var(--glass-border)]";
-              if (cell === 1 || cell === 4 || cell === 6) colorClass = "bg-[var(--success)] opacity-90"; // strong
-              else if (cell === 2 || cell === 8) colorClass = "bg-[var(--accent-secondary)] opacity-80"; // improving
-              else if (cell === 3 || cell === 9) colorClass = "bg-[var(--warning)] opacity-80"; // moderate
-              else if (cell === 5) colorClass = "bg-[var(--danger)] opacity-80"; // weak
-              return (
-                <div key={cell} className={`h-8 rounded-lg ${colorClass} transition-opacity duration-300 hover:opacity-100`}></div>
-              )
-            })}
-          </div>
-          <div className="flex justify-between mt-3 text-[9px] font-semibold text-[var(--text-secondary)] uppercase">
-            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-[var(--danger)]/80"></div>Weak</div>
-            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-[var(--success)]/90"></div>Strong</div>
-          </div>
-        </Card>
+        {/* Left Column: Heatmap and Aggregates */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Mastery Heatmap */}
+          <Card className="p-6 relative overflow-visible">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[var(--text-secondary)] mb-0.5">Focus Heatmap</p>
+                <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight">Topic Mastery Matrix</h3>
+              </div>
+              <Badge variant={stats.overallPercent >= 85 ? 'completed' : stats.overallPercent >= 60 ? 'needs_practice' : 'not_started'}>
+                {stats.overallPercent >= 85 ? 'Top 15% Class' : stats.overallPercent >= 60 ? 'On Track' : 'Keep Practicing'}
+              </Badge>
+            </div>
 
-        <Card className="p-4 flex flex-col items-center text-center justify-center relative">
-          <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-3">Overall Progress</p>
-          <div className="relative w-[80px] h-[80px] flex items-center justify-center">
-            {/* SVG Skill Ring */}
-            <svg className="absolute top-0 left-0 w-full h-full -rotate-90 transform" viewBox="0 0 60 60">
-              <circle cx="30" cy="30" r="25" fill="none" stroke="var(--glass-bg)" strokeWidth="6" />
-              <circle cx="30" cy="30" r="25" fill="none" stroke="var(--accent-primary)" strokeWidth="6" strokeDasharray="157" strokeDashoffset={157 - (157 * stats.overallCompletionRate) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-            </svg>
-            <span className="text-xl font-black">{stats.overallCompletionRate}%</span>
-          </div>
-        </Card>
-
-        <Card className="p-4 flex flex-col justify-between bg-gradient-to-br from-[var(--glass-bg)] to-transparent">
-          <p className="text-[10px] uppercase font-bold text-[var(--success)] mb-2">Strengths Assessed</p>
-          <p className="text-3xl font-black text-[var(--success)]">{stats.strengthsCount}</p>
-          <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1 font-medium mt-1">
-            <Award className="h-3 w-3 text-[var(--success)]" /> Mastery level
-          </span>
-        </Card>
-      </div>
-
-      {/* Subjects Progress list Cards */}
-      <div className="space-y-6">
-        <div>
-          <span className="text-[10px] font-mono tracking-widest font-black uppercase text-rose-500">
-            Registered Class Syllabus
-          </span>
-          <h2 className="text-xl font-black uppercase tracking-tight text-slate-905 mt-1 dark:text-slate-100">
-            Subject Pathways
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {subjectsWithSummary.map(({ subject, summary }, i) => {
-            const completed = summary ? (summary.completed_topics ?? summary.completed_topics_count ?? 0) : 0;
-            const total = summary ? (summary.total_topics ?? summary.total_topics_count ?? 0) : 0;
-            const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-            return (
-              <div key={subject.id}>
-                <Card
-                  className="p-5 border border-slate-200 dark:border-neutral-810 rounded-xl bg-white space-y-4 hover:border-black transition-all flex flex-col justify-between"
-                >
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-base font-black uppercase tracking-tight text-slate-950 dark:text-white">
-                        {subject.name}
-                      </h3>
-                      {subject.description && (
-                        <p className="text-xs text-slate-500 leading-snug mt-1">{subject.description}</p>
+            {allDashboardTopics.length > 0 ? (
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2.5">
+                {allDashboardTopics.map((topic, idx) => (
+                  <div 
+                    key={topic.topic_id} 
+                    className={`h-9 rounded-lg ${getTileColor(topic)} cursor-pointer transition-all hover:scale-110 hover:z-20 group relative`}
+                    onClick={() => handleContinueTopic(topic)}
+                    onMouseEnter={() => setHoveredTopic(topic)}
+                    onMouseLeave={() => setHoveredTopic(null)}
+                  >
+                    {/* Tooltip implementation */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-[var(--bg-primary)] border border-[var(--glass-border)] rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      <p className="text-[9px] font-mono text-[var(--text-secondary)] uppercase mb-1">{topic.subject_name}</p>
+                      <h4 className="text-[11px] font-black text-[var(--text-primary)] leading-tight mb-2">{topic.topic_title}</h4>
+                      <div className="flex justify-between items-center text-[10px] border-t border-[var(--glass-border)] pt-2">
+                         <span className="font-bold text-[var(--text-secondary)]">STATUS</span>
+                         <span className="font-black uppercase text-blue-500">{topic.completion_status.replace('_', ' ')}</span>
+                      </div>
+                      {topic.latest_score !== null && (
+                         <div className="flex justify-between items-center text-[10px] mt-1">
+                          <span className="font-bold text-[var(--text-secondary)]">LAST SCORE</span>
+                          <span className="font-black">{topic.latest_score}%</span>
+                        </div>
                       )}
                     </div>
-                    <Badge variant={progress === 100 ? 'completed' : progress > 0 ? 'needs_practice' : 'not_started'}>
-                      {progress === 100 ? 'Mastered' : progress > 0 ? `${progress}% done` : 'Start'}
-                    </Badge>
                   </div>
-
-                  {/* Progress bar */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400">
-                      <span>COMPLETE RATE</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500 rounded-full" style={{ width: `${progress}%` }}></div>
-                    </div>
-                  </div>
-
-                  {/* Chapters breakdown mapping list */}
-                  {summary && summary.chapters && summary.chapters.length > 0 && (
-                    <div className="space-y-1.5 pt-2">
-                      <p className="text-[9px] font-mono tracking-wider font-extrabold uppercase text-slate-400 block pb-1 border-b border-dashed">
-                        Chapters mastery summary
-                      </p>
-                      <div className="space-y-1 max-h-[140px] overflow-y-auto pr-1">
-                        {summary.chapters.map((chap, idx) => {
-                          const chapPerc = chap.topic_count > 0 ? Math.round((chap.completed_count / chap.topic_count) * 100) : 0;
-                          return (
-                            <div key={idx} className="text-xs font-semibold flex justify-between items-center py-1">
-                              <span className="truncate text-slate-700 max-w-[200px]">Chapter {chap.chapter_number}: {chap.title}</span>
-                              <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.2 rounded font-black">{chap.completed_count}/{chap.topic_count} Topics done</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Strengths & Weaknesses quick summary lists */}
-                  {summary && (
-                    <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-slate-100">
-                      
-                      {/* Strengths block */}
-                      <div className="space-y-1">
-                        <span className="text-[8.5px] font-mono font-extrabold uppercase text-emerald-600 block">Stiff Strengths</span>
-                        {summary.strengths && summary.strengths.length > 0 ? (
-                          <ul className="space-y-0.5 max-h-[80px] overflow-y-auto">
-                            {summary.strengths.slice(0, 3).map((str, sIdx) => (
-                              <li key={sIdx} className="text-[10px] text-slate-655 font-medium truncate flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" /> {str}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-[9.5px] text-slate-400 italic">Complete quiz checks to trigger strengths.</span>
-                        )}
-                      </div>
-
-                      {/* Weaknesses block */}
-                      <div className="space-y-1">
-                        <span className="text-[8.5px] font-mono font-extrabold uppercase text-rose-500 block">Remedy Weaknesses</span>
-                        {summary.weaknesses && summary.weaknesses.length > 0 ? (
-                          <ul className="space-y-0.5 max-h-[80px] overflow-y-auto">
-                            {summary.weaknesses.slice(0, 3).map((weak, wIdx) => (
-                              <li key={wIdx} className="text-[10px] text-slate-655 font-medium truncate flex items-center gap-1">
-                                <ShieldAlert className="h-3 w-3 text-rose-500 shrink-0" /> {weak}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-[9.5px] text-slate-400 italic">No conceptual cracks registered! Excellent.</span>
-                        )}
-                      </div>
-
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-3 border-t">
-                  <Button
-                    onClick={() => onNavigate(`/catalog?subject=${subject.id}`)}
-                    variant="secondary"
-                    className="w-full text-[10px] uppercase font-black tracking-widest py-2.5 flex items-center justify-center gap-1.5"
-                  >
-                    Enter Subject Study Path <ChevronRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 border-2 border-dashed border-[var(--glass-border)] rounded-xl">
+                 <p className="text-xs text-[var(--text-secondary)] font-medium">No topics discovered in your curriculum yet.</p>
+              </div>
+            )}
+            
+            <div className="flex justify-between mt-5 pt-4 border-t border-[var(--glass-border)] text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--danger)]"></div> Weak</div>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--warning)]"></div> Practice</div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-sm bg-cyan-500"></div> Improving</div>
+                <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-sm bg-[var(--success)]"></div> Mastered</div>
+              </div>
             </div>
-            );
-          })}
-          {subjectsWithSummary.length === 0 && (
-            <p className="text-xs text-slate-400 italic text-center col-span-2 py-8 bg-slate-50 border rounded-lg">
-              No subjects registered or mapped to the current selected Classroom Grade level.
-            </p>
+          </Card>
+
+          {/* Subject Pathways List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black tracking-[0.25em] text-blue-500 uppercase">Interactive Catalog</span>
+                <h2 className="text-xl font-black uppercase tracking-tight text-[var(--text-primary)] mt-0.5 flex items-center gap-2">
+                  <Compass className="h-5 w-5" /> Subject Pathways
+                </h2>
+              </div>
+              <select 
+                value={selectedGradeId} 
+                onChange={handleGradeChange}
+                className="text-[11px] font-black uppercase bg-[var(--bg-surface)] border border-[var(--glass-border)] rounded-lg px-3 py-1.5 focus:ring-1 ring-blue-500 outline-none"
+              >
+                {grades.map(g => (
+                  <option key={g.id} value={g.id}>{g.name.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subjectsWithSummary.map(({ subject, summary }) => {
+                const completed = summary?.completed_topics ?? 0;
+                const total = summary?.total_topics ?? 0;
+                const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return (
+                  <Card key={subject.id} className="p-5 hover:border-[var(--accent-primary)] transition-all group flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-base font-black uppercase tracking-tight text-[var(--text-primary)] group-hover:text-[var(--accent-primary)] transition-colors">
+                            {subject.name}
+                          </h3>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-bold mt-0.5 italic">{subject.description || 'Core syllabus subject'}</p>
+                        </div>
+                        <Badge variant={progress === 100 ? 'completed' : progress > 0 ? 'needs_practice' : 'not_started'}>
+                          {progress === 100 ? 'MASTERED' : progress > 0 ? `${progress}% DONE` : 'START'}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[9px] font-black text-[var(--text-secondary)] uppercase">
+                          <span>Mastery rate</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="w-full bg-[var(--bg-surface)] h-1.5 rounded-full overflow-hidden border border-[var(--glass-border)]">
+                          <div className={`h-full rounded-full transition-all duration-1000 ${progress === 100 ? 'bg-[var(--success)]' : 'bg-[var(--accent-primary)]'}`} style={{ width: `${progress}%` }}></div>
+                        </div>
+                      </div>
+
+                      {(summary?.strengths?.length || 0) > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {summary?.strengths.slice(0, 2).map((s, idx) => (
+                            <span key={idx} className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase truncate">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={() => onNavigate(`/catalog?subject=${subject.id}`)}
+                      variant="secondary"
+                      className="w-full mt-5 py-2 text-[10px] uppercase font-black"
+                    >
+                      Continue Path
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Mini Stats and Quick Actions */}
+        <div className="lg:col-span-4 space-y-6">
+          
+          {/* Progress Circle & Aggregate Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            
+            <Card className="p-6 flex flex-col items-center text-center justify-center">
+              <p className="text-[10px] uppercase tracking-[.2em] font-black text-[var(--text-secondary)] mb-5">Curriculum Done</p>
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                <svg className="absolute top-0 left-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="var(--bg-surface)" strokeWidth="8" />
+                  <circle 
+                    cx="50" cy="50" r="44" 
+                    fill="none" 
+                    stroke="var(--accent-primary)" 
+                    strokeWidth="8" 
+                    strokeDasharray="276" 
+                    strokeDashoffset={276 - (276 * stats.overallPercent) / 100} 
+                    strokeLinecap="round" 
+                    className="transition-all duration-1000 ease-out" 
+                  />
+                </svg>
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-black text-[var(--text-primary)]">{stats.overallPercent}%</span>
+                  <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">Completed</span>
+                </div>
+              </div>
+              <p className="text-[10px] font-bold text-[var(--text-secondary)] mt-5 uppercase tracking-wide">
+                {stats.completedTopics} OF {stats.totalTopics} TOPICS FINISHED
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-emerald-500/5 border-emerald-500/20">
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-[10px] uppercase tracking-widest font-black text-emerald-500">Strengths</p>
+                <Award className="h-5 w-5 text-emerald-500" />
+              </div>
+              <h4 className="text-3xl font-black text-emerald-500 mb-1">{stats.strengthCount}</h4>
+              <p className="text-[11px] font-bold text-[var(--text-secondary)] mb-4">Unique competencies observed</p>
+              
+              <div className="flex flex-wrap gap-2">
+                {stats.strengths.length > 0 ? (
+                  stats.strengths.slice(0, 6).map((s, idx) => (
+                    <span key={idx} className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-500/20 uppercase tracking-tighter">
+                      {s.replace(/_/g, ' ')}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-[var(--text-secondary)] italic">Complete checks to trigger strengths.</p>
+                )}
+              </div>
+            </Card>
+
+          </div>
+
+          {/* Continue Learning Action Panel */}
+          {continueLearningTopic && (
+            <Card className="p-6 border-2 border-blue-500/50 bg-blue-500/5 shadow-2xl shadow-blue-500/10 scale-[1.02]">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="h-5 w-5 text-blue-500 fill-blue-500" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-500">Next Recommended Action</span>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-[9px] font-mono text-[var(--text-secondary)] uppercase mb-1">{continueLearningTopic.subject_name} &bull; {continueLearningTopic.chapter_title}</p>
+                <h4 className="text-xl font-black text-[var(--text-primary)] leading-tight">{continueLearningTopic.topic_title}</h4>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant={continueLearningTopic.completion_status === 'needs_practice' ? 'needs_practice' : 'not_started'}>
+                    {continueLearningTopic.completion_status === 'needs_practice' ? 'NEEDS PRACTICE' : 'NEXT STEP'}
+                  </Badge>
+                  {continueLearningTopic.latest_score !== null && (
+                    <span className="text-[11px] font-mono font-black text-slate-500">SCORE: {continueLearningTopic.latest_score}%</span>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => handleContinueTopic(continueLearningTopic)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs tracking-widest py-3.5 shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2"
+              >
+                {continueLearningTopic.completion_status === 'needs_practice' ? 'Practice Weakness' : 'Continue Learning'}
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Card>
           )}
+
+          {/* Admin Quick Actions */}
+          {isAdmin && (
+            <Card className="p-6 border-slate-900 bg-slate-900 text-white space-y-4">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-800">
+                <Settings className="h-4 w-4 text-slate-400" />
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Admin Console</span>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-2.5">
+                <button 
+                  onClick={() => onNavigate('/admin/catalog')}
+                  className="flex items-center justify-between w-full h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition font-bold text-xs uppercase text-slate-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <LayoutDashboard className="h-4 w-4 text-blue-400" />
+                    Manage Catalog
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+                <button 
+                  onClick={() => onNavigate('/admin/simulations')}
+                  className="flex items-center justify-between w-full h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition font-bold text-xs uppercase text-slate-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-4 w-4 text-emerald-400" />
+                    Manage Simulations
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+                <button 
+                  onClick={() => onNavigate('/admin/documents')}
+                  className="flex items-center justify-between w-full h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition font-bold text-xs uppercase text-slate-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Database className="h-4 w-4 text-purple-400" />
+                    RAG Embedder
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+                <button 
+                  onClick={() => onNavigate('/admin/blog')}
+                  className="flex items-center justify-between w-full h-11 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition font-bold text-xs uppercase text-slate-200 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Newspaper className="h-4 w-4 text-rose-400" />
+                    AI Blog Manager
+                  </div>
+                  <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </div>
+            </Card>
+          )}
+
+          {/* Weaknesses Card */}
+          <Card className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-[10px] uppercase tracking-widest font-black text-rose-500">Needs Attention</p>
+              <ShieldAlert className="h-5 w-5 text-rose-500" />
+            </div>
+            <h4 className="text-3xl font-black text-rose-500 mb-1">{stats.weaknessCount}</h4>
+            <p className="text-[11px] font-bold text-[var(--text-secondary)] mb-4">Concepts with lower mastery scores</p>
+            
+            <div className="flex flex-wrap gap-2">
+              {stats.weaknesses.length > 0 ? (
+                stats.weaknesses.slice(0, 6).map((w, idx) => (
+                  <span key={idx} className="text-[10px] font-black bg-rose-500/10 text-rose-600 px-2 py-1 rounded-lg border border-rose-500/20 uppercase tracking-tighter">
+                    {w.replace(/_/g, ' ')}
+                  </span>
+                ))
+              ) : (
+                <p className="text-[10px] text-[var(--text-secondary)] italic">No critical conceptual gaps identified yet.</p>
+              )}
+            </div>
+            
+            {stats.weaknesses.length > 0 && (
+              <Button 
+                variant="secondary" 
+                className="w-full mt-5 text-[10px] uppercase font-black"
+                onClick={() => {
+                  const firstWeak = allDashboardTopics.find(t => t.completion_status === 'needs_practice');
+                  if (firstWeak) handleContinueTopic(firstWeak);
+                }}
+              >
+                Practice Weaknesses
+              </Button>
+            )}
+          </Card>
+
         </div>
       </div>
 
