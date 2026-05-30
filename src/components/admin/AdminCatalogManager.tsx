@@ -209,10 +209,10 @@ export default function AdminCatalogManager() {
       {/* Header */}
       <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
         <span className="text-[10px] font-black tracking-[0.2em] text-blue-600 dark:text-blue-400 uppercase mb-1">Administrative Workspace</span>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
+        <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)] heading-font">
           CURRICULUM BUILDER & CATALOG
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl font-semibold">
+        <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl font-semibold">
           Manage, browse, and structure grades, courses, modules, chapters, and individual topic learning criteria.
         </p>
       </div>
@@ -230,13 +230,13 @@ export default function AdminCatalogManager() {
         {/* Left browser console */}
         <div className="lg:col-span-5 space-y-6">
           <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-4">
-            <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2.5">
-              <span className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-450 shrink-0">
+            <div className="flex items-center gap-1.5 border-b border-[var(--glass-border)] pb-2.5">
+              <span className="p-1.5 bg-[var(--bg-surface)] rounded-lg text-[var(--accent-primary)] shrink-0">
                 <Hammer className="h-4 w-4" />
               </span>
               <div>
-                <span className="text-[9px] uppercase font-bold text-slate-405 block">Hierarchy Browser</span>
-                <span className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 heading-font">Active Course Structure</span>
+                <span className="text-[9px] uppercase font-bold text-[var(--text-secondary)] block">Hierarchy Browser</span>
+                <span className="text-xs font-black uppercase text-[var(--text-primary)] heading-font">Active Course Structure</span>
               </div>
             </div>
 
@@ -246,11 +246,11 @@ export default function AdminCatalogManager() {
             <div className="space-y-4">
               {/* Select Grade level */}
               <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Class / Grade level</label>
+                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Class / Grade level</label>
                 <select
                   value={selectedGradeId}
                   onChange={(e) => handleSelectGrade(e.target.value)}
-                  className="w-full text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-800 dark:text-slate-200"
+                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
                 >
                   <option value="">-- Choose Grade Level --</option>
                   {grades.map(g => (
@@ -261,12 +261,12 @@ export default function AdminCatalogManager() {
 
               {/* Select Subject link */}
               <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Subject Context</label>
+                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Subject Context</label>
                 <select
                   value={selectedSubjectId}
                   onChange={(e) => handleSelectSubject(e.target.value)}
                   disabled={!selectedGradeId}
-                  className="w-full text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-800 dark:text-slate-200 disabled:opacity-50"
+                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)] disabled:opacity-50"
                 >
                   <option value="">-- Choose Subject Context --</option>
                   {subjects.map(s => (
@@ -277,12 +277,12 @@ export default function AdminCatalogManager() {
 
               {/* Select Chapter link */}
               <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Chapter Context</label>
+                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Chapter Context</label>
                 <select
                   value={selectedChapterId}
                   onChange={(e) => handleSelectChapter(e.target.value)}
                   disabled={!selectedSubjectId}
-                  className="w-full text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-955 text-slate-800 dark:text-slate-200 disabled:opacity-50"
+                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)] disabled:opacity-50"
                 >
                   <option value="">-- Choose Chapter Context --</option>
                   {chapters.map(c => (
@@ -294,16 +294,16 @@ export default function AdminCatalogManager() {
 
             {/* List of currently associated topics preview */}
             {selectedChapterId && !loader.list && (
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="text-[9px] uppercase font-bold text-blue-500 dark:text-blue-400 block tracking-wider">Topics Linked in Chapter ({topics.length})</span>
+              <div className="pt-4 border-t border-[var(--glass-border)] space-y-2">
+                <span className="text-[9px] uppercase font-bold text-[var(--accent-primary)] block tracking-wider">Topics Linked in Chapter ({topics.length})</span>
                 {topics.length === 0 ? (
-                  <p className="text-[11px] text-slate-400 italic">No topics under this chapter yet. Creating the first one on the right!</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] italic">No topics under this chapter yet. Creating the first one on the right!</p>
                 ) : (
                   <div className="grid grid-cols-1 gap-1.5">
                     {topics.map(t => (
-                      <div key={t.id} className="p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg border border-slate-150 dark:border-slate-850 text-xs font-medium flex justify-between items-center text-slate-700 dark:text-slate-300">
+                      <div key={t.id} className="p-2 bg-[var(--bg-surface)] rounded-lg border border-[var(--glass-border)] text-xs font-medium flex justify-between items-center text-[var(--text-primary)]">
                         <span className="truncate">{t.title}</span>
-                        <span className="text-[8px] uppercase tracking-wide px-1 rounded bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0 font-mono">Order {t.display_order}</span>
+                        <span className="text-[8px] uppercase tracking-wide px-1 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)] shrink-0 font-mono border border-[var(--glass-border)]">Order {t.display_order}</span>
                       </div>
                     ))}
                   </div>
@@ -317,11 +317,11 @@ export default function AdminCatalogManager() {
         <div className="lg:col-span-7 space-y-6">
 
           {/* Form 1: Add new grade level */}
-          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
+          <Card className="p-5 flex flex-col gap-4">
             <details className="outline-hidden" open={!selectedGradeId}>
-              <summary className="font-black text-sm text-slate-800 dark:text-white cursor-pointer select-none flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2.5 outline-hidden heading-font">
+              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
                 <span>01 / ADD GRADE LEVEL</span>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
               </summary>
               
               <form onSubmit={handleCreateGrade} className="space-y-4 pt-4">
@@ -341,7 +341,7 @@ export default function AdminCatalogManager() {
                     required
                   />
                 </div>
-                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-3 rounded-lg gap-4">
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
                   <Input
                     label="Display order number"
                     type="number"
@@ -358,16 +358,16 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 2: Add sibling subjects */}
-          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
+          <Card className="p-5 flex flex-col gap-4">
             <details className="outline-hidden" open={!!selectedGradeId && !selectedSubjectId}>
-              <summary className="font-black text-sm text-slate-800 dark:text-white cursor-pointer select-none flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2.5 outline-hidden heading-font">
+              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
                 <span>02 / ADD SUBJECT ELEMENT</span>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
               </summary>
 
               <form onSubmit={handleCreateSubject} className="space-y-4 pt-4">
                 {!selectedGradeId ? (
-                  <p className="text-xs text-amber-500 italic">Please select a Class / Grade Level on the Left to activate this builder Form.</p>
+                  <p className="text-xs text-[var(--warning)] italic">Please select a Class / Grade Level on the Left to activate this builder Form.</p>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -392,7 +392,7 @@ export default function AdminCatalogManager() {
                       value={subjectForm.description}
                       onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
                     />
-                    <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-3 rounded-lg gap-4">
+                    <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
                       <Input
                         label="Display order"
                         type="number"
@@ -411,16 +411,16 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 3: Add new Chapter details */}
-          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
+          <Card className="p-5 flex flex-col gap-4">
             <details className="outline-hidden" open={!!selectedSubjectId && !selectedChapterId}>
-              <summary className="font-black text-sm text-slate-800 dark:text-white cursor-pointer select-none flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2.5 outline-hidden heading-font">
+              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
                 <span>03 / ADD CHAPTER OR MODULE</span>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
               </summary>
 
               <form onSubmit={handleCreateChapter} className="space-y-4 pt-4">
                 {!selectedSubjectId ? (
-                  <p className="text-xs text-amber-500 italic">Select a Grade Level & Subject on the Left Browser to unlock Chapter inputs.</p>
+                  <p className="text-xs text-[var(--warning)] italic">Select a Grade Level & Subject on the Left Browser to unlock Chapter inputs.</p>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
@@ -468,16 +468,16 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 4: Add exact Learning Topic details */}
-          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
+          <Card className="p-5 flex flex-col gap-4">
             <details className="outline-hidden" open={!!selectedChapterId}>
-              <summary className="font-black text-sm text-slate-800 dark:text-white cursor-pointer select-none flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2.5 outline-hidden heading-font">
+              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
                 <span>04 / ADD SPECIFIC STUDY TOPIC</span>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
               </summary>
 
               <form onSubmit={handleCreateTopic} className="space-y-4 pt-4">
                 {!selectedChapterId ? (
-                  <p className="text-xs text-amber-500 italic">Select a Class & Subject & Chapter on the Left Browser to unlock detailed Topic entries.</p>
+                  <p className="text-xs text-[var(--warning)] italic">Select a Class & Subject & Chapter on the Left Browser to unlock detailed Topic entries.</p>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -504,18 +504,18 @@ export default function AdminCatalogManager() {
                       required
                     />
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
                         General Brief / Explanatory Description
                       </label>
                       <textarea
                         value={topicForm.description}
                         onChange={(e) => setTopicForm({ ...topicForm, description: e.target.value })}
                         placeholder="Detailed academic summary of this topic..."
-                        className="w-full min-h-[90px] p-2.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 text-sm outline-hidden"
+                        className="w-full min-h-[90px] p-2.5 rounded-[12px] border text-sm transition-all duration-200 outline-hidden bg-[var(--bg-surface)] backdrop-blur-sm text-[var(--text-primary)] border-[var(--glass-border)] placeholder:text-[var(--text-secondary)] focus:border-[var(--accent-primary)]"
                         required
                       />
                     </div>
-                    <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-3 rounded-lg gap-4">
+                    <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
                       <Input
                         label="Display order"
                         type="number"

@@ -104,6 +104,17 @@ body {
   transition: background-color 0.2s, color 0.2s;
 }
 
+input, select, textarea {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--glass-border) !important;
+}
+
+select option {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
 .heading-font {
   font-family: 'Poppins', 'Noto Sans Bengali', sans-serif;
   font-weight: 700;

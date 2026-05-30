@@ -30,7 +30,7 @@ export default function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 select-none"
+          className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] select-none"
         >
           {label}
         </label>
@@ -39,22 +39,22 @@ export default function Input({
         id={inputId}
         type={type}
         className={`w-full px-3.5 py-2.5 rounded-[12px] border text-sm transition-all duration-200 outline-hidden
-          bg-[var(--bg-surface)] backdrop-blur-sm
-          text-[var(--text-primary)]
-          border-[var(--glass-border)]
+          !bg-[var(--bg-surface)] backdrop-blur-sm
+          !text-[var(--text-primary)]
+          !border-[var(--glass-border)]
           placeholder:text-[var(--text-secondary)]
-          focus:border-[var(--accent-primary)]
+          focus:!border-[var(--accent-primary)]
           focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-opacity-20
-          ${error ? 'border-[var(--danger)] focus:border-[var(--danger)] font-medium' : ''}
+          ${error ? '!border-[var(--danger)] focus:!border-[var(--danger)] font-medium' : ''}
           ${className}`}
         {...props}
       />
       {error ? (
-        <span className="text-xs font-medium text-rose-600 dark:text-rose-400 mt-0.5">
+        <span className="text-xs font-medium text-[var(--danger)] mt-0.5">
           {error}
         </span>
       ) : helperText ? (
-        <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+        <span className="text-xs text-[var(--text-secondary)] mt-0.5">
           {helperText}
         </span>
       ) : null}
