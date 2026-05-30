@@ -135,7 +135,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                Level 4 Scholar
             </span>
             <h1 className="text-2xl font-black mt-1">
-              Welcome back, {userProfile?.fullname || userProfile?.name || 'Student'}!
+              Welcome back, {userProfile?.fullname || userProfile?.name || userProfile?.email || 'Student'}!
             </h1>
           </div>
           

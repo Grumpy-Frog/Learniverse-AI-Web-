@@ -182,9 +182,9 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
 
             {isLogged ? (
               <div className="flex items-center gap-3 border-l border-[var(--glass-border)] pl-4">
-                <div className="text-right">
-                  <p className="text-xs font-bold text-[var(--text-primary)] leading-none heading-font select-text">
-                    {userProfile?.fullname || userProfile?.name || 'Educator User'}
+                <div className="text-right cursor-pointer group" onClick={() => handleNavItemClick('/profile')}>
+                  <p className="text-xs font-bold text-[var(--text-primary)] leading-none heading-font select-text group-hover:underline">
+                    {userProfile?.fullname || userProfile?.name || userProfile?.email || 'User'}
                   </p>
                   <p className="text-[9px] font-mono lowercase opacity-70 text-[var(--text-secondary)] mt-0.5">
                     Role: <strong className="uppercase text-[var(--accent-secondary)] font-extrabold">{role}</strong>
@@ -257,8 +257,8 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <button onClick={() => handleNavItemClick('/tutor')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">AI Tutor Workspace</button>
               <button onClick={() => handleNavItemClick('/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">Educational Blog</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
-                <div className="mb-2">
-                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.fullname || userProfile?.name || 'Educator User'}</p>
+                <div className="mb-2 cursor-pointer" onClick={() => handleNavItemClick('/profile')}>
+                  <p className="text-xs font-black text-[var(--text-primary)] hover:underline">{userProfile?.fullname || userProfile?.name || userProfile?.email || 'User'}</p>
                   <p className="text-[10px] text-slate-450 uppercase font-mono tracking-wider font-semibold">ROLE: student</p>
                 </div>
                 <Button size="sm" variant="danger" className="w-full justify-center" onClick={handleLogout}>Log Out</Button>
@@ -274,8 +274,8 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <button onClick={() => handleNavItemClick('/admin/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700">Edu Publisher</button>
               <button onClick={() => handleNavItemClick('/dashboard')} className="block w-full text-left py-2 font-extrabold text-xs text-blue-500">Student Dashboard View</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
-                <div className="mb-2">
-                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.fullname || userProfile?.name || 'Educator User'}</p>
+                <div className="mb-2 cursor-pointer" onClick={() => handleNavItemClick('/profile')}>
+                  <p className="text-xs font-black text-[var(--text-primary)] hover:underline">{userProfile?.fullname || userProfile?.name || userProfile?.email || 'User'}</p>
                   <p className="text-[10px] text-slate-450 uppercase font-mono tracking-wider font-semibold">ROLE: admin</p>
                 </div>
                 <Button size="sm" variant="danger" className="w-full justify-center" onClick={handleLogout}>Log Out</Button>

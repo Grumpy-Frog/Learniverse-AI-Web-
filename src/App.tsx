@@ -11,6 +11,7 @@ import BlogWorkspace from './components/blog/BlogWorkspace';
 import LoginBlock from './components/auth/LoginBlock';
 import RegisterBlock from './components/auth/RegisterBlock';
 import StudentDashboard from './components/dashboard/StudentDashboard';
+import UserProfile from './components/profile/UserProfile';
 
 // Admin Pages
 import AdminCatalogManager from './components/admin/AdminCatalogManager';
@@ -69,6 +70,13 @@ export default function App() {
         return (
           <AuthGuard onRedirect={navigateTo}>
             <StudentDashboard onNavigate={navigateTo} />
+          </AuthGuard>
+        );
+
+      case '/profile':
+        return (
+          <AuthGuard onRedirect={navigateTo}>
+            <UserProfile onNavigate={navigateTo} />
           </AuthGuard>
         );
 
