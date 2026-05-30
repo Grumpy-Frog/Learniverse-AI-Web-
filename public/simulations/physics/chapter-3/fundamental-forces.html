@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Four Fundamental Forces Explorer / প্রকৃতির চারটি মৌলিক বল</title>
+<style>
+:root{--bg:#f0f4f9;--card:rgba(255,255,255,0.98);--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--blueSoft:#dbeafe;--green:#059669;--greenSoft:#dcfce7;--orange:#ea580c;--orangeSoft:#ffedd5;--purple:#7c3aed;--purpleSoft:#f3e8ff;--red:#dc2626;--redSoft:#fee2e2;--shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);--radius:16px}*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;overflow-x:hidden}.app{max-width:1200px;margin:0 auto;padding:24px}header{margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--line);padding-bottom:16px}.title-area h1{margin:0;font-size:2rem;letter-spacing:-0.025em;color:var(--blue)}.title-area p{margin:4px 0 0;color:var(--muted);font-size:1.1rem}.lang-switch{display:flex;background:var(--line);padding:4px;border-radius:12px;gap:4px}.lang-switch button{border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.2s}.lang-switch button.active{background:white;color:var(--blue);box-shadow:0 2px 4px rgba(0,0,0,0.05)}.grid{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}.sidebar{display:flex;flex-direction:column;gap:12px}.force-card{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}.force-card:hover{transform:translateX(5px);border-color:var(--blue)}.force-card.active{border-color:var(--blue);background:var(--blueSoft);box-shadow:var(--shadow)}.force-card.active::after{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--blue)}.force-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}.main-content{background:var(--card);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow);border:1px solid var(--line);min-height:600px;display:flex;flex-direction:column}.visual-container{width:100%;height:320px;background:#030712;border-radius:12px;margin-bottom:24px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}.info-panel{flex-grow:1}.force-title{display:flex;align-items:center;gap:16px;margin-bottom:16px}.force-title h2{margin:0;font-size:1.75rem}.strength-badge{padding:4px 12px;border-radius:20px;font-size:0.875rem;font-weight:700;text-transform:uppercase}.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}.stat-box{background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--line)}.stat-label{display:block;font-size:0.75rem;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:4px}.stat-value{font-size:1.1rem;font-weight:600}.description{font-size:1.1rem;color:var(--ink);margin-bottom:24px;line-height:1.6}.example-section{border-top:1px solid var(--line);padding-top:20px}.example-title{font-weight:700;display:block;margin-bottom:8px;color:var(--muted)}.example-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}.example-item{display:flex;align-items:center;gap:8px;background:var(--blueSoft);padding:8px 12px;border-radius:8px;font-size:0.95rem;color:var(--blue)}.gravity .force-icon{background:var(--orangeSoft);color:var(--orange)}.gravity.active{background:var(--orangeSoft);border-color:var(--orange)}.weak .force-icon{background:var(--purpleSoft);color:var(--purple)}.weak.active{background:var(--purpleSoft);border-color:var(--purple)}.em .force-icon{background:var(--blueSoft);color:var(--blue)}.em.active{background:var(--blueSoft);border-color:var(--blue)}.strong .force-icon{background:var(--greenSoft);color:var(--green)}.strong.active{background:var(--greenSoft);border-color:var(--strong)}.particle{position:absolute;border-radius:50%}.atom-nucleus{width:60px;height:60px;background:#f87171;border-radius:50%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;padding:10px;box-shadow:0 0 20px #ef444466;z-index:2}.proton{width:15px;height:15px;background:#ef4444;border-radius:50%;margin:2px;border:1px solid white}.neutron{width:15px;height:15px;background:#94a3b8;border-radius:50%;margin:2px;border:1px solid white}.electron{position:absolute;width:8px;height:8px;background:#60a5fa;border-radius:50%;box-shadow:0 0 10px #60a5fa}.orbit{position:absolute;border:1px dashed #ffffff33;border-radius:50%}.interaction-line{position:absolute;height:2px;transform-origin:left center;z-index:1}.glow{filter:drop-shadow(0 0 8px currentColor)}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:0.7}100%{transform:scale(1);opacity:1}}@media (max-width:900px){.grid{grid-template-columns:1fr}.sidebar{flex-direction:row;overflow-x:auto;padding-bottom:8px}.force-card{min-width:200px;flex-direction:column;text-align:center}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="title-area">
+<h1 id="mainTitle">Fundamental Forces</h1>
+<p id="mainSubtitle">Exploring the four pillars of the universe</p>
+</div>
+<div class="lang-switch">
+<button id="enBtn" class="active">EN</button>
+<button id="bnBtn">BN</button>
+</div>
+</header>
+<div class="grid">
+<div class="sidebar" id="forceList">
+<!-- JS will populate -->
+</div>
+<main class="main-content">
+<div class="visual-container" id="visuals">
+<!-- JS will render visuals -->
+</div>
+<div class="info-panel">
+<div class="force-title">
+<h2 id="fName">Gravity</h2>
+<span class="strength-badge" id="fStrengthBadge">Strength: 1</span>
+</div>
+<div class="stats-row">
+<div class="stat-box">
+<span class="stat-label" id="labelRange">Range</span>
+<span class="stat-value" id="fRange">Infinite</span>
+</div>
+<div class="stat-box">
+<span class="stat-label" id="labelParticle">Carrier Particle</span>
+<span class="stat-value" id="fParticle">Graviton (hypothetical)</span>
+</div>
+<div class="stat-box">
+<span class="stat-label" id="labelRel">Relative Strength</span>
+<span class="stat-value" id="fRel">1</span>
+</div>
+</div>
+<p class="description" id="fDesc">
+Gravity is the force that pulls objects with mass toward each other.
+</p>
+<div class="example-section">
+<span class="example-title" id="labelExamples">Real-world Examples</span>
+<div class="example-list" id="fExamples">
+<!-- JS will list -->
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script>
+const data = {
+en: {
+title: "Fundamental Forces",
+subtitle: "Exploring the four pillars of the universe",
+range: "Range",
+particle: "Carrier Particle",
+rel: "Relative Strength",
+examples: "Real-world Examples",
+forces: [
+{
+id: 'gravity',
+name: 'Gravitational Force',
+icon: '🌍',
+strength: 'Weakest',
+range: 'Infinite',
+carrier: 'Graviton (hypothetical)',
+relative: '1',
+desc: 'Gravity is the force that pulls objects with mass toward each other. While it is the weakest of the four forces, its range is infinite and it governs the motion of planets, stars, and galaxies. It is always attractive.',
+examples: ['Falling Apple', 'Orbiting Moon', 'Ocean Tides', 'Weight of Objects'],
+color: '#ea580c'
+},
+{
+id: 'weak',
+name: 'Weak Nuclear Force',
+icon: '⚛️',
+strength: 'Short Range',
+range: '10⁻¹⁸ meters',
+carrier: 'W and Z Bosons',
+relative: '10²⁵',
+desc: 'The weak force is responsible for the radioactive decay of subatomic particles. It plays a crucial role in nuclear fusion that powers the sun. It has a very short range, acting only within the distance of an atomic nucleus.',
+examples: ['Beta Decay', 'Sun\'s Fusion', 'Carbon Dating', 'Neutrino Interactions'],
+color: '#7c3aed'
+},
+{
+id: 'em',
+name: 'Electromagnetic Force',
+icon: '⚡',
+strength: 'Long Range',
+range: 'Infinite',
+carrier: 'Photon',
+relative: '10³⁶',
+desc: 'This force acts between electrically charged particles. It is responsible for holding atoms together, chemical reactions, light, electricity, and magnetism. It can be both attractive (unlike charges) or repulsive (like charges).',
+examples: ['Lightning', 'Magnets', 'WiFi Signals', 'Holding a Pencil'],
+color: '#2563eb'
+},
+{
+id: 'strong',
+name: 'Strong Nuclear Force',
+icon: '🔩',
+strength: 'Strongest',
+range: '10⁻¹⁵ meters',
+carrier: 'Gluon',
+relative: '10³⁸',
+desc: 'The strong force binds protons and neutrons together in the nucleus of an atom. It is the strongest force in nature, overcome only by enormous energy. It also binds quarks together to form protons and neutrons.',
+examples: ['Atomic Nucleus', 'Nuclear Energy', 'Quark Binding', 'Stars Stability'],
+color: '#059669'
+}
+]
+},
+bn: {
+title: "মৌলিক বল",
+subtitle: "মহাবিশ্বের চারটি মূল স্তম্ভের অনুসন্ধান",
+range: "পাল্লা",
+particle: "বাহী কণা",
+rel: "আপেক্ষিক শক্তি",
+examples: "বাস্তব উদাহরণ",
+forces: [
+{
+id: 'gravity',
+name: 'মহাকর্ষ বল',
+icon: '🌍',
+strength: 'সবচেয়ে দুর্বল',
+range: 'অসীম',
+carrier: 'গ্র্যাভিটন (অনুমানকৃত)',
+relative: '১',
+desc: 'ভর আছে এমন দুটি বস্তুর মধ্যে একে অপরকে আকর্ষণ করার বলই হলো মহাকর্ষ। এটি চারটি মৌলিক বলের মধ্যে সবচেয়ে দুর্বল হলেও এর পাল্লা অসীম এবং এটি গ্রহ, নক্ষত্র ও ছায়াপথের গতি নিয়ন্ত্রণ করে। এটি সর্বদা আকর্ষণীয় বল।',
+examples: ['আপেল পড়া', 'চাঁদের কক্ষপথ', 'সমুদ্রের জোয়ার', 'বস্তুর ওজন'],
+color: '#ea580c'
+},
+{
+id: 'weak',
+name: 'দুর্বল নিউক্লীয় বল',
+icon: '⚛️',
+strength: 'অল্প পাল্লা',
+range: '১০⁻¹৮ মিটার',
+carrier: 'W ও Z বোসন',
+relative: '১০²৫',
+desc: 'পারমাণবিক কণার তেজস্ক্রিয় বিকিরণের জন্য এই বল দায়ী। সূর্যের শক্তি উৎপন্ন করার জন্য নিউক্লীয় ফিউশন বিক্রিয়ায় এটি গুরুত্বপূর্ণ ভূমিকা পালন করে। এর পাল্লা খুব কম, শুধুমাত্র একটি পরমাণুর নিউক্লিয়াসের দূরত্বের মধ্যে এটি কাজ করে।',
+examples: ['বিটা ক্ষয়', 'সূর্যের ফিউশন', 'কার্বন ডেটিং', 'নিউট্রিনো বিক্রিয়া'],
+color: '#7c3aed'
+},
+{
+id: 'em',
+name: 'তড়িৎচৌম্বক বল',
+icon: '⚡',
+strength: 'অসীম পাল্লা',
+range: 'অসীম',
+carrier: 'ফোটন',
+relative: '১০³৬',
+desc: 'আধানযুক্ত কণাগুলোর মধ্যে এই বল কাজ করে। পরমাণু গঠন, রাসায়নিক বিক্রিয়া, আলো, বিদ্যুৎ এবং চুম্বকত্বের জন্য এই বল দায়ী। এটি আকর্ষণীয় (বিপরীত ধর্মী আধান) বা বিকর্ষণীয় (একই ধর্মী আধান) উভয়ই হতে পারে।',
+examples: ['বজ্রপাত', 'চুম্বক', 'ওয়াইফাই সিগন্যাল', 'পেন্সিল ধরা'],
+color: '#2563eb'
+},
+{
+id: 'strong',
+name: 'সবল নিউক্লীয় বল',
+icon: '🔩',
+strength: 'সবচেয়ে শক্তিশালী',
+range: '১০⁻¹৫ মিটার',
+carrier: 'গ্লুঅন',
+relative: '১০³৮',
+desc: 'এই বল পরমাণুর নিউক্লিয়াসের ভেতরে প্রোটন ও নিউট্রনকে একত্রে ধরে রাখে। এটি প্রকৃতির সবচেয়ে শক্তিশালী বল। এটি কোয়ার্কগুলোকে একত্রে প্রোটন ও নিউট্রন গঠনের জন্যও কাজ করে।',
+examples: ['পরমাণুর নিউক্লিয়াস', 'পারমাণবিক শক্তি', 'কোয়ার্ক বন্ধন', 'নক্ষত্রের স্থায়িত্ব'],
+color: '#059669'
+}
+]
+}
+};
+let currentLang = 'en';
+let currentForceId = 'gravity';
+function init() {
+renderForceList();
+switchForce('gravity');
+document.getElementById('enBtn').onclick = () => setLang('en');
+document.getElementById('bnBtn').onclick = () => setLang('bn');
+}
+function setLang(lang) {
+currentLang = lang;
+document.getElementById('enBtn').className = lang === 'en' ? 'active' : '';
+document.getElementById('bnBtn').className = lang === 'bn' ? 'active' : '';
+document.getElementById('mainTitle').innerText = data[lang].title;
+document.getElementById('mainSubtitle').innerText = data[lang].subtitle;
+document.getElementById('labelRange').innerText = data[lang].range;
+document.getElementById('labelParticle').innerText = data[lang].particle;
+document.getElementById('labelRel').innerText = data[lang].rel;
+document.getElementById('labelExamples').innerText = data[lang].examples;
+renderForceList();
+switchForce(currentForceId);
+}
+function renderForceList() {
+const list = document.getElementById('forceList');
+list.innerHTML = '';
+data[currentLang].forces.forEach(f => {
+const card = document.createElement('div');
+card.className = `force-card ${f.id} ${currentForceId === f.id ? 'active' : ''}`;
+card.onclick = () => switchForce(f.id);
+card.innerHTML = `
+<div class="force-icon">${f.icon}</div>
+<div class="force-info">
+<div style="font-weight:700">${f.name}</div>
+<div style="font-size:0.75rem; color:var(--muted)">${f.strength}</div>
+</div>
+`;
+list.appendChild(card);
+});
+}
+function switchForce(id) {
+currentForceId = id;
+const force = data[currentLang].forces.find(f => f.id === id);
+document.querySelectorAll('.force-card').forEach(c => c.classList.remove('active'));
+document.querySelector(`.force-card.${id}`).classList.add('active');
+document.getElementById('fName').innerText = force.name;
+document.getElementById('fStrengthBadge').innerText = `${data[currentLang].rel}: ${force.strength}`;
+document.getElementById('fStrengthBadge').style.background = force.color + '22';
+document.getElementById('fStrengthBadge').style.color = force.color;
+document.getElementById('fRange').innerText = force.range;
+document.getElementById('fParticle').innerText = force.carrier;
+document.getElementById('fRel').innerText = force.relative;
+document.getElementById('fDesc').innerText = force.desc;
+const exampleList = document.getElementById('fExamples');
+exampleList.innerHTML = '';
+force.examples.forEach(ex => {
+const item = document.createElement('div');
+item.className = 'example-item';
+item.style.background = force.color + '15';
+item.style.color = force.color;
+item.innerHTML = `<span>✔</span> ${ex}`;
+exampleList.appendChild(item);
+});
+renderVisuals(id);
+}
+function renderVisuals(id) {
+const container = document.getElementById('visuals');
+container.innerHTML = '';
+const force = data[currentLang].forces.find(f => f.id === id);
+if (id === 'gravity') {
+const earth = createEl('div', 'earth', {
+width: '80px', height: '80px', background: '#3b82f6', borderRadius: '50%',
+boxShadow: 'inset -10px -10px 20px #1e3a8a, 0 0 20px #3b82f666', border: '2px solid #60a5fa'
+});
+earth.style.animation = 'float 4s ease-in-out infinite';
+const surface = createEl('div', 'surface', {
+position: 'absolute', bottom: '40px', width: '200px', height: '4px', background: '#4b5563', borderRadius: '2px'
+});
+const apple = createEl('div', 'apple', {
+width: '15px', height: '15px', background: '#ef4444', borderRadius: '50%', position: 'absolute', top: '100px'
+});
+apple.animate([
+{ top: '30px', opacity: 0 },
+{ top: '30px', opacity: 1, offset: 0.1 },
+{ top: '228px', opacity: 1, offset: 0.9 },
+{ top: '228px', opacity: 0 }
+], { duration: 3000, iterations: Infinity });
+const arrow = createEl('div', 'arrow', {
+width: '2px', height: '40px', background: force.color, position: 'absolute', top: '50px'
+});
+container.append(earth, surface, apple);
+} else if (id === 'em') {
+const pos = createEl('div', 'pos', {
+width: '40px', height: '40px', background: '#ef4444', borderRadius: '50%',
+display: 'flex', alignItems: 'center', justifycontent: 'center', color: 'white', fontWeight: 'bold'
+});
+pos.innerText = '+';
+pos.style.animation = 'float 3s ease-in-out infinite';
+const neg = createEl('div', 'neg', {
+width: '40px', height: '40px', background: '#3b82f6', borderRadius: '50%',
+display: 'flex', alignItems: 'center', justifycontent: 'center', color: 'white', fontWeight: 'bold',
+marginLeft: '120px'
+});
+neg.innerText = '-';
+neg.style.animation = 'float 3s ease-in-out infinite reverse';
+const waves = createEl('div', 'waves', {
+position: 'absolute', width: '100px', height: '2px', background: `repeating-linear-gradient(90deg, transparent, ${force.color} 10px, transparent 20px)`,
+opacity: '0.6'
+});
+waves.animate([{ transform: 'scaleX(0.5)', opacity: 0 }, { transform: 'scaleX(1.2)', opacity: 0.6 }, { transform: 'scaleX(0.5)', opacity: 0 }], { duration: 2000, iterations: Infinity });
+container.append(pos, neg, waves);
+} else if (id === 'strong') {
+const nucleus = createEl('div', 'nucleus atom-nucleus', {});
+for(let i=0; i<8; i++) {
+nucleus.appendChild(createEl('div', i%2===0 ? 'proton' : 'neutron', {}));
+}
+const glow = createEl('div', 'glow', {
+position: 'absolute', width: '100px', height: '100px', borderRadius: '50%', background: force.color, opacity: '0.1', filter: 'blur(20px)'
+});
+glow.style.animation = 'pulse 2s infinite';
+container.append(glow, nucleus);
+} else if (id === 'weak') {
+const particle = createEl('div', 'particle', {
+width: '30px', height: '30px', background: '#94a3b8', border: '2px solid white'
+});
+particle.style.animation = 'spin 5s linear infinite';
+const decay = createEl('div', 'decay', {
+position: 'absolute', width: '10px', height: '10px', borderRadius: '50%', background: force.color
+});
+decay.animate([
+{ transform: 'translate(0, 0)', opacity: 1 },
+{ transform: 'translate(100px, -50px)', opacity: 0 }
+], { duration: 1500, iterations: Infinity });
+container.append(particle, decay);
+}
+}
+function createEl(tag, className, style) {
+const el = document.createElement(tag);
+el.className = className;
+Object.assign(el.style, style);
+return el;
+}
+init();
+</script>
+</body>
+</html>

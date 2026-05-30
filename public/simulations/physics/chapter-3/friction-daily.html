@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Controlling Friction in Daily Life / দৈনন্দিন জীবনে ঘর্ষণ নিয়ন্ত্রণ</title>
+<style>
+:root{
+  --bg:#eef5ff;--card:rgba(255,255,255,.96);--ink:#132640;--muted:#63758e;--line:#dce7f4;
+  --blue:#2768e8;--blue-soft:#e7f0ff;--green:#078f73;--green-soft:#e3f8f1;
+  --orange:#ec7b27;--orange-soft:#fff1e6;--purple:#7057df;--purple-soft:#f0edff;
+  --red:#d94358;--red-soft:#fdebed;--gold:#d69b17;--shadow:0 16px 42px rgba(29,52,85,.10);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:Arial,"Noto Sans Bengali",sans-serif;color:var(--ink);line-height:1.43;
+  background:radial-gradient(circle at 6% 0%,#d8e9ff 0,transparent 29%),
+             radial-gradient(circle at 96% 3%,#dcfaf3 0,transparent 25%),var(--bg);
+}
+button,input,select{font:inherit}button{cursor:pointer}
+.app{max-width:1460px;margin:0 auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--blue-soft);color:var(--blue);font-size:.83rem;font-weight:700;border-radius:999px;padding:6px 12px;margin-bottom:9px}
+.eyebrow i{display:block;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+h1{font-size:clamp(1.42rem,2.65vw,2.34rem);letter-spacing:-.045em;margin:0 0 5px}
+.subtitle{margin:0;max-width:880px;color:var(--muted);font-size:.98rem}
+.lang{display:flex;gap:3px;padding:4px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(23,51,82,.06);flex-shrink:0}
+.lang button{border:0;border-radius:10px;padding:9px 14px;background:transparent;color:var(--muted);font-weight:700}
+.lang button.active{background:var(--blue);color:#fff}
+.layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid rgba(215,226,241,.93);border-radius:var(--radius);box-shadow:var(--shadow)}
+.sidebar{padding:15px;display:grid;gap:13px;position:sticky;top:16px}
+.label{font-size:.75rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin-bottom:8px}
+.scenes{display:grid;gap:7px}
+.scene-btn{display:grid;grid-template-columns:38px 1fr;gap:9px;align-items:center;text-align:left;border:1px solid transparent;border-radius:15px;padding:9px;background:#f5f8fd;color:var(--ink);transition:.18s}
+.scene-btn:hover{transform:translateY(-1px);border-color:#cbdcf2}
+.scene-btn.active{background:var(--blue-soft);border-color:#c8daff;color:var(--blue)}
+.icon{width:38px;height:38px;border-radius:12px;background:#fff;display:grid;place-items:center;font-weight:700;font-size:1.08rem}
+.scene-btn.active .icon{background:var(--blue);color:#fff}
+.scene-name{display:block;font-weight:700;font-size:.9rem}.scene-small{display:block;color:var(--muted);font-size:.74rem;margin-top:1px}
+.control-box{background:#f7faff;border:1px solid #e1eafb;border-radius:17px;padding:13px}
+.control-title{font-size:.94rem;font-weight:700;margin:0 0 10px}
+.control{margin:12px 0}
+.control-row{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px;font-size:.83rem;font-weight:700}
+.value{font-variant-numeric:tabular-nums;color:var(--blue);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
+select{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:8px 9px}
+.segment{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;border-radius:11px;background:#eff4fc}
+.segment button{border:0;border-radius:8px;padding:7px;background:transparent;color:var(--muted);font-weight:700}
+.segment button.active{background:var(--blue);color:#fff}
+.hint{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.action,.tool{border:0;border-radius:11px;padding:9px 11px;font-size:.87rem;font-weight:700;transition:.18s}
+.action:hover,.tool:hover{transform:translateY(-1px)}
+.primary{background:var(--blue);color:#fff}.secondary{background:#e8f1ff;color:var(--blue)}
+.tip{border-radius:15px;padding:12px 13px;background:#fff9eb;border:1px solid #ffe8b3;color:#654d13;font-size:.86rem}
+.main{display:grid;gap:15px;min-width:0}
+.stage-card{padding:14px}
+.stage-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.stage-left{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.mode-pill{border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700;background:var(--blue-soft);color:var(--blue)}
+.mode-pill.reduce{background:var(--purple-soft);color:var(--purple)}
+.stage-title{font-size:1.03rem;font-weight:700}
+.tools{display:flex;gap:7px;flex-wrap:wrap}.tool{background:#f2f6fc;color:var(--ink)}
+.svg-wrap{border:1px solid #e3ebf8;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#f8fbff,#eef5ff)}
+#stage{display:block;width:100%;height:auto;aspect-ratio:1020/430}
+.readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:11px}
+.readout{min-width:0;border:1px solid #e3ebf7;border-radius:14px;background:#f6f9fe;padding:9px 10px}
+.read-label{font-size:.72rem;color:var(--muted);font-weight:700}
+.read-value{font-size:.9rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:3px}
+.read-value.blue{color:var(--blue)}.read-value.orange{color:var(--orange)}.read-value.green{color:var(--green)}.read-value.purple{color:var(--purple)}.read-value.red{color:var(--red)}
+.lower{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(410px,1.25fr);gap:15px}
+.panel{padding:17px}
+.panel-title{display:flex;align-items:center;gap:8px;margin:0 0 11px;font-size:1rem}
+.panel-title i{display:block;width:9px;height:9px;border-radius:50%;background:var(--blue)}
+.observation,.conclusion{min-height:96px;background:#f7faff;border-left:4px solid var(--blue);border-radius:0 13px 13px 0;color:#263955;font-size:.92rem;padding:12px 13px}
+.conclusion{border-left-color:var(--green);background:#f4fcf8}
+.indicators{padding:17px}
+.meter-grid{display:grid;gap:10px}
+.meter-row{display:grid;grid-template-columns:112px 1fr 94px;gap:9px;align-items:center;font-size:.82rem}
+.meter-label{font-weight:700}.track{height:12px;background:#edf3fb;border:1px solid #dfe8f6;border-radius:999px;overflow:hidden}
+.fill{height:100%;border-radius:999px;background:var(--blue);width:var(--w)}
+.fill.green{background:var(--green)}.fill.orange{background:var(--orange)}.fill.purple{background:var(--purple)}.fill.red{background:var(--red)}
+.note{margin-top:12px;border-radius:13px;background:var(--green-soft);color:#126453;padding:10px 12px;font-size:.86rem;font-weight:700}
+svg text{font-family:Arial,"Noto Sans Bengali",sans-serif}
+@media(max-width:1120px){.layout{grid-template-columns:338px minmax(0,1fr)}.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}
+@media(max-width:820px){.app{padding:12px}header{display:block}.lang{margin-top:13px;width:max-content}.layout{display:block}.sidebar{position:static;margin-bottom:14px}}
+@media(max-width:560px){.readouts{grid-template-columns:1fr}.meter-row{grid-template-columns:86px 1fr}.meter-row span:last-child{grid-column:2}.scene-small{display:none}#stage{aspect-ratio:1020/575}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="eyebrow"><i></i><span id="tag">Class 9 Physics • Daily-life Laboratory</span></div>
+    <h1>Controlling Friction in Daily Life / দৈনন্দিন জীবনে ঘর্ষণ নিয়ন্ত্রণ</h1>
+    <p class="subtitle" id="subtitle">Explore when friction should be increased for grip and safety, and when it should be reduced for efficiency.</p>
+  </div>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" id="enBtn" class="active">English</button>
+    <button type="button" id="bnBtn">বাংলা</button>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar card">
+    <section>
+      <div class="label" id="sceneLabel">Choose a practical scenario</div>
+      <nav class="scenes" id="sceneNav"></nav>
+    </section>
+    <section class="control-box">
+      <h2 class="control-title" id="controlsTitle">Adjust conditions</h2>
+      <div id="controls"></div>
+    </section>
+    <div class="actions">
+      <button class="action primary" id="testBtn" type="button">Run test</button>
+      <button class="action secondary" id="resetBtn" type="button">Reset</button>
+    </div>
+    <div class="tip" id="tip">The best design depends on the job: grip needs more friction, smooth motion needs less friction.</div>
+  </aside>
+  <main class="main">
+    <section class="stage-card card">
+      <div class="stage-head">
+        <div class="stage-left">
+          <span class="mode-pill" id="modePill">Useful friction</span>
+          <span class="stage-title" id="stageTitle">Vehicle tyre and road grip</span>
+        </div>
+        <div class="tools"><button class="tool" id="pauseBtn" type="button">Pause animation</button></div>
+      </div>
+      <div class="svg-wrap"><svg id="stage" viewBox="0 0 1020 430" role="img" aria-label="Friction control daily life visual"></svg></div>
+      <div class="readouts" id="readouts"></div>
+    </section>
+    <div class="lower">
+      <section class="panel card">
+        <h2 class="panel-title"><i></i><span id="obTitle">Observation</span></h2>
+        <div class="observation" id="observation"></div>
+      </section>
+      <section class="panel card">
+        <h2 class="panel-title"><i></i><span id="conclusionTitle">Conclusion</span></h2>
+        <div class="conclusion" id="conclusion"></div>
+      </section>
+    </div>
+    <section class="indicators card">
+      <h2 class="panel-title"><i></i><span id="indicatorTitle">Comparison indicators</span></h2>
+      <div class="meter-grid" id="meters"></div>
+      <div class="note" id="note">Adjust the controls and run the test to compare designs.</div>
+    </section>
+  </main>
+</div>
+</div>
+<script>
+(() => {
+"use strict";
+const $=id=>document.getElementById(id);
+const state={lang:"en",scene:"tyre",playing:true,phase:0,testPhase:0,
+ tyre:{surface:"dry",tread:80,speed:50},
+ brake:{brake:55,surface:"dry",speed:45},
+ lub:{lubrication:45,speed:60},
+ load:{mode:"rollers",mass:80,effort:45,roughness:55},
+ drag:{shape:"box",speed:55,medium:"air"}
+};
+const C = {blue:"#2768e8", orange:"#ec7b27", purple:"#7057df", green:"#078f73", red:"#d94358", muted: "#63758e"};
+const t=(en,bn)=>state.lang==="en"?en:bn;
+const fmt=(n,d=0)=>Number(n).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const scenes=[
+ ["tyre","🚗","Vehicle tyre grip","গাড়ির টায়ার গ্রিপ","Increase friction for safety","নিরাপত্তার জন্য ঘর্ষণ বাড়াও"],
+ ["brake","◎","Bicycle or wheel brake","সাইকেল/চাকার ব্রেক","Increase friction to stop","থামাতে ঘর্ষণ বাড়াও"],
+ ["lub","⚙","Lubricated machine parts","লুব্রিকেটেড যন্ত্রাংশ","Reduce unwanted friction","অপ্রয়োজনীয় ঘর্ষণ কমাও"],
+ ["load","▣","Heavy object: sliding or rollers","ভারী বস্তু: স্লাইডিং বা রোলার","Rolling reduces resistance","রোলিং প্রতিরোধ কমায়"],
+ ["drag","◆","Moving through air or water","বায়ু/পানির মধ্য দিয়ে গতি","Streamlined shape reduces drag","সরু আকৃতি ড্র্যাগ কমায়"]
+];
+const surfaceFactors={dry:1,wet:.62,loose:.48,ice:.22};
+const brakeSurface={dry:1,wet:.65,loose:.55,ice:.25};
+const shapeDrag={streamlined:.35,rounded:.55,box:1.0};
+const mediumFactor={air:1,water:3.2};
+function surfaceName(v){return {dry:t("dry rough road","শুকনো রুক্ষ রাস্তা"),wet:t("wet road","ভেজা রাস্তা"),loose:t("loose sand/gravel","আলগা বালি/কাঁকর"),ice:t("slippery smooth surface","পিচ্ছিল মসৃণ পৃষ্ঠ")}[v];}
+function shapeName(v){return {streamlined:t("streamlined","সরু/স্ট্রিমলাইনড"),rounded:t("rounded","গোলাকার"),box:t("boxy/blunt","বাক্সের মতো")}[v];}
+function metrics(){
+ const s=state[state.scene];
+ if(state.scene==="tyre"){
+  const grip=clamp(surfaceFactors[s.surface]*(.35+s.tread/100*.8)*100,0,100);
+  const risk=clamp(s.speed*(100-grip)/55,0,100);
+  return {friction:grip,benefit:100-risk,loss:risk,eff:grip,status:grip>70?t("strong grip","শক্ত গ্রিপ"):grip>42?t("limited grip","সীমিত গ্রিপ"):t("low grip","কম গ্রিপ")};
+ }
+ if(state.scene==="brake"){
+  const stop=clamp(s.brake*brakeSurface[s.surface],0,100);
+  const distance=clamp(100-(stop*.85)+(s.speed*.55),5,100);
+  return {friction:stop,benefit:100-distance,loss:distance,eff:stop,status:stop>65?t("shorter stopping","কম থামার দূরত্ব"):stop>35?t("moderate stopping","মাঝারি থামা"):t("weak stopping","দুর্বল থামা")};
+ }
+ if(state.scene==="lub"){
+  const friction=clamp(95-s.lubrication*.82,10,95);
+  const heat=clamp(friction*s.speed/80,0,100);
+  const efficiency=clamp(100-heat*.82,0,100);
+  return {friction,benefit:efficiency,loss:heat,eff:efficiency,status:friction<35?t("smooth motion","মসৃণ গতি"):friction<65?t("some resistance","কিছু প্রতিরোধ"):t("high wear risk","ক্ষয়ের ঝুঁকি বেশি")};
+ }
+ if(state.scene==="load"){
+  const modeFactor=s.mode==="rollers"?.18:1;
+  const friction=clamp((s.roughness/100)*modeFactor*s.mass*.9,0,100);
+  const motion=clamp(s.effort-friction+45,0,100);
+  const energy=clamp(friction,0,100);
+  return {friction,benefit:motion,loss:energy,eff:motion,status:s.mode==="rollers"?t("rolling is easier","রোলিং সহজ"):friction>s.effort?t("hard to slide","স্লাইড করা কঠিন"):t("sliding with effort","চেষ্টায় স্লাইড হচ্ছে")};
+ }
+ const drag=clamp(shapeDrag[s.shape]*mediumFactor[s.medium]*s.speed*0.58,0,100);
+ const efficiency=clamp(100-drag*.8,0,100);
+ return {friction:drag,benefit:efficiency,loss:drag,eff:efficiency,status:drag<35?t("low drag","কম ড্র্যাগ"):drag<70?t("medium drag","মাঝারি ড্র্যাগ"):t("high drag","বেশি ড্র্যাগ")};
+}
+function frictionRole(){
+ return (state.scene==="tyre"||state.scene==="brake")?t("Useful friction","উপকারী ঘর্ষণ"):t("Unwanted friction","অপ্রয়োজনীয় ঘর্ষণ");
+}
+function applyLanguage(){
+ document.documentElement.lang=state.lang==="en"?"en":"bn";
+ $("enBtn").classList.toggle("active",state.lang==="en");$("bnBtn").classList.toggle("active",state.lang==="bn");
+ $("tag").textContent=t("Class 9 Physics • Daily-life Laboratory","নবম শ্রেণির পদার্থবিজ্ঞান • দৈনিক ল্যাব");
+ $("subtitle").textContent=t("Explore when friction should be increased for grip and safety, and when it should be reduced for efficiency.","গ্রিপ ও নিরাপত্তার জন্য কখন ঘর্ষণ বাড়াতে হয় এবং দক্ষতার জন্য কখন কমাতে হয় তা অনুসন্ধান করো।");
+ $("sceneLabel").textContent=t("Choose a practical scenario","একটি ব্যবহারিক পরিস্থিতি বেছে নাও");
+ $("controlsTitle").textContent=t("Adjust conditions","শর্ত পরিবর্তন করো");
+ $("testBtn").textContent=t("Run test","পরীক্ষা চালাও");$("resetBtn").textContent=t("Reset","পুনরায় সেট");
+ $("pauseBtn").textContent=state.playing?t("Pause animation","অ্যানিমেশন থামাও"):t("Resume animation","অ্যানিমেশন চালাও");
+ $("obTitle").textContent=t("Observation","পর্যবেক্ষণ");$("conclusionTitle").textContent=t("Conclusion","উপসংহার");
+ $("indicatorTitle").textContent=t("Comparison indicators","তুলনা সূচক");
+ $("note").textContent=t("Adjust the controls and run the test to compare designs.","ডিজাইন তুলনা করতে নিয়ন্ত্রণ পরিবর্তন করে পরীক্ষা চালাও।");
+ $("tip").textContent=t("The best design depends on the job: grip needs more friction, smooth motion needs less friction.","সেরা নকশা কাজের উপর নির্ভর করে: গ্রিপের জন্য বেশি ঘর্ষণ, মসৃণ গতির জন্য কম ঘর্ষণ দরকার।");
+ renderNav();renderControls();renderAll();
+}
+function renderNav(){
+ $("sceneNav").innerHTML=scenes.map(([id,ic,en,bn,sen,sbn])=>`<button class="scene-btn ${state.scene===id?"active":""}" data-scene="${id}" type="button"><span class="icon">${ic}</span><span><span class="scene-name">${t(en,bn)}</span><span class="scene-small">${t(sen,sbn)}</span></span></button>`).join("");
+ document.querySelectorAll("[data-scene]").forEach(b=>b.onclick=()=>{state.scene=b.dataset.scene;state.testPhase=0;applyLanguage();});
+}
+function range(id,label,value,min,max,step,unit=""){
+ return `<div class="control"><div class="control-row"><span>${label}</span><span class="value" id="${id}Val">${fmt(value,step<1?1:0)}${unit}</span></div><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"></div>`;
+}
+function selectHtml(id,label,value,opts){
+ return `<div class="control"><div class="control-row"><span>${label}</span></div><select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${v===value?"selected":""}>${l}</option>`).join("")}</select></div>`;
+}
+function seg(id,label,value,left,right){
+ return `<div class="control"><div class="control-row"><span>${label}</span><span class="value">${value==="rollers"?t("rollers","রোলার"):t("sliding","স্লাইডিং")}</span></div><div class="segment" id="${id}"><button data-v="${left[0]}" class="${value===left[0]?"active":""}" type="button">${left[1]}</button><button data-v="${right[0]}" class="${value===right[0]?"active":""}" type="button">${right[1]}</button></div></div>`;
+}
+function renderControls(){
+ const c=$("controls"), s=state[state.scene];
+ if(state.scene==="tyre"){
+  c.innerHTML=selectHtml("surface",t("Road surface","রাস্তার পৃষ্ঠ"),s.surface,[["dry",surfaceName("dry")],["wet",surfaceName("wet")],["loose",surfaceName("loose")],["ice",surfaceName("ice")]])+
+  range("tread",t("Tyre tread level","টায়ারের ট্রেড"),s.tread,0,100,1,"%")+range("speed",t("Vehicle speed","গাড়ির গতি"),s.speed,10,100,1," km/h")+
+  `<p class="hint">${t("Deeper tread and rougher road usually increase grip.","গভীর ট্রেড ও রুক্ষ রাস্তা সাধারণত গ্রিপ বাড়ায়।")}</p>`;
+ }
+ if(state.scene==="brake"){
+  c.innerHTML=range("brake",t("Brake force","ব্রেক বল"),s.brake,0,100,1,"%")+selectHtml("surface",t("Wheel surface condition","চাকার পৃষ্ঠের অবস্থা"),s.surface,[["dry",surfaceName("dry")],["wet",surfaceName("wet")],["loose",surfaceName("loose")],["ice",surfaceName("ice")]])+range("speed",t("Wheel speed","চাকার গতি"),s.speed,10,90,1," km/h")+
+  `<p class="hint">${t("Brakes work by increasing friction between brake pad and wheel.","ব্রেক প্যাড ও চাকার মধ্যে ঘর্ষণ বাড়িয়ে ব্রেক কাজ করে।")}</p>`;
+ }
+ if(state.scene==="lub"){
+  c.innerHTML=range("lubrication",t("Lubrication amount","লুব্রিকেশনের পরিমাণ"),s.lubrication,0,100,1,"%")+range("speed",t("Machine speed","যন্ত্রের গতি"),s.speed,10,100,1,"%")+
+  `<p class="hint">${t("Lubrication reduces friction, heating and wear between moving parts.","লুব্রিকেশন চলন্ত অংশের ঘর্ষণ, তাপ ও ক্ষয় কমায়।")}</p>`;
+ }
+ if(state.scene==="load"){
+  c.innerHTML=seg("arrangement",t("Arrangement","ব্যবস্থা"),s.mode,["sliding",t("Sliding","স্লাইডিং")],["rollers",t("Rollers","রোলার")])+range("mass",t("Load mass","বস্তুর ভর"),s.mass,20,160,1," kg")+range("roughness",t("Floor roughness","মেঝের রুক্ষতা"),s.roughness,10,100,1,"%")+range("effort",t("Applied effort","প্রয়োগকৃত চেষ্টা"),s.effort,0,100,1,"%")+
+  `<p class="hint">${t("Rolling friction is much smaller than sliding friction.","রোলিং ঘর্ষণ স্লাইডিং ঘর্ষণের তুলনায় অনেক কম।")}</p>`;
+ }
+ if(state.scene==="drag"){
+  c.innerHTML=selectHtml("shape",t("Body shape","বস্তুর আকৃতি"),s.shape,[["streamlined",shapeName("streamlined")],["rounded",shapeName("rounded")],["box",shapeName("box")]])+selectHtml("medium",t("Medium","মাধ্যম"),s.medium,[["air",t("Air","বায়ু")],["water",t("Water","পানি")]])+range("speed",t("Speed","গতি"),s.speed,10,100,1,"%")+
+  `<p class="hint">${t("Streamlined shapes reduce fluid friction or drag.","স্ট্রিমলাইনড আকৃতি তরল ঘর্ষণ বা ড্র্যাগ কমায়।")}</p>`;
+ }
+ bindControls();
+}
+function bindControls(){
+ const s=state[state.scene];
+ ["surface","shape","medium"].forEach(id=>{const el=$(id);if(el)el.oninput=e=>{s[id]=e.target.value;renderAll();}});
+ ["tread","speed","brake","lubrication","mass","roughness","effort"].forEach(id=>{const el=$(id);if(el)el.oninput=e=>{s[id]=Number(e.target.value);$(id+"Val").textContent=fmt(s[id],0)+(id==="speed"&&state.scene!=="lub"?" km/h":id==="tread"||id==="brake"||id==="lubrication"||id==="roughness"||id==="effort"?"%":id==="mass"?" kg":"%");renderAll();};});
+ const arr=$("arrangement"); if(arr) arr.querySelectorAll("button").forEach(b=>b.onclick=()=>{s.mode=b.dataset.v;renderControls();renderAll();});
+}
+function observation(){
+ const m=metrics(), s=state[state.scene];
+ if(state.scene==="tyre") return t(`Grip is ${fmt(m.friction)}%. At higher speed or on slippery/loose surfaces, useful friction becomes less reliable.`,`গ্রিপ ${fmt(m.friction)}%। বেশি গতি বা পিচ্ছিল/আলগা পৃষ্ঠে উপকারী ঘর্ষণ কম নির্ভরযোগ্য হয়।`);
+ if(state.scene==="brake") return t(`Brake friction is ${fmt(m.friction)}%. Stronger braking and better surface grip reduce stopping distance in this safe visual model.`,`ব্রেক ঘর্ষণ ${fmt(m.friction)}%। বেশি ব্রেক বল ও ভালো পৃষ্ঠ গ্রিপ এই নিরাপদ মডেলে থামার দূরত্ব কমায়।`);
+ if(state.scene==="lub") return t(`Lubrication lowers unwanted friction to about ${fmt(m.friction)}%. Less friction means less heating and better efficiency.`,`লুব্রিকেশন অপ্রয়োজনীয় ঘর্ষণ প্রায় ${fmt(m.friction)}%-এ নামায়। কম ঘর্ষণ মানে কম তাপ ও বেশি দক্ষতা।`);
+ if(state.scene==="load") return t(`The ${s.mode==="rollers"?t("roller","রোলার"):t("sliding","স্লাইডিং")} arrangement gives resistance about ${fmt(m.friction)}%. Rollers reduce contact rubbing, so less effort is wasted.`,` ${s.mode==="rollers"?t("রোলার","রোলার"):t("স্লাইডিং","স্লাইডিং")} ব্যবস্থায় প্রতিরোধ প্রায় ${fmt(m.friction)}%। রোলার ঘষা কমায়, তাই কম চেষ্টা অপচয় হয়।`);
+ return t(`The ${shapeName(s.shape)} shape in ${s.medium==="water"?t("water","পানি"):t("air","বায়ু")} has drag about ${fmt(m.friction)}%. Streamlining reduces unwanted fluid friction.`,` ${s.medium==="water"?t("পানি","পানি"):t("বায়ু","বায়ু")}-তে ${shapeName(s.shape)} আকৃতির ড্র্যাগ প্রায় ${fmt(m.friction)}%। স্ট্রিমলাইনিং অপ্রয়োজনীয় তরল ঘর্ষণ কমায়।`);
+}
+function conclusion(){
+ if(state.scene==="tyre") return t("Here friction is useful. It should be increased enough to improve tyre-road grip and safer control.","এখানে ঘর্ষণ উপকারী। টায়ার-রাস্তার গ্রিপ ও নিরাপদ নিয়ন্ত্রণের জন্য এটি যথেষ্ট বাড়ানো দরকার।");
+ if(state.scene==="brake") return t("Here friction is useful. Brakes deliberately increase friction so rotating wheels can slow down.","এখানে ঘর্ষণ উপকারী। ঘূর্ণায়মান চাকা ধীর করতে ব্রেক ইচ্ছাকৃতভাবে ঘর্ষণ বাড়ায়।");
+ if(state.scene==="lub") return t("Here friction is unwanted. Lubrication reduces rubbing, heating, noise and wear in moving machine parts.","এখানে ঘর্ষণ অপ্রয়োজনীয়। লুব্রিকেশন চলন্ত যন্ত্রাংশে ঘষা, তাপ, শব্দ ও ক্ষয় কমায়।");
+ if(state.scene==="load") return t("For moving heavy loads, sliding friction is unwanted. Rollers or bearings reduce friction and improve efficiency.","ভারী বস্তু সরাতে স্লাইডিং ঘর্ষণ অপ্রয়োজনীয়। রোলার বা বেয়ারিং ঘর্ষণ কমিয়ে দক্ষতা বাড়ায়।");
+ return t("Fluid friction is often unwanted for moving vehicles or objects. Streamlined shapes reduce drag and save energy.","চলন্ত যান বা বস্তুর জন্য তরল ঘর্ষণ প্রায়ই অপ্রয়োজনীয়। স্ট্রিমলাইনড আকৃতি ড্র্যাগ কমিয়ে শক্তি সাশ্রয় করে।");
+}
+function renderReadouts(){
+ const m=metrics();
+ $("readouts").innerHTML=[
+  [t("Friction level","ঘর্ষণের মাত্রা"),`${fmt(m.friction)}%`,state.scene==="tyre"||state.scene==="brake"?"green":"orange"],
+  [t("Main result","প্রধান ফল"),m.status,"blue"],
+  [t("Useful effect","উপকারী প্রভাব"),`${fmt(m.benefit)}%`,"green"],
+  [t("Energy loss / risk","শক্তি ক্ষয় / ঝুঁকি"),`${fmt(m.loss)}%`,m.loss>60?"red":"orange"]
+ ].map(([k,v,c])=>`<div class="readout"><div class="read-label">${k}</div><div class="read-value ${c}">${v}</div></div>`).join("");
+}
+function renderMeters(){
+ const m=metrics();
+ $("meters").innerHTML=[
+  [t("Friction","ঘর্ষণ"),m.friction,"blue",`${fmt(m.friction)}%`],
+  [t("Safety / grip","নিরাপত্তা / গ্রিপ"),state.scene==="tyre"||state.scene==="brake"?m.benefit:Math.max(0,100-m.loss),"green",`${fmt(state.scene==="tyre"||state.scene==="brake"?m.benefit:100-m.loss)}%`],
+  [t("Efficiency","দক্ষতা"),m.eff,"purple",`${fmt(m.eff)}%`],
+  [t("Loss / risk","ক্ষয় / ঝুঁকি"),m.loss,m.loss>60?"red":"orange",`${fmt(m.loss)}%`]
+ ].map(([l,v,c,val])=>`<div class="meter-row"><span class="meter-label">${l}</span><div class="track"><div class="fill ${c}" style="--w:${clamp(v,0,100)}%"></div></div><span>${val}</span></div>`).join("");
+}
+function defs(){
+ return `<defs><marker id="arrB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${C.blue}"/></marker><marker id="arrO" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${C.orange}"/></marker><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#eef5ff"/></linearGradient><linearGradient id="car" x2="0" y2="1"><stop stop-color="#5a96f5"/><stop offset="1" stop-color="#2768e8"/></linearGradient><linearGradient id="orange" x2="0" y2="1"><stop stop-color="#f5a45b"/><stop offset="1" stop-color="#ec7b27"/></linearGradient></defs>`;
+}
+function roadTexture(y){
+ const s=state[state.scene].surface||"dry";
+ let marks="";
+ const color=s==="ice"?"#b7d9ff":s==="loose"?"#d9b16f":s==="wet"?"#7ea6cf":"#7188a6";
+ for(let i=0;i<18;i++) marks+=`<line x1="${70+i*55}" y1="${y+14+(i%3)*4}" x2="${96+i*55}" y2="${y+14+(i%3)*4}" stroke="${color}" stroke-width="3" opacity=".45"/>`;
+ return marks;
+}
+function vehicle(x,y,scale=1,bus=false){
+ if(bus)return `<g transform="translate(${x} ${y}) scale(${scale})"><rect x="-78" y="-38" width="156" height="60" rx="12" fill="url(#orange)" stroke="#fff" stroke-width="4"/><rect x="-54" y="-27" width="28" height="20" rx="3" fill="#d9efff"/><rect x="-18" y="-27" width="28" height="20" rx="3" fill="#d9efff"/><rect x="18" y="-27" width="28" height="20" rx="3" fill="#d9efff"/><circle cx="-48" cy="25" r="13" fill="#27384f" stroke="#fff" stroke-width="4"/><circle cx="50" cy="25" r="13" fill="#27384f" stroke="#fff" stroke-width="4"/></g>`;
+ return `<g transform="translate(${x} ${y}) scale(${scale})"><path d="M-66 14 L-50 -20 Q-44 -32 -28 -32 L24 -32 Q39 -32 54 -10 L66 0 L66 22 L-66 22 Z" fill="url(#car)" stroke="#fff" stroke-width="4"/><path d="M-32 -24 L-12 -24 L-12 -6 L-44 -6 Z M-6 -24 L22 -24 L37 -6 L-6 -6 Z" fill="#d9efff"/><circle cx="-38" cy="24" r="12" fill="#27384f" stroke="#fff" stroke-width="4"/><circle cx="40" cy="24" r="12" fill="#27384f" stroke="#fff" stroke-width="4"/></g>`;
+}
+function renderStage(){
+ const m=metrics(), p=state.phase, tp=state.testPhase, s=state[state.scene];
+ let svg=`${defs()}<rect width="1020" height="430" fill="url(#bg)"/><rect x="50" y="60" width="920" height="300" rx="22" fill="#fff" stroke="#dce7f4"/>`;
+ if(state.scene==="tyre"){
+  const x=210+tp*560, spin=p*220, grip=m.friction;
+  svg+=`<text x="510" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Tyre tread and road condition control grip","টায়ারের ট্রেড ও রাস্তার অবস্থা গ্রিপ নিয়ন্ত্রণ করে")}</text><line x1="70" y1="285" x2="950" y2="285" stroke="#8da4c0" stroke-width="8"/>${roadTexture(285)}${vehicle(x,245,1,false)}<g transform="translate(${x} 0)"><g transform="rotate(${spin} -38 269)"><line x1="-50" y1="269" x2="-26" y2="269" stroke="#fff" stroke-width="3"/></g><g transform="rotate(${spin} 40 269)"><line x1="28" y1="269" x2="52" y2="269" stroke="#fff" stroke-width="3"/></g></g><line x1="${x}" y1="170" x2="${x+120}" y2="170" stroke="${C.blue}" stroke-width="5" marker-end="url(#arrB)"/><text x="${x}" y="154" font-size="12" font-weight="700" fill="${C.blue}">${t("forward motion","সামনের গতি")}</text><line x1="${x-18}" y1="315" x2="${x-18-grip*.9}" y2="315" stroke="${C.orange}" stroke-width="5" marker-end="url(#arrO)"/><text x="${x-105}" y="338" font-size="12" font-weight="700" fill="${C.orange}">${t("grip friction","গ্রিপ ঘর্ষণ")}</text>`;
+ }
+ if(state.scene==="brake"){
+  const start=180,end=720, stop=clamp(1-m.loss/115,0.05,.9), x=start+tp*(end-start)*stop, wheel=p*240*(1-s.brake/130);
+  svg+=`<text x="510" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Brakes increase friction to reduce motion","ব্রেক গতি কমাতে ঘর্ষণ বাড়ায়")}</text><line x1="70" y1="285" x2="950" y2="285" stroke="#8da4c0" stroke-width="8"/>${roadTexture(285)}<g transform="translate(${x} 246)"><circle cx="-42" cy="22" r="38" fill="#f7faff" stroke="#27384f" stroke-width="8"/><circle cx="42" cy="22" r="38" fill="#f7faff" stroke="#27384f" stroke-width="8"/><g transform="rotate(${wheel} -42 22)"><line x1="-42" y1="-8" x2="-42" y2="52" stroke="${C.blue}" stroke-width="4"/></g><g transform="rotate(${wheel} 42 22)"><line x1="42" y1="-8" x2="42" y2="52" stroke="${C.blue}" stroke-width="4"/></g><rect x="-68" y="-20" width="136" height="28" rx="9" fill="url(#car)"/></g><line x1="${x+85}" y1="187" x2="${x+85-m.friction}" y2="187" stroke="${C.orange}" stroke-width="5" marker-end="url(#arrO)"/><text x="${x+20}" y="169" font-size="12" font-weight="700" fill="${C.orange}">${t("brake friction","ব্রেক ঘর্ষণ")}</text><line x1="${start}" y1="335" x2="${end}" y2="335" stroke="#d4e0f0" stroke-width="4"/><circle cx="${x}" cy="335" r="8" fill="${C.red}"/><text x="760" y="338" font-size="12" fill="${C.muted}">${t("longer distance if friction is low","ঘর্ষণ কম হলে দূরত্ব বেশি")}</text>`;
+ }
+ if(state.scene==="lub"){
+  const fr=m.friction, rotation=p*(260-fr*1.7);
+  svg+=`<text x="510" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Lubrication reduces rubbing between machine parts","লুব্রিকেশন যন্ত্রাংশের ঘষা কমায়")}</text><g transform="translate(360 215) rotate(${rotation})"><circle r="72" fill="#f3f7fc" stroke="${C.blue}" stroke-width="8"/><circle r="18" fill="${C.blue}"/>${Array.from({length:8},(_,i)=>`<rect x="-12" y="-105" width="24" height="42" rx="6" fill="${C.blue}" transform="rotate(${i*45})"/>`).join("")}</g><g transform="translate(645 215) rotate(${-rotation*.75})"><circle r="66" fill="#fff6ed" stroke="${C.orange}" stroke-width="8"/><circle r="17" fill="${C.orange}"/>${Array.from({length:8},(_,i)=>`<rect x="-10" y="-96" width="20" height="38" rx="5" fill="${C.orange}" transform="rotate(${i*45})"/>`).join("")}</g><path d="M470 130 C520 ${130-s.lubrication*.7} 550 ${130-s.lubrication*.7} 600 130" stroke="${C.green}" stroke-width="5" fill="none"/><text x="510" y="103" text-anchor="middle" font-size="12" font-weight="700" fill="${C.green}">${t("lubricating layer","লুব্রিকেটিং স্তর")}</text><line x1="510" y1="321" x2="${510-fr}" y2="321" stroke="${C.orange}" stroke-width="5" marker-end="url(#arrO)"/><text x="360" y="346" font-size="12" font-weight="700" fill="${C.orange}">${t("unwanted friction","অপ্রয়োজনীয় ঘর্ষণ")}</text>`;
+ }
+ if(state.scene==="load"){
+  const x=170+tp*520*(m.benefit/100), roll=s.mode==="rollers";
+  svg+=`<text x="510" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Rollers change sliding friction into easier rolling motion","রোলার স্লাইডিং ঘর্ষণকে সহজ রোলিং গতিতে বদলায়")}</text><line x1="75" y1="300" x2="945" y2="300" stroke="#8da4c0" stroke-width="8"/>${Array.from({length:12},(_,i)=>`<line x1="${80+i*72}" y1="316" x2="${115+i*72}" y2="316" stroke="#7c8fa8" stroke-width="3" opacity=".4"/>`).join("")}<g transform="translate(${x} 0)"><rect x="-85" y="205" width="170" height="80" rx="13" fill="url(#orange)" stroke="#fff" stroke-width="4"/><text x="0" y="250" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">${t("load","বোঝা")}</text>${roll?Array.from({length:4},(_,i)=>`<circle cx="${-60+i*40}" cy="294" r="13" fill="#27384f" stroke="#fff" stroke-width="4"/>`).join(""):""}</g><line x1="${x+92}" y1="246" x2="${x+92+s.effort*1.2}" y2="246" stroke="${C.blue}" stroke-width="5" marker-end="url(#arrB)"/><text x="${x+100}" y="229" font-size="12" font-weight="700" fill="${C.blue}">${t("effort","চেষ্টা")}</text><line x1="${x-60}" y1="327" x2="${x-60-m.friction*1.2}" y2="327" stroke="${C.orange}" stroke-width="5" marker-end="url(#arrO)"/><text x="${x-175}" y="349" font-size="12" font-weight="700" fill="${C.orange}">${roll?t("rolling resistance","রোলিং প্রতিরোধ"):t("sliding friction","স্লাইডিং ঘর্ষণ")}</text>`;
+ }
+ if(state.scene==="drag"){
+  const x=180+tp*580*(m.benefit/100), drag=m.friction;
+  const water=s.medium==="water";
+  const shape=s.shape;
+  let body=shape==="streamlined"?`<path d="M-82 0 C-38 -42 45 -32 88 0 C46 34 -38 42 -82 0 Z" fill="url(#car)" stroke="#fff" stroke-width="4"/>`:shape==="rounded"?`<ellipse cx="0" cy="0" rx="70" ry="42" fill="url(#car)" stroke="#fff" stroke-width="4"/>`:`<rect x="-70" y="-42" width="140" height="84" rx="9" fill="url(#car)" stroke="#fff" stroke-width="4"/>`;
+  svg+=`<text x="510" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Shape controls fluid friction or drag","আকৃতি তরল ঘর্ষণ বা ড্র্যাগ নিয়ন্ত্রণ করে")}</text><rect x="70" y="115" width="880" height="205" rx="18" fill="${water?"#dff4ff":"#f7fbff"}" stroke="#dce7f4"/>${Array.from({length:7},(_,i)=>`<path d="M90 ${145+i*25} C180 ${130+i*25} 250 ${160+i*25} 340 ${145+i*25} S520 ${160+i*25} 610 ${145+i*25} S780 ${160+i*25} 930 ${145+i*25}" stroke="${water?"#78c4e9":"#b7cbe5"}" stroke-width="2" fill="none" opacity=".45"/>`).join("")}<g transform="translate(${x} 220)">${body}</g><line x1="${x+90}" y1="220" x2="${x+190}" y2="220" stroke="${C.blue}" stroke-width="5" marker-end="url(#arrB)"/><text x="${x+99}" y="201" font-size="12" font-weight="700" fill="${C.blue}">${t("motion","গতি")}</text><line x1="${x-84}" y1="220" x2="${x-84-drag*1.25}" y2="220" stroke="${C.orange}" stroke-width="5" marker-end="url(#arrO)"/><text x="${x-190}" y="201" font-size="12" font-weight="700" fill="${C.orange}">${t("drag","ড্র্যাগ")}</text>`;
+ }
+ svg+=`<rect x="215" y="378" width="590" height="32" rx="13" fill="#fff" stroke="#dce7f4"/><text x="510" y="399" text-anchor="middle" font-size="13" font-weight="700" fill="${(state.scene==="tyre"||state.scene==="brake")?C.green:C.purple}">${frictionRole()} • ${m.status}</text>`;
+ $("stage").innerHTML=svg;
+}
+function renderAll(){
+ const label=scenes.find(x=>x[0]===state.scene);
+ $("stageTitle").textContent=t(label[2],label[3]);
+ $("modePill").textContent=frictionRole();
+ $("modePill").classList.toggle("reduce",!(state.scene==="tyre"||state.scene==="brake"));
+ $("observation").textContent=observation();
+ $("conclusion").textContent=conclusion();
+ renderReadouts();renderMeters();renderStage();
+}
+function reset(){
+ state.testPhase=0;
+ state.tyre={surface:"dry",tread:80,speed:50}; state.brake={brake:55,surface:"dry",speed:45};
+ state.lub={lubrication:45,speed:60}; state.load={mode:"rollers",mass:80,effort:45,roughness:55};
+ state.drag={shape:"box",speed:55,medium:"air"};
+ renderControls();renderAll();
+}
+$("enBtn").onclick=()=>{state.lang="en";applyLanguage();};
+$("bnBtn").onclick=()=>{state.lang="bn";applyLanguage();};
+$("pauseBtn").onclick=()=>{state.playing=!state.playing;applyLanguage();};
+$("testBtn").onclick=()=>{state.testPhase=0;state.playing=true;};
+$("resetBtn").onclick=reset;
+let last=performance.now();
+function animate(now){
+ const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(state.playing){state.phase+=dt;state.testPhase=(state.testPhase+dt*.18)%1;}
+ renderStage();
+ requestAnimationFrame(animate);
+}
+applyLanguage();requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

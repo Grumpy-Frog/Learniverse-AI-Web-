@@ -3,61 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pressure in Solids / কঠিন বস্তুর চাপ</title>
+<title>Pressure in Solids Explorer / কঠিন পদার্থের চাপ</title>
 <style>
-:root{--bg:#f1f5f9;--card:#fff;--ink:#1e293b;--muted:#64748b;--blue:#2563eb;--red:#ef4444;--radius:16px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
-*{box-sizing:border-box}body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--ink)}.app{max-width:1100px;margin:20px auto;padding:0 20px}
-header{text-align:center;margin-bottom:30px}.lang{display:flex;justify-content:center;gap:10px;margin-top:10px}
-.lang button{padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}.lang button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.grid{display:grid;grid-template-columns:300px 1fr;gap:20px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow)}
-.control-group{display:flex;flex-direction:column;gap:15px}label{font-size:14px;font-weight:600;display:block;margin-bottom:8px}
-.stage{height:300px;background:linear-gradient(#e0f2fe, #fff);border-radius:var(--radius);position:relative;overflow:hidden;border:2px solid #e2e8f0}
-.sand-bed{position:absolute;bottom:0;width:100%;height:100px;background:#fde68a;border-top:2px solid #fbbf24}
-.block{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:#94a3b8;border:2px solid #475569;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:12px}
-.indent{position:absolute;bottom:0;left:50%;transform:translateX(-50%);background:#fbbf24;opacity:0.5;border-radius:0 0 4px 4px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.stat-box{background:#f8fafc;padding:15px;border-radius:10px;text-align:center}.stat-val{font-size:20px;font-weight:bold;color:var(--blue)}
-.formula-box{background:var(--ink);color:#fff;padding:20px;border-radius:var(--radius);text-align:center;margin-top:20px}.formula{font-size:24px;font-weight:bold;color:#60a5fa}
+:root{--bg:#f8fafc;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--blue:#2563eb;--orange:#ea580c;--red:#dc2626;--line:#e2e8f0;--shadow:0 10px 15px -3px rgba(0,0,0,0.1);--radius:16px}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}.app{max-width:1100px;margin:0 auto;padding:24px}header{margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end}h1{margin:0;font-size:1.8rem;color:var(--blue)}p.subtitle{margin:4px 0 0;color:var(--muted);font-size:1rem}.lang-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:white;cursor:pointer;font-weight:600;color:var(--muted);transition:0.2s}.lang-btn.active{background:var(--blue);color:white;border-color:var(--blue)}.grid{display:grid;grid-template-columns:320px 1fr;gap:24px}@media(max-width:850px){.grid{grid-template-columns:1fr}}.sidebar{display:flex;flex-direction:column;gap:20px}.card{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--line)}.control-group{display:flex;flex-direction:column;gap:8px}.label-row{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:0.9rem}.value-tag{background:var(--blue);color:white;padding:2px 8px;border-radius:4px;font-family:monospace}input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}.main-content{display:flex;flex-direction:column;gap:24px}.visualizer{height:350px;background:#e2e8f0;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:20px;position:relative;overflow:hidden}.surface{position:absolute;bottom:0;width:100%;height:30px;background:#94a3b8}.block{background:var(--blue);border:3px solid #1e40af;position:relative;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;transform-origin:bottom center}.block::after{content:'';position:absolute;bottom:-15px;width:100%;height:15px;background:rgba(220,38,38,0.3);filter:blur(4px);display:none}.high-pressure.block::after{display:block}.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}.stat-card{background:white;padding:16px;border-radius:12px;border:1px solid var(--line);display:flex;flex-direction:column}.stat-label{font-size:0.8rem;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px}.stat-value{font-size:1.4rem;font-weight:700;color:var(--ink);font-family:monospace}.formula-area{margin-top:24px;background:var(--blue);color:white;padding:20px;border-radius:12px;text-align:center;font-size:1.5rem;font-weight:700;box-shadow:var(--shadow)}.example-box{background:white;padding:16px;border-radius:12px;border-left:4px solid var(--orange);font-size:0.95rem}
 </style>
 </head>
 <body>
 <div class="app">
-<header><h1 id="h1">Pressure in Solids</h1><div class="lang"><button id="en-btn" class="active">English</button><button id="bn-btn">বাংলা</button></div></header>
+<header>
+<div class="title-area">
+<h1 id="title">Pressure in Solids</h1>
+<p class="subtitle" id="subtitle">Understand the relationship between Force, Area and Pressure</p>
+</div>
+<div class="lang-area">
+<button class="lang-btn active" onclick="setLang('en')" id="enBtn">EN</button>
+<button class="lang-btn" onclick="setLang('bn')" id="bnBtn">BN</button>
+</div>
+</header>
 <div class="grid">
-<aside class="sidebar"><div class="card"><div class="control-group"><div><label id="l-orient">Block Orientation</label><select id="orient"><option value="wide" id="o-wide">Wide Face (Horizontal)</option><option value="narrow" id="o-narrow">Narrow Face (Vertical)</option></select></div><div><label id="l-mass">Block Mass (m)</label><input type="range" id="mass" min="1" max="10" value="5"><div style="text-align:right"><span id="m-val">5</span> kg</div></div><button id="reset" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:0;border-radius:8px;cursor:pointer;margin-top:10px">Reset</button></div></div></aside>
-<main>
-<div class="stage"><div class="sand-bed"></div><div id="indent" class="indent"></div><div id="block" class="block">BLOCK</div></div>
-<div class="stats"><div class="stat-box"><div id="s-area">Area (A)</div><div class="stat-val"><span id="area-val">40</span> cm²</div></div><div class="stat-box"><div id="s-pressure">Pressure (P)</div><div class="stat-val" style="color:var(--red)"><span id="pressure-val">1.25</span> N/cm²</div></div></div>
-<div class="formula-box"><p id="f-desc">Pressure is Force divided by Area</p><div class="formula">P = F / A</div><p style="font-size:12px;opacity:0.8" id="f-note">F = Weight (m × g)</p></div>
-</main>
+<div class="sidebar">
+<div class="card">
+<div class="control-group">
+<div class="label-row">
+<span id="labelForce">Force (Weight)</span>
+<span class="value-tag"><span id="valForce">100</span> N</span>
+</div>
+<input type="range" id="forceRange" min="10" max="1000" step="10" value="100" oninput="update()">
+</div>
+<div class="control-group" style="margin-top:20px">
+<div class="label-row">
+<span id="labelArea">Contact Area</span>
+<span class="value-tag"><span id="valArea">2.0</span> m²</span>
+</div>
+<input type="range" id="areaRange" min="0.1" max="10.0" step="0.1" value="2.0" oninput="update()">
+</div>
+</div>
+<div class="example-box" id="exampleText">
+Tip: A sharp needle has a tiny area, creating huge pressure even with a small force!
+</div>
+</div>
+<div class="main-content">
+<div class="visualizer" id="visualizer">
+<div class="surface"></div>
+<div class="block" id="block">
+<span id="blockLabel">BLOCK</span>
+</div>
+</div>
+<div class="info-grid">
+<div class="stat-card">
+<span class="stat-label" id="statFL">Applied Force</span>
+<span class="stat-value" id="resForce">100 N</span>
+</div>
+<div class="stat-card">
+<span class="stat-label" id="statAL">Contact Area</span>
+<span class="stat-value" id="resArea">2.00 m²</span>
+</div>
+<div class="stat-card">
+<span class="stat-label" id="statPL">Resulting Pressure</span>
+<span class="stat-value" id="resPressure">50.00 Pa</span>
+</div>
+</div>
+<div class="formula-area">
+P = F / A
+</div>
+</div>
 </div>
 </div>
 <script>
-const t = {
-en:{h1:"Pressure in Solids",orient:"Block Orientation",wide:"Wide Face (Horizontal)",narrow:"Narrow Face (Vertical)",mass:"Block Mass (m)",reset:"Reset",area:"Base Area (A)",press:"Pressure (P)",fdesc:"Pressure is Force divided by Area",fnote:"F = Weight (m × g)"},
-bn:{h1:"কঠিন বস্তুর চাপ",orient:"বস্তুর অবস্থান",wide:"প্রশস্ত দিক (আনুভূমিক)",narrow:"সরু দিক (উলম্ব)",mass:"বস্তুর ভর (m)",reset:"পুনরায় সেট",area:"তলের ক্ষেত্রফল (A)",press:"চাপ (P)",fdesc:"চাপ হলো বল এবং ক্ষেত্রফলের অনুপাত",fnote:"বল = ওজন (ভর × অভিকর্ষজ ত্বরণ)"}
+let lang = 'en';
+const labels = {
+en: {
+title: "Pressure in Solids",
+subtitle: "Understand the relationship between Force, Area and Pressure",
+force: "Force (Weight)",
+area: "Contact Area",
+statF: "Applied Force",
+statA: "Contact Area",
+statP: "Resulting Pressure",
+example: "Tip: A sharp needle has a tiny area, creating huge pressure even with a small force!",
+unitP: "Pa",
+unitA: "m²"
+},
+bn: {
+title: "কঠিন পদার্থের চাপ",
+subtitle: "বল, ক্ষেত্রফল এবং চাপের সম্পর্ক বুঝুন",
+force: "প্রযুক্ত বল (ওজন)",
+area: "ক্ষেত্রফল",
+statF: "প্রযুক্ত বল",
+statA: "ক্ষেত্রফল",
+statP: "চাপের পরিমাণ",
+example: "পরামর্শ: সূঁচের অগ্রভাগের ক্ষেত্রফল খুব কম বলে এটি সামান্য বল প্রয়োগেই অনেক বেশি চাপ তৈরি করে!",
+unitP: "প্যাসকেল",
+unitA: "বর্গ মি."
+}
 };
-let lang='en',mass=5,orient='wide';
-const update=()=>{
-const isWide=orient==='wide', area=isWide?40:10, width=isWide?120:30, height=isWide?30:120;
-const force=mass*9.8, pressure=force/area, depth=Math.min(pressure*5, 30);
-const block=document.getElementById('block'), indent=document.getElementById('indent');
-block.style.width=width+'px'; block.style.height=height+'px'; block.style.bottom=(100-depth)+'px';
-indent.style.width=width+'px'; indent.style.height=depth+'px'; indent.style.bottom=(100-depth)+'px';
-document.getElementById('area-val').textContent=area;
-document.getElementById('pressure-val').textContent=pressure.toFixed(2);
-document.getElementById('m-val').textContent=mass;
-};
-const setLang=(l)=>{
-lang=l;document.getElementById('en-btn').className=l==='en'?'active':'';document.getElementById('bn-btn').className=l==='bn'?'active':'';
-const d=t[l];document.getElementById('h1').textContent=d.h1;document.getElementById('l-orient').textContent=d.orient;document.getElementById('o-wide').textContent=d.wide;document.getElementById('o-narrow').textContent=d.narrow;document.getElementById('l-mass').textContent=d.mass;document.getElementById('reset').textContent=d.reset;document.getElementById('s-area').textContent=d.area;document.getElementById('s-pressure').textContent=d.press;document.getElementById('f-desc').textContent=d.fdesc;document.getElementById('f-note').textContent=d.fnote;
-};
-document.getElementById('orient').onchange=(e)=>{orient=e.target.value;update()};
-document.getElementById('mass').oninput=(e)=>{mass=parseInt(e.target.value);update()};
-document.getElementById('reset').onclick=()=>{mass=5;orient='wide';document.getElementById('mass').value=5;document.getElementById('orient').value='wide';update()};
-document.getElementById('en-btn').onclick=()=>setLang('en');
-document.getElementById('bn-btn').onclick=()=>setLang('bn');
-update();setLang('en');
+function setLang(l) {
+lang = l;
+document.getElementById('enBtn').classList.toggle('active', l === 'en');
+document.getElementById('bnBtn').classList.toggle('active', l === 'bn');
+document.getElementById('title').innerText = labels[l].title;
+document.getElementById('subtitle').innerText = labels[l].subtitle;
+document.getElementById('labelForce').innerText = labels[l].force;
+document.getElementById('labelArea').innerText = labels[l].area;
+document.getElementById('statFL').innerText = labels[l].statF;
+document.getElementById('statAL').innerText = labels[l].statA;
+document.getElementById('statPL').innerText = labels[l].statP;
+document.getElementById('exampleText').innerText = labels[l].example;
+update();
+}
+function update() {
+const force = parseFloat(document.getElementById('forceRange').value);
+const area = parseFloat(document.getElementById('areaRange').value);
+document.getElementById('valForce').innerText = force;
+document.getElementById('valArea').innerText = area.toFixed(1);
+const pressure = force / area;
+document.getElementById('resForce').innerText = force + ' N';
+document.getElementById('resArea').innerText = area.toFixed(2) + ' ' + labels[lang].unitA;
+document.getElementById('resPressure').innerText = pressure.toFixed(2) + ' ' + labels[lang].unitP;
+// Visual scaling
+const block = document.getElementById('block');
+const baseWidth = 100; // base px for 1.0 m^2
+const visualWidth = Math.sqrt(area) * 80;
+const visualHeight = (force / 1000) * 150 + 50;
+block.style.width = visualWidth + 'px';
+block.style.height = visualHeight + 'px';
+// Color warning for high pressure
+if (pressure > 200) {
+block.style.background = 'var(--red)';
+block.classList.add('high-pressure');
+} else if (pressure > 100) {
+block.style.background = 'var(--orange)';
+block.classList.remove('high-pressure');
+} else {
+block.style.background = 'var(--blue)';
+block.classList.remove('high-pressure');
+}
+}
+window.onload = update;
 </script>
 </body>
 </html>
