@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safe Journey: Vehicle Momentum and Collision Risk / নিরাপদ যাত্রা: গাড়ির ভরবেগ ও সংঘর্ষের ঝুঁকি</title>
+<style>
+:root{
+  --bg:#eef5ff;--card:rgba(255,255,255,.96);--ink:#122640;--muted:#61758d;
+  --line:#dce7f5;--blue:#2869e8;--blue-soft:#e8f1ff;--orange:#ee7622;
+  --orange-soft:#fff1e5;--green:#078f70;--green-soft:#e4f8f1;--amber:#d18d08;
+  --amber-soft:#fff6da;--red:#d94357;--red-soft:#fdecef;--purple:#7255df;
+  --shadow:0 17px 44px rgba(30,53,87,.10);--radius:22px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:Arial,"Noto Sans Bengali",sans-serif;color:var(--ink);line-height:1.43;
+  background:radial-gradient(circle at 7% 0,#d8e9ff 0,transparent 29%),
+             radial-gradient(circle at 94% 3%,#ddfaf3 0,transparent 26%),var(--bg);
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:1480px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;margin-bottom:9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:.83rem;font-weight:700}
+.eyebrow i{display:block;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+h1{font-size:clamp(1.42rem,2.55vw,2.28rem);letter-spacing:-.045em;margin:0 0 5px}
+.subtitle{max-width:900px;margin:0;color:var(--muted);font-size:.98rem}
+.lang{display:flex;gap:3px;padding:4px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(23,51,82,.06);flex-shrink:0}
+.lang button{border:0;border-radius:10px;padding:9px 14px;background:transparent;color:var(--muted);font-weight:700}
+.lang button.active{background:var(--blue);color:#fff}
+.layout{display:grid;grid-template-columns:368px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid rgba(215,226,241,.92);border-radius:var(--radius);box-shadow:var(--shadow)}
+.sidebar{padding:15px;display:grid;gap:12px;position:sticky;top:16px}
+.section-label{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px}
+.encounter{padding:13px;background:#f7faff;border:1px solid #e1eafb;border-radius:17px}
+.encounter-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#eef4fd;padding:4px;border-radius:12px}
+.encounter-tabs button{border:0;border-radius:9px;padding:9px 7px;color:var(--muted);background:transparent;font-size:.82rem;font-weight:700}
+.encounter-tabs button.active{background:var(--blue);color:#fff}
+.vehicle-panel{border:1px solid #e2eaf7;background:#fff;border-radius:17px;padding:12px}
+.vehicle-panel.a{border-top:4px solid var(--blue)}
+.vehicle-panel.b{border-top:4px solid var(--orange)}
+.vehicle-head{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:9px}
+.vehicle-title{display:flex;align-items:center;gap:8px;font-weight:700}
+.tag{width:25px;height:25px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:.82rem}
+.a .tag{background:var(--blue)} .b .tag{background:var(--orange)}
+.mini-momentum{font-size:.74rem;color:var(--muted);font-weight:700;text-align:right}
+.mini-momentum b{display:block;font-variant-numeric:tabular-nums;color:var(--ink)}
+.control{margin:9px 0}
+.control-row{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:.81rem;font-weight:700;margin-bottom:5px}
+.value{color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap}
+.b .value{color:var(--orange)}
+select{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:8px 9px}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
+.b input[type=range]{accent-color:var(--orange)}
+.dir{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#f1f5fc;padding:4px;border-radius:11px}
+.dir button{border:0;border-radius:8px;padding:7px;background:transparent;color:var(--muted);font-size:.82rem;font-weight:700}
+.a .dir button.active{background:var(--blue);color:#fff}
+.b .dir button.active{background:var(--orange);color:#fff}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+.action,.tool{border:0;border-radius:11px;padding:9px 12px;font-size:.88rem;font-weight:700;transition:.18s}
+.action:hover,.tool:hover{transform:translateY(-1px)}
+.primary{background:var(--blue);color:#fff}.secondary{background:#e9f1ff;color:var(--blue)}
+.tip{padding:12px 13px;border-radius:15px;background:#fff9e8;border:1px solid #ffe6ad;color:#614a13;font-size:.85rem}
+.main{min-width:0;display:grid;gap:15px}
+.stage-card{padding:14px}
+.stage-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.stage-left{display:flex;align-items:center;gap:9px}
+.risk-pill{border-radius:999px;padding:6px 11px;font-size:.8rem;font-weight:700;background:var(--green-soft);color:var(--green)}
+.risk-pill.mid{background:var(--amber-soft);color:var(--amber)}
+.risk-pill.high{background:var(--red-soft);color:var(--red)}
+.stage-title{font-size:1.03rem;font-weight:700}
+.tools{display:flex;gap:7px;flex-wrap:wrap}
+.tool{background:#f2f6fc;color:var(--ink)}
+.svg-wrap{border-radius:18px;overflow:hidden;border:1px solid #e2ebf8;background:linear-gradient(180deg,#f8fbff,#eef5ff)}
+#stage{display:block;width:100%;height:auto;aspect-ratio:1040/425}
+.readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:11px}
+.readout{border:1px solid #e3ebf7;background:#f6f9fe;border-radius:14px;padding:9px 10px;min-width:0}
+.read-label{font-size:.72rem;color:var(--muted);font-weight:700}
+.read-value{font-size:.88rem;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.read-value.a{color:var(--blue)}.read-value.b{color:var(--orange)}
+.lower{display:grid;grid-template-columns:minmax(295px,.93fr) minmax(400px,1.36fr);gap:15px}
+.panel{padding:17px}
+.panel-title{display:flex;align-items:center;gap:8px;margin:0 0 11px;font-size:1rem}
+.panel-title i{display:block;width:9px;height:9px;border-radius:50%;background:var(--blue)}
+.observation{background:#f7faff;border-left:4px solid var(--blue);border-radius:0 13px 13px 0;min-height:84px;padding:12px 13px;color:#263955;font-size:.92rem}
+.safety{margin-top:10px;background:var(--green-soft);border:1px solid #d0ede4;border-radius:13px;padding:10px 12px;color:#075b4d;font-size:.87rem;font-weight:700}
+.compare{padding:17px}
+.compare-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:12px}
+.tiny{font-size:.77rem;color:var(--muted)}
+.risk-block{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.speed-card{border:1px solid #e2eaf7;background:#f8fbff;border-radius:15px;padding:11px}
+.speed-title{font-size:.81rem;color:var(--muted);font-weight:700;margin-bottom:7px}
+.risk-track{height:9px;border-radius:999px;background:#e9f0fa;overflow:hidden;margin:7px 0}
+.risk-track i{height:100%;display:block;border-radius:inherit;width:var(--w);background:var(--c)}
+.speed-value{font-size:.91rem;font-weight:700;font-variant-numeric:tabular-nums}
+.bar-area{display:grid;gap:10px;margin-top:14px}
+.momentum-row{display:grid;grid-template-columns:96px 1fr 142px;gap:8px;align-items:center;font-size:.83rem}
+.m-name{font-weight:700}
+.axis{height:30px;border:1px solid #e3ebf7;background:#f5f8fd;border-radius:10px;position:relative;overflow:hidden}
+.axis:before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;background:#cad9ee}
+.arrowbar{position:absolute;top:10px;height:10px;width:var(--w);background:var(--c);z-index:1}
+.arrowbar.right{left:50%;border-radius:6px 1px 1px 6px}
+.arrowbar.left{right:50%;border-radius:1px 6px 6px 1px}
+.arrowbar.right:after{content:"";position:absolute;right:-8px;top:-4px;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:10px solid var(--c)}
+.arrowbar.left:before{content:"";position:absolute;left:-8px;top:-4px;border-top:9px solid transparent;border-bottom:9px solid transparent;border-right:10px solid var(--c)}
+.m-value{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.disclaimer{margin-top:13px;border-radius:12px;padding:10px;background:#f3f6fb;color:var(--muted);font-size:.78rem}
+svg text{font-family:Arial,"Noto Sans Bengali",sans-serif}
+@media(max-width:1140px){.layout{grid-template-columns:344px minmax(0,1fr)}.lower{grid-template-columns:1fr}.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:840px){.app{padding:12px}header{display:block}.lang{margin-top:13px;width:max-content}.layout{display:block}.sidebar{position:static;margin-bottom:14px}.vehicle-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}.readouts{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.vehicle-wrap,.risk-block{display:block}.vehicle-panel,.speed-card{margin-bottom:10px}.readouts{grid-template-columns:1fr}.momentum-row{grid-template-columns:76px 1fr;gap:7px}.m-value{grid-column:2}#stage{aspect-ratio:1040/540}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div>
+  <div class="eyebrow"><i></i><span id="courseTag">Class 9 Physics • Road Safety Visual</span></div>
+  <h1>Safe Journey: Vehicle Momentum and Collision Risk / নিরাপদ যাত্রা: গাড়ির ভরবেগ ও সংঘর্ষের ঝুঁকি</h1>
+  <p class="subtitle" id="subtitle">Explore how vehicle mass and speed affect momentum and why safer speeds and safe distance matter.</p>
+ </div>
+ <div class="lang" role="group" aria-label="Language">
+  <button type="button" id="enBtn" class="active">English</button>
+  <button type="button" id="bnBtn">বাংলা</button>
+ </div>
+</header>
+<div class="layout">
+ <aside class="sidebar card">
+  <section class="encounter">
+   <div class="section-label" id="encounterLabel">Type of encounter</div>
+   <div class="encounter-tabs">
+    <button type="button" id="headBtn" class="active">Head-on</button>
+    <button type="button" id="sameBtn">Same direction</button>
+   </div>
+  </section>
+  <div class="vehicle-wrap">
+   <section class="vehicle-panel a" id="panelA"></section>
+   <section class="vehicle-panel b" id="panelB"></section>
+  </div>
+  <div class="actions">
+   <button type="button" class="action primary" id="playBtn">Begin approach</button>
+   <button type="button" class="action secondary" id="resetBtn">Reset</button>
+  </div>
+  <div class="tip" id="tip">This visual compares momentum for learning. It is not a real crash prediction.</div>
+ </aside>
+ <main class="main">
+  <section class="stage-card card">
+   <div class="stage-head">
+    <div class="stage-left">
+     <span class="risk-pill" id="riskPill">Lower conceptual risk</span>
+     <span class="stage-title" id="stageTitle">Safe road encounter visual</span>
+    </div>
+    <div class="tools">
+     <button type="button" class="tool" id="replayBtn">Replay safely</button>
+    </div>
+   </div>
+   <div class="svg-wrap">
+    <svg id="stage" viewBox="0 0 1040 425" role="img" aria-label="Safe conceptual road safety simulation"></svg>
+   </div>
+   <div class="readouts" id="readouts"></div>
+  </section>
+  <div class="lower">
+   <section class="panel card">
+    <h2 class="panel-title"><i></i><span id="obTitle">Observation</span></h2>
+    <div class="observation" id="observation"></div>
+    <div class="safety" id="safety"></div>
+   </section>
+   <section class="compare card">
+    <div class="compare-top">
+     <h2 class="panel-title" style="margin:0"><i></i><span id="compareTitle">Low-speed and chosen-speed comparison</span></h2>
+     <span class="tiny" id="compareNote">Conceptual momentum-based indicator</span>
+    </div>
+    <div class="risk-block" id="riskBlock"></div>
+    <div class="bar-area" id="momentumBars"></div>
+    <div class="disclaimer" id="disclaimer"></div>
+   </section>
+  </div>
+ </main>
+</div>
+</div>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const vehiclePresets = {
+  car:   {en:"Small car", bn:"ছোট গাড়ি", mass:900, color:"#2869e8"},
+  bus:   {en:"Bus", bn:"বাস", mass:6500, color:"#eb7624"},
+  truck: {en:"Truck", bn:"ট্রাক", mass:10000, color:"#7255df"}
+};
+const state = {
+ lang:"en", encounter:"head", playing:false, stopped:false, progress:0, flash:0,
+ A:{type:"car",mass:900,speed:35,dir:1},
+ B:{type:"bus",mass:6500,speed:25,dir:-1}
+};
+const C = {blue:"#2869e8", orange:"#eb7624", purple:"#7255df", green:"#078f70", amber:"#d18d08", red:"#d94357"};
+const t=(en,bn)=>state.lang==="en"?en:bn;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ms=o=>o.speed/3.6;
+const p=o=>o.mass*ms(o)*o.dir;
+const pmag=o=>Math.abs(p(o));
+const format=n=>{
+  const a=Math.abs(n);
+  return n.toLocaleString(undefined,{maximumFractionDigits:a>=1000?0:1,minimumFractionDigits:a<1000?1:0});
+};
+const direction=o=>o.speed===0?t("stationary","স্থির"):o.dir>0?t("right","ডানে"):t("left","বামে");
+const arrow=o=>o.speed===0?"—":o.dir>0?"→":"←";
+const typeName=k=>t(vehiclePresets[k].en,vehiclePresets[k].bn);
+function approaching(){
+  return ms(state.A)*state.A.dir > ms(state.B)*state.B.dir + .01;
+}
+function closingSpeed(){
+  return approaching() ? (ms(state.A)*state.A.dir - ms(state.B)*state.B.dir) : 0;
+}
+function effectiveLoad(speedFactor=1){
+  if(!approaching()) return 0;
+  const a = pmag(state.A)*speedFactor, b = pmag(state.B)*speedFactor;
+  const opposing = state.A.dir !== state.B.dir;
+  return opposing ? a+b : Math.abs(a-b);
+}
+function risk(load=effectiveLoad()){
+  if(load < 7000) return {level:"low", name:t("Lower conceptual risk","তুলনামূলক কম ধারণাগত ঝুঁকি"), color:C.green};
+  if(load < 28000) return {level:"mid", name:t("Moderate conceptual risk","মাঝারি ধারণাগত ঝুঁকি"), color:C.amber};
+  return {level:"high", name:t("Higher conceptual risk","তুলনামূলক বেশি ধারণাগত ঝুঁকি"), color:C.red};
+}
+function setEncounter(kind){
+ state.encounter=kind; state.progress=0; state.playing=false; state.stopped=false; state.flash=0;
+ if(kind==="head"){state.A.dir=1;state.B.dir=-1;}
+ else {state.A.dir=1;state.B.dir=1; if(state.A.speed<=state.B.speed) state.A.speed=clamp(state.B.speed+15,0,100);}
+ renderPanels(); renderAll();
+}
+function applyLanguage(){
+ document.documentElement.lang=state.lang==="en"?"en":"bn";
+ $("enBtn").classList.toggle("active",state.lang==="en"); $("bnBtn").classList.toggle("active",state.lang==="bn");
+ $("courseTag").textContent=t("Class 9 Physics • Road Safety Visual","নবম শ্রেণির পদার্থবিজ্ঞান • সড়ক নিরাপত্তা দৃশ্য");
+ $("subtitle").textContent=t("Explore how vehicle mass and speed affect momentum and why safer speeds and safe distance matter.","গাড়ির ভর ও দ্রুতি ভরবেগকে কীভাবে প্রভাবিত করে এবং নিরাপদ দ্রুতি ও দূরত্ব কেন গুরুত্বপূর্ণ তা অনুসন্ধান করো।");
+ $("encounterLabel").textContent=t("Type of encounter","মুখোমুখি হওয়ার ধরন");
+ $("headBtn").textContent=t("Head-on","মুখোমুখি");
+ $("sameBtn").textContent=t("Same direction","একই দিক");
+ $("headBtn").classList.toggle("active",state.encounter==="head"); $("sameBtn").classList.toggle("active",state.encounter==="same");
+ $("playBtn").textContent=state.playing?t("Pause motion","গতি থামাও"):state.stopped?t("Replay safely","নিরাপদভাবে আবার চালাও"):t("Begin approach","গতি শুরু করো");
+ $("resetBtn").textContent=t("Reset","পুনরায় সেট");
+ $("replayBtn").textContent=t("Replay safely","নিরাপদভাবে আবার চালাও");
+ $("tip").textContent=t("This visual compares momentum for learning. It is not a real crash prediction.","এই দৃশ্যটি শেখার জন্য ভরবেগ তুলনা করে। এটি বাস্তব সংঘর্ষের পূর্বাভাস নয়।");
+ $("stageTitle").textContent=t("Safe road encounter visual","নিরাপদ সড়ক-পরিস্থিতির দৃশ্য");
+ $("obTitle").textContent=t("Observation","পর্যবেক্ষণ");
+ $("compareTitle").textContent=t("Low-speed and chosen-speed comparison","কম দ্রুতি ও নির্বাচিত দ্রুতির তুলনা");
+ $("compareNote").textContent=t("Conceptual momentum-based indicator","ধারণাগত ভরবেগ-ভিত্তিক সূচক");
+ renderPanels(); renderAll();
+}
+function panelHTML(id){
+ const o=state[id], isB=id==="B";
+ return `<div class="vehicle-head">
+   <div class="vehicle-title"><span class="tag">${id}</span><span>${t("Vehicle","গাড়ি")} ${id}</span></div>
+   <div class="mini-momentum">${t("Momentum","ভরবেগ")}<b>${format(p(o))} kg·m/s</b></div>
+  </div>
+  <div class="control"><div class="control-row"><span>${t("Vehicle type","গাড়ির ধরন")}</span></div>
+   <select id="type${id}">
+    ${Object.keys(vehiclePresets).map(k=>`<option value="${k}" ${o.type===k?"selected":""}>${typeName(k)}</option>`).join("")}
+   </select>
+  </div>
+  <div class="control"><div class="control-row"><span>${t("Mass","ভর")}</span><span class="value">${format(o.mass)} kg</span></div>
+   <input id="mass${id}" type="range" min="500" max="12000" step="100" value="${o.mass}">
+  </div>
+  <div class="control"><div class="control-row"><span>${t("Speed","দ্রুতি")}</span><span class="value">${format(o.speed)} km/h</span></div>
+   <input id="speed${id}" type="range" min="0" max="100" step="1" value="${o.speed}">
+  </div>
+  <div class="control"><div class="control-row"><span>${t("Travel direction","যাত্রার দিক")}</span><span class="value">${direction(o)}</span></div>
+   <div class="dir"><button type="button" data-id="${id}" data-dir="-1" class="${o.dir<0?"active":""}">← ${t("Left","বাম")}</button><button type="button" data-id="${id}" data-dir="1" class="${o.dir>0?"active":""}">${t("Right","ডান")} →</button></div>
+  </div>`;
+}
+function renderPanels(){
+ $("panelA").innerHTML=panelHTML("A"); $("panelB").innerHTML=panelHTML("B");
+ ["A","B"].forEach(id=>{
+  $(`type${id}`).addEventListener("change",e=>{
+   state[id].type=e.target.value; state[id].mass=vehiclePresets[e.target.value].mass; restart(); renderPanels(); renderAll();
+  });
+  $(`mass${id}`).addEventListener("input",e=>{
+   state[id].mass=Number(e.target.value); restart();
+   const value=e.target.closest(".control").querySelector(".value"); if(value) value.textContent=`${format(state[id].mass)} kg`;
+   const panel=e.target.closest(".vehicle-panel"), mom=panel.querySelector(".mini-momentum b"); if(mom) mom.textContent=`${format(p(state[id]))} kg·m/s`;
+   const values=panel.querySelectorAll(".value"); if(values[2]) values[2].textContent=direction(state[id]);
+   renderAll();
+  });
+  $(`speed${id}`).addEventListener("input",e=>{
+   state[id].speed=Number(e.target.value); restart();
+   const value=e.target.closest(".control").querySelector(".value"); if(value) value.textContent=`${format(state[id].speed)} km/h`;
+   const panel=e.target.closest(".vehicle-panel"), mom=panel.querySelector(".mini-momentum b"); if(mom) mom.textContent=`${format(p(state[id]))} kg·m/s`;
+   const values=panel.querySelectorAll(".value"); if(values[2]) values[2].textContent=direction(state[id]);
+   renderAll();
+  });
+ });
+ document.querySelectorAll(".dir button").forEach(btn=>btn.addEventListener("click",()=>{
+  state[btn.dataset.id].dir=Number(btn.dataset.dir); restart(); renderPanels(); renderAll();
+ }));
+}
+function restart(){state.playing=false;state.stopped=false;state.progress=0;state.flash=0;$("playBtn").textContent=t("Begin approach","গতি শুরু করো");}
+function observation(){
+ const r=risk(), meet=approaching(), factor=effectiveLoad(), a=pmag(state.A),b=pmag(state.B);
+ if(!meet) return t("With the selected speeds and directions, the vehicles are not approaching contact. Change the direction or let the rear vehicle travel faster to explore an encounter.","নির্বাচিত দ্রুতি ও দিকে গাড়ি দুটি সংস্পর্শের দিকে এগোচ্ছে না। পরিস্থিতি দেখতে দিক বদলাও বা পেছনের গাড়ির দ্রুতি বাড়াও।");
+ if(state.stopped) return t(`The animation stops safely at the meeting point. Vehicle ${a>b?"A":"B"} carries greater momentum here; reducing speed would lower the momentum-based indicator.`,`দৃশ্যটি মিলনবিন্দুতে নিরাপদভাবে থেমে যায়। এখানে গাড়ি ${a>b?"A":"B"}-এর ভরবেগ বেশি; দ্রুতি কমালে ভরবেগ-ভিত্তিক সূচক কমবে।`);
+ if(state.encounter==="head") return t("In a head-on approach, both momentum magnitudes contribute to the conceptual severity indicator. Greater mass or greater speed increases momentum.","মুখোমুখি পরিস্থিতিতে দুই গাড়ির ভরবেগের মানই ধারণাগত তীব্রতা সূচকে যোগ হয়। বেশি ভর বা বেশি দ্রুতি ভরবেগ বাড়ায়।");
+ return t("In same-direction travel, a faster vehicle can catch a slower one. The difference in their motion is smaller when speeds are kept close and distance is maintained.","একই দিকে চললে দ্রুততর গাড়ি ধীর গাড়িকে ধরে ফেলতে পারে। দ্রুতি কাছাকাছি রাখা ও নিরাপদ দূরত্ব বজায় রাখলে গতির পার্থক্য কম থাকে।");
+}
+function safetyText(){
+ if(!approaching()) return t("Safety message: keep a safe following distance and watch relative motion.","নিরাপত্তা বার্তা: নিরাপদ অনুসরণ দূরত্ব রাখো এবং আপেক্ষিক গতি লক্ষ্য করো।");
+ const r=risk();
+ if(r.level==="high") return t("Safety message: higher speed and heavier vehicles mean larger momentum. Reduce speed and keep more safe distance.","নিরাপত্তা বার্তা: বেশি দ্রুতি ও ভারী গাড়িতে ভরবেগ বেশি হয়। দ্রুতি কমাও এবং বেশি নিরাপদ দূরত্ব রাখো।");
+ return t("Safety message: controlling speed and maintaining safe distance help reduce collision risk.","নিরাপত্তা বার্তা: দ্রুতি নিয়ন্ত্রণ ও নিরাপদ দূরত্ব বজায় রাখা সংঘর্ষের ঝুঁকি কমাতে সহায়তা করে।");
+}
+function renderAll(){
+ const load=effectiveLoad(), r=risk(load);
+ $("riskPill").className=`risk-pill ${r.level==="low"?"":r.level}`;
+ $("riskPill").textContent=r.name;
+ $("observation").textContent=observation(); $("safety").textContent=safetyText();
+ $("readouts").innerHTML=[
+  [t("Vehicle A momentum","গাড়ি A-এর ভরবেগ"),`${format(Math.abs(p(state.A)))} kg·m/s ${arrow(state.A)}`,"a"],
+  [t("Vehicle B momentum","গাড়ি B-এর ভরবেগ"),`${format(Math.abs(p(state.B)))} kg·m/s ${arrow(state.B)}`,"b"],
+  [t("Relative approach speed","আপেক্ষিক এগোনোর দ্রুতি"),`${format(closingSpeed()*3.6)} km/h`,""],
+  [t("Indicator status","সূচকের অবস্থা"),r.name,""]
+ ].map(([k,v,c])=>`<div class="readout"><div class="read-label">${k}</div><div class="read-value ${c}">${v}</div></div>`).join("");
+ renderComparison(load); renderStage();
+}
+function renderComparison(chosenLoad){
+ const lowFactor = .5, lowLoad=chosenLoad*lowFactor, lowRisk=risk(lowLoad), chosenRisk=risk(chosenLoad);
+ const max=Math.max(chosenLoad,1);
+ function card(title,desc,loadValue,r){
+   return `<div class="speed-card"><div class="speed-title">${title}</div><div class="speed-value">${desc}</div><div class="risk-track" style="--w:${loadValue===0?0:Math.max(5,loadValue/max*100)}%;--c:${r.color}"><i></i></div><div style="font-size:.79rem;font-weight:700;color:${r.color}">${r.name}</div></div>`;
+ }
+ $("riskBlock").innerHTML=card(t("Lower speed case","কম দ্রুতির অবস্থা"),t("Half of selected speeds","নির্বাচিত দ্রুতির অর্ধেক"),lowLoad,lowRisk)+card(t("Chosen speed case","নির্বাচিত দ্রুতির অবস্থা"),t("Your current speeds","তোমার বর্তমান দ্রুতি"),chosenLoad,chosenRisk);
+ const maxP=Math.max(pmag(state.A),pmag(state.B),1);
+ $("momentumBars").innerHTML=["A","B"].map(id=>{
+  const o=state[id], width=pmag(o)===0?0:10+Math.sqrt(pmag(o)/maxP)*39, side=o.dir>0?"right":"left", col=id==="A"?C.blue:C.orange;
+  return `<div class="momentum-row"><span class="m-name" style="color:${col}">${t("Vehicle","গাড়ি")} ${id}</span><span class="axis">${pmag(o)>0?`<i class="arrowbar ${side}" style="--w:${width}%;--c:${col}"></i>`:""}</span><span class="m-value">${format(pmag(o))} kg·m/s ${arrow(o)}</span></div>`;
+ }).join("");
+ $("disclaimer").textContent=t("The colour scale is an educational, momentum-based comparison only. Real road outcomes depend on many factors and are not predicted here.","রঙের স্কেলটি কেবল শিক্ষামূলক, ভরবেগ-ভিত্তিক তুলনা। বাস্তব সড়ক-ফল অনেক বিষয়ের ওপর নির্ভর করে এবং এখানে পূর্বাভাস দেওয়া হচ্ছে না।");
+}
+function defs(){
+ return `<defs>
+  <marker id="arrA" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${C.blue}"/></marker>
+  <marker id="arrB" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${C.orange}"/></marker>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#dff0ff"/><stop offset="1" stop-color="#f6fbff"/></linearGradient>
+  <linearGradient id="road" x2="0" y2="1"><stop stop-color="#526477"/><stop offset="1" stop-color="#334352"/></linearGradient>
+  <linearGradient id="carA" x2="0" y2="1"><stop stop-color="#5a98f5"/><stop offset="1" stop-color="#2869e8"/></linearGradient>
+  <linearGradient id="carB" x2="0" y2="1"><stop stop-color="#f49a48"/><stop offset="1" stop-color="#e66517"/></linearGradient>
+ </defs>`;
+}
+function vehicle(x,y,o,id,flip=false){
+ const c=id==="A"?"url(#carA)":"url(#carB)";
+ const shape=o.type==="car" ? `<path d="M-52 17 L-40 -7 Q-37 -14 -26 -14 H18 Q29 -13 39 2 L51 9 V27 H-52 Z" fill="${c}"/><path d="M-29 -8 H-9 V6 H-36 Z M-4 -8 H17 Q23 -6 28 6 H-4 Z" fill="#d9edff"/><circle cx="-29" cy="27" r="9" fill="#26384f" stroke="#fff" stroke-width="3"/><circle cx="30" cy="27" r="9" fill="#26384f" stroke="#fff" stroke-width="3"/>`
+ : o.type==="bus" ? `<rect x="-74" y="-27" width="148" height="55" rx="9" fill="${c}"/><rect x="-57" y="-16" width="22" height="19" rx="3" fill="#d9edff"/><rect x="-29" y="-16" width="22" height="19" rx="3" fill="#d9edff"/><rect x="-1" y="-16" width="22" height="19" rx="3" fill="#d9edff"/><rect x="27" y="-16" width="29" height="19" rx="3" fill="#d9edff"/><circle cx="-46" cy="28" r="10" fill="#26384f" stroke="#fff" stroke-width="3"/><circle cx="45" cy="28" r="10" fill="#26384f" stroke="#fff" stroke-width="3"/>`
+ : `<rect x="-80" y="-25" width="89" height="52" rx="5" fill="${c}"/><path d="M9 -9 H47 Q60 -4 60 15 V27 H9 Z" fill="${c}"/><rect x="18" y="-1" width="24" height="15" rx="3" fill="#d9edff"/><circle cx="-52" cy="28" r="10" fill="#26384f" stroke="#fff" stroke-width="3"/><circle cx="-12" cy="28" r="10" fill="#26384f" stroke="#fff" stroke-width="3"/><circle cx="43" cy="28" r="10" fill="#26384f" stroke="#fff" stroke-width="3"/>`;
+ return `<g transform="translate(${x} ${y}) scale(${flip?-1:1} 1)">${shape}</g><text x="${x}" y="${y-44}" text-anchor="middle" font-size="13" font-weight="700" fill="${id==="A"?C.blue:C.orange}">${id} • ${typeName(o.type)}</text>`;
+}
+function motionArrow(x,y,o,id){
+ if(o.speed===0) return `<text x="${x}" y="${y}" font-size="12" fill="#61758d">${t("stopped","স্থির")}</text>`;
+ const l=38+Math.min(98,o.speed*.9), end=x+(o.dir>0?l:-l), marker=id==="A"?"arrA":"arrB", col=id==="A"?C.blue:C.orange;
+ return `<line x1="${x}" y1="${y}" x2="${end}" y2="${y}" stroke="${col}" stroke-width="5" marker-end="url(#${marker})" stroke-linecap="round"/><text x="${x}" y="${y-12}" text-anchor="middle" font-size="12" fill="${col}" font-weight="700">p${id} ${arrow(o)}</text>`;
+}
+function renderStage(){
+ let xA=205,xB=835;
+ if(state.encounter==="same"){xA=205;xB=635;}
+ const movingA=ms(state.A)*state.A.dir, movingB=ms(state.B)*state.B.dir;
+ const approach=approaching();
+ if(state.progress>0){
+  if(approach){
+    const stopA=445, stopB=595;
+    xA=xA+(stopA-xA)*state.progress; xB=xB+(stopB-xB)*state.progress;
+  }else{
+    xA+=movingA*state.progress*18; xB+=movingB*state.progress*18;
+  }
+ }
+ const stopped=state.stopped&&approach, roadText=state.encounter==="head"?t("HEAD-ON APPROACH VIEW","মুখোমুখি এগোনোর দৃশ্য"):t("SAME-DIRECTION VIEW","একই দিকে চলার দৃশ্য");
+ const marker=stopped?`<g transform="translate(520 243)"><circle r="${39+state.flash*6}" fill="#fff5d8" stroke="#d18d08" stroke-width="4"/><path d="M-17 -17 L17 17 M17 -17 L-17 17" stroke="#d18d08" stroke-width="6" stroke-linecap="round"/><text y="62" text-anchor="middle" fill="#9b670d" font-size="13" font-weight="700">${t("SAFE STOP MARKER","নিরাপদ থামার চিহ্ন")}</text></g>`:"";
+ $("stage").innerHTML=`${defs()}
+  <rect width="1040" height="425" fill="url(#sky)"/>
+  <circle cx="92" cy="63" r="27" fill="#ffe5a3"/><path d="M0 176 Q170 88 326 174 T650 164 T1040 168 V213 H0 Z" fill="#b4ddc5"/>
+  <path d="M0 183 Q170 111 326 190 T650 177 T1040 185 V217 H0 Z" fill="#91cbae"/>
+  <rect y="201" width="1040" height="176" fill="url(#road)"/>
+  <line x1="0" y1="287" x2="1040" y2="287" stroke="#ffd45f" stroke-width="4" stroke-dasharray="34 24"/>
+  <line x1="0" y1="211" x2="1040" y2="211" stroke="#f7fbff" stroke-width="3"/>
+  <line x1="0" y1="367" x2="1040" y2="367" stroke="#f7fbff" stroke-width="3"/>
+  <rect x="33" y="28" width="222" height="36" rx="18" fill="#fff" opacity=".92"/><text x="144" y="51" text-anchor="middle" font-size="13" font-weight="700" fill="#3d546d">${roadText}</text>
+  ${motionArrow(xA,231,state.A,"A")}
+  ${motionArrow(xB,337,state.B,"B")}
+  ${vehicle(xA,290,state.A,"A",state.A.dir<0)}
+  ${vehicle(xB,290,state.B,"B",state.B.dir<0)}
+  ${marker}
+  <rect x="250" y="387" width="540" height="30" rx="15" fill="#fff" opacity=".94"/>
+  <text x="520" y="407" text-anchor="middle" font-size="13" font-weight="700" fill="${approach?risk().color:C.green}">${approach?(stopped?t("Visual stop only — no damage shown","শুধু দৃশ্যগত থামা — কোনো ক্ষতি দেখানো হয়নি"):t("Vehicles are approaching: observe momentum","গাড়িগুলো এগোচ্ছে: ভরবেগ লক্ষ্য করো")):t("No contact path with current motion","বর্তমান গতিতে সংস্পর্শের পথ নেই")}</text>`;
+}
+function playToggle(){
+ if(state.stopped){state.progress=0;state.stopped=false;state.flash=0;}
+ state.playing=!state.playing; $("playBtn").textContent=state.playing?t("Pause motion","গতি থামাও"):t("Begin approach","গতি শুরু করো");
+}
+function replay(){state.progress=0;state.stopped=false;state.playing=true;state.flash=0;applyLanguage();}
+function reset(){
+ state.encounter="head"; state.playing=false;state.stopped=false;state.progress=0;state.flash=0;
+ state.A={type:"car",mass:900,speed:35,dir:1}; state.B={type:"bus",mass:6500,speed:25,dir:-1};
+ applyLanguage();
+}
+$("enBtn").addEventListener("click",()=>{state.lang="en";applyLanguage();});
+$("bnBtn").addEventListener("click",()=>{state.lang="bn";applyLanguage();});
+$("headBtn").addEventListener("click",()=>setEncounter("head"));
+$("sameBtn").addEventListener("click",()=>setEncounter("same"));
+$("playBtn").addEventListener("click",playToggle);
+$("replayBtn").addEventListener("click",replay);
+$("resetBtn").addEventListener("click",reset);
+let previous=performance.now();
+function animate(now){
+ const dt=Math.min(.05,(now-previous)/1000);previous=now;
+ if(state.playing){
+  if(approaching()){
+   const relative=Math.max(6,closingSpeed()*3.6);
+   state.progress=Math.min(1,state.progress+dt*(.15+relative/230));
+   if(state.progress>=1){state.playing=false;state.stopped=true;state.flash=1;applyLanguage();}
+  }else{
+   state.progress=(state.progress+dt*.26)%1;
+  }
+  renderStage();
+ }else if(state.stopped && state.flash>0){
+  state.flash=Math.max(0,state.flash-dt*.65);renderStage();
+ }
+ requestAnimationFrame(animate);
+}
+applyLanguage();
+requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

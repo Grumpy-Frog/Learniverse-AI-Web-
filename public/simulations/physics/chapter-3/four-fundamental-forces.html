@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Four Fundamental Forces Explorer / চারটি মৌলিক বল অনুসন্ধান</title>
+<style>
+  :root {
+    --bg: #eef5ff;
+    --card: rgba(255,255,255,.94);
+    --ink: #12233f;
+    --muted: #5f7089;
+    --line: #dce6f3;
+    --blue: #2768e8;
+    --blue-soft: #e7f0ff;
+    --purple: #7356df;
+    --teal: #059b92;
+    --orange: #ef7e29;
+    --red: #df4356;
+    --gold: #d89d1d;
+    --shadow: 0 16px 42px rgba(29,52,85,.10);
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: Arial, "Noto Sans Bengali", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 6% 0%, #d8e9ff 0, transparent 29%),
+      radial-gradient(circle at 94% 2%, #dcfaf3 0, transparent 25%),
+      var(--bg);
+    line-height: 1.44;
+  }
+  button, select, input { font: inherit; }
+  button { cursor: pointer; }
+  .app { max-width: 1440px; margin: 0 auto; padding: 20px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 18px; margin-bottom: 18px;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--blue); background: var(--blue-soft); font-weight: 700;
+    border-radius: 999px; padding: 6px 12px; margin-bottom: 9px; font-size: .84rem;
+  }
+  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+  h1 {
+    margin: 0 0 5px; letter-spacing: -.04em;
+    font-size: clamp(1.45rem, 2.75vw, 2.35rem);
+  }
+  .subtitle { margin: 0; color: var(--muted); max-width: 770px; font-size: .98rem; }
+  .lang-toggle {
+    flex-shrink: 0; display: flex; gap: 3px; padding: 4px;
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(23,51,82,.06);
+  }
+  .lang-toggle button {
+    background: transparent; border: 0; padding: 9px 14px;
+    border-radius: 10px; color: var(--muted); font-weight: 700; transition: .18s ease;
+  }
+  .lang-toggle button.active { color: #fff; background: var(--blue); }
+  .layout {
+    display: grid; grid-template-columns: 324px minmax(0,1fr);
+    gap: 18px; align-items: start;
+  }
+  .card {
+    background: var(--card); border: 1px solid rgba(215,226,241,.9);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .sidebar { padding: 16px; display: grid; gap: 15px; position: sticky; top: 18px; }
+  .label {
+    color: var(--muted); font-size: .76rem; letter-spacing: .09em;
+    font-weight: 700; text-transform: uppercase; margin-bottom: 9px;
+  }
+  .scenes { display: grid; gap: 8px; }
+  .scene-btn {
+    width: 100%; border: 1px solid transparent; background: #f5f8fd;
+    color: var(--ink); padding: 12px; border-radius: 15px;
+    display: grid; grid-template-columns: 40px 1fr; text-align: left;
+    align-items: center; gap: 11px; transition: .18s ease;
+  }
+  .scene-btn:hover { border-color: #cddcf1; transform: translateY(-1px); }
+  .scene-btn.active {
+    background: #eaf1ff; color: var(--blue); border-color: #c9dbff;
+  }
+  .scene-icon {
+    height: 40px; width: 40px; display: grid; place-items: center;
+    background: #fff; border-radius: 12px; font-weight: 700; font-size: 1.12rem;
+  }
+  .scene-btn.active .scene-icon { background: var(--blue); color: #fff; }
+  .scene-name { display: block; font-weight: 700; font-size: .92rem; }
+  .scene-small { display: block; font-size: .76rem; color: var(--muted); margin-top: 1px; }
+  .control-box {
+    background: #f7faff; border: 1px solid #e1eafb; border-radius: 17px;
+    padding: 13px;
+  }
+  .control-title { margin: 0 0 10px; font-weight: 700; font-size: .92rem; }
+  .control-note { margin: 0; font-size: .87rem; color: var(--muted); }
+  .control { margin: 12px 0; }
+  .control:first-of-type { margin-top: 6px; }
+  .control-line {
+    display: flex; justify-content: space-between; gap: 8px;
+    margin-bottom: 6px; font-size: .87rem; font-weight: 700;
+  }
+  .value {
+    color: var(--blue); background: #fff; border: 1px solid #e1eafb;
+    padding: 2px 8px; border-radius: 999px; font-variant-numeric: tabular-nums;
+  }
+  input[type=range] {
+    width: 100%; accent-color: var(--blue); cursor: pointer;
+  }
+  select {
+    width: 100%; border: 1px solid var(--line); background: #fff;
+    padding: 9px 10px; border-radius: 11px; color: var(--ink);
+  }
+  .action-row { display: flex; gap: 8px; margin-top: 12px; }
+  .action-row button, .tool-btn {
+    border: 0; border-radius: 11px; padding: 9px 12px; font-weight: 700;
+    transition: .18s ease;
+  }
+  .primary { background: var(--blue); color: #fff; }
+  .secondary { background: #e9f1ff; color: var(--blue); }
+  .primary:hover, .secondary:hover, .tool-btn:hover { transform: translateY(-1px); }
+  .mini-tip {
+    border-radius: 15px; padding: 12px 13px;
+    background: #fff9eb; border: 1px solid #ffe9b5;
+    color: #664d12; font-size: .87rem;
+  }
+  .main { min-width: 0; display: grid; gap: 16px; }
+  .visual { padding: 14px; overflow: hidden; }
+  .visual-head {
+    display: flex; justify-content: space-between; gap: 12px; align-items: center;
+    margin-bottom: 10px;
+  }
+  .scene-heading { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .force-chip {
+    border-radius: 999px; font-weight: 700; font-size: .8rem;
+    padding: 6px 11px; background: var(--blue-soft); color: var(--blue);
+    white-space: nowrap;
+  }
+  .visual-title { font-weight: 700; font-size: 1.02rem; }
+  .tools { display: flex; gap: 7px; flex-shrink: 0; }
+  .tool-btn {
+    background: #f2f6fc; color: var(--ink); font-size: .86rem;
+  }
+  .stage-wrap {
+    border-radius: 18px; overflow: hidden; background:
+      radial-gradient(circle at 72% 26%, rgba(83,115,204,.13), transparent 30%),
+      linear-gradient(180deg, #f7faff, #f0f6ff);
+    border: 1px solid #e3ebf8;
+  }
+  #stage { display: block; width: 100%; height: auto; aspect-ratio: 900 / 440; }
+  .badges {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px; margin-top: 11px;
+  }
+  .badge {
+    background: #f6f9fe; border: 1px solid #e3ebf7; border-radius: 14px;
+    padding: 9px 10px; min-width: 0;
+  }
+  .badge-label { color: var(--muted); font-size: .73rem; font-weight: 700; }
+  .badge-value { font-size: .87rem; font-weight: 700; margin-top: 3px; }
+  .lower {
+    display: grid; grid-template-columns: minmax(250px,.9fr) minmax(365px,1.5fr);
+    gap: 16px;
+  }
+  .observe { padding: 17px; }
+  .panel-title {
+    margin: 0 0 11px; display: flex; align-items: center; gap: 8px;
+    font-size: 1rem;
+  }
+  .panel-title span {
+    width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--blue);
+  }
+  .observation {
+    background: #f7faff; border-left: 4px solid var(--blue);
+    border-radius: 0 13px 13px 0; padding: 12px 13px;
+    color: #263955; font-size: .93rem; min-height: 77px;
+  }
+  .key-grid { display: grid; gap: 8px; margin-top: 12px; }
+  .key-row {
+    display: grid; grid-template-columns: 100px 1fr; gap: 10px;
+    font-size: .87rem; align-items: start;
+  }
+  .key-row .k { color: var(--muted); font-weight: 700; }
+  .key-row .v { font-weight: 700; }
+  .compare { padding: 17px; }
+  .compare-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    margin-bottom: 11px;
+  }
+  .compare-note { font-size: .78rem; color: var(--muted); }
+  .force-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 9px; }
+  .force-card {
+    border: 1px solid #e2eaf7; border-radius: 15px; padding: 11px 10px;
+    background: #fbfcff; transition: .18s ease; min-width: 0;
+  }
+  .force-card.selected {
+    border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, white);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .force-card button {
+    all: unset; cursor: pointer; display: block; width: 100%;
+  }
+  .force-name {
+    font-size: .83rem; font-weight: 700; margin-bottom: 3px;
+    color: var(--accent);
+  }
+  .sample { color: var(--muted); font-size: .74rem; min-height: 34px; }
+  .meter { margin: 9px 0 6px; height: 7px; background: #edf2fa; border-radius: 999px; }
+  .meter i {
+    display: block; width: var(--meter); height: 100%; border-radius: inherit;
+    background: var(--accent);
+  }
+  .scale { font-size: .72rem; font-weight: 700; color: #31455f; }
+  .range { font-size: .72rem; color: var(--muted); margin-top: 3px; }
+  .overview-hint {
+    text-align: center; color: var(--muted); font-size: .8rem; margin-top: 11px;
+  }
+  svg text { font-family: Arial, "Noto Sans Bengali", sans-serif; }
+  .clickable { cursor: pointer; }
+  @media (max-width: 1060px) {
+    .layout { grid-template-columns: 292px minmax(0,1fr); }
+    .lower { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 790px) {
+    .app { padding: 12px; }
+    header { display: block; }
+    .lang-toggle { width: max-content; margin-top: 13px; }
+    .layout { display: block; }
+    .sidebar { position: static; margin-bottom: 14px; }
+    .scenes { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .scene-btn { grid-template-columns: 36px 1fr; padding: 9px; }
+    .scene-icon { width: 36px; height: 36px; }
+    .visual-head { flex-wrap: wrap; }
+    .badges { grid-template-columns: 1fr; }
+    .force-cards { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  }
+  @media (max-width: 470px) {
+    .scenes, .force-cards { grid-template-columns: 1fr; }
+    .scene-small { display: none; }
+    #stage { aspect-ratio: 900 / 560; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="eyebrow"><span class="dot"></span><span id="courseTag">Class 9 Physics • Visual Explorer</span></div>
+      <h1>Four Fundamental Forces Explorer / চারটি মৌলিক বল অনুসন্ধান</h1>
+      <p class="subtitle" id="subtitle">Explore everyday and atomic-scale situations to identify which fundamental force is responsible.</p>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="enBtn" class="active" type="button">English</button>
+      <button id="bnBtn" type="button">বাংলা</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar card">
+      <section>
+        <div class="label" id="exploreLabel">Choose a situation</div>
+        <nav class="scenes" id="sceneNav" aria-label="Simulation scenes"></nav>
+      </section>
+      <section class="control-box">
+        <h2 class="control-title" id="controlHeading">Explore controls</h2>
+        <div id="controls"></div>
+      </section>
+      <div class="mini-tip" id="tip">Select a situation, adjust its control, then compare it with the other forces.</div>
+    </aside>
+
+    <main class="main">
+      <section class="visual card">
+        <div class="visual-head">
+          <div class="scene-heading">
+            <span class="force-chip" id="sceneChip">Compare all four</span>
+            <span class="visual-title" id="visualTitle">Overview</span>
+          </div>
+          <div class="tools">
+            <button class="tool-btn" id="playBtn" type="button">Pause</button>
+            <button class="tool-btn" id="resetBtn" type="button">Return to overview</button>
+          </div>
+        </div>
+        <div class="stage-wrap">
+          <svg id="stage" viewBox="0 0 900 440" role="img" aria-label="Force scene illustration"></svg>
+        </div>
+        <div class="badges" id="badges"></div>
+      </section>
+
+      <div class="lower">
+        <section class="observe card">
+          <h2 class="panel-title"><span></span><b id="observationTitle">Observation</b></h2>
+          <div class="observation" id="observation"></div>
+          <div class="key-grid" id="keyGrid"></div>
+        </section>
+        <section class="compare card">
+          <div class="compare-head">
+            <h2 class="panel-title" style="margin:0"><span></span><b id="compareTitle">Relative strength comparison</b></h2>
+            <div class="compare-note" id="compareNote">Conceptual particle-scale scale</div>
+          </div>
+          <div class="force-cards" id="forceCards"></div>
+          <div class="overview-hint" id="compareHint">Select a force card to open its scene.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const langText = (en, bn) => state.lang === "en" ? en : bn;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[c]));
+
+  const state = {
+    lang: "en",
+    scene: "overview",
+    playing: true,
+    phase: 0,
+    gravity: { height: 74, progress: 0, active: false },
+    electromagnetic: { interaction: "attract", separation: 58, progress: 0, active: false },
+    strong: { spread: 22, links: true },
+    weak: { progress: 0, active: false }
+  };
+
+  const profiles = {
+    gravity: {
+      color: "#2768e8", icon: "🌍", meter: 14, approx: "≈10⁻³⁸",
+      navEn: "Falling object", navBn: "পতনশীল বস্তু",
+      titleEn: "Object attracted toward Earth", titleBn: "পৃথিবীর দিকে আকৃষ্ট বস্তু",
+      forceEn: "Gravitational force", forceBn: "মহাকর্ষীয় বল",
+      whereEn: "Between masses: Earth and the object", whereBn: "ভরযুক্ত বস্তুর মধ্যে: পৃথিবী ও বস্তু",
+      rangeEn: "Long range", rangeBn: "দীর্ঘ পাল্লার",
+      exampleEn: "Earth pulls an object", exampleBn: "পৃথিবী বস্তুকে টানে"
+    },
+    electromagnetic: {
+      color: "#ef7e29", icon: "⚡", meter: 72, approx: "≈10⁻²",
+      navEn: "Charges", navBn: "আধান",
+      titleEn: "Charged-object interaction", titleBn: "আধানযুক্ত বস্তুর মিথস্ক্রিয়া",
+      forceEn: "Electromagnetic force", forceBn: "তড়িৎচুম্বকীয় বল",
+      whereEn: "Between electric charges and magnets", whereBn: "তড়িৎ আধান ও চুম্বকের মধ্যে",
+      rangeEn: "Long range", rangeBn: "দীর্ঘ পাল্লার",
+      exampleEn: "Charges attract or repel", exampleBn: "আধান আকর্ষণ বা বিকর্ষণ করে"
+    },
+    strong: {
+      color: "#7356df", icon: "●", meter: 100, approx: "1",
+      navEn: "Nucleus", navBn: "নিউক্লিয়াস",
+      titleEn: "Simplified atomic nucleus", titleBn: "সরলীকৃত পারমাণবিক নিউক্লিয়াস",
+      forceEn: "Strong nuclear force", forceBn: "সবল নিউক্লীয় বল",
+      whereEn: "Inside the nucleus, among nucleons", whereBn: "নিউক্লিয়াসে, নিউক্লিয়নের মধ্যে",
+      rangeEn: "Very short range", rangeBn: "অতি স্বল্প পাল্লার",
+      exampleEn: "Holds a nucleus together", exampleBn: "নিউক্লিয়াসকে একত্রে ধরে"
+    },
+    weak: {
+      color: "#059b92", icon: "β", meter: 34, approx: "≈10⁻¹³",
+      navEn: "Decay", navBn: "ক্ষয়",
+      titleEn: "Simplified radioactive decay view", titleBn: "সরলীকৃত তেজস্ক্রিয় ক্ষয়ের দৃশ্য",
+      forceEn: "Weak nuclear force", forceBn: "দুর্বল নিউক্লীয় বল",
+      whereEn: "Inside particles and nuclei during certain decays", whereBn: "কিছু ক্ষয়ের সময় কণা ও নিউক্লিয়াসের ভেতরে",
+      rangeEn: "Very short range", rangeBn: "অতি স্বল্প পাল্লার",
+      exampleEn: "Allows particle change in decay", exampleBn: "ক্ষয়ে কণার রূপান্তর ঘটায়"
+    }
+  };
+
+  const sceneOrder = ["overview", "gravity", "electromagnetic", "strong", "weak"];
+
+  function ui(en, bn) { return state.lang === "en" ? en : bn; }
+  function profileText(p, key) { return state.lang === "en" ? p[key + "En"] : p[key + "Bn"]; }
+
+  function applyLanguage() {
+    document.documentElement.lang = state.lang === "en" ? "en" : "bn";
+    $("enBtn").classList.toggle("active", state.lang === "en");
+    $("bnBtn").classList.toggle("active", state.lang === "bn");
+    $("courseTag").textContent = ui("Class 9 Physics • Visual Explorer", "নবম শ্রেণির পদার্থবিজ্ঞান • দৃশ্যভিত্তিক অনুসন্ধান");
+    $("subtitle").textContent = ui(
+      "Explore everyday and atomic-scale situations to identify which fundamental force is responsible.",
+      "কোন মৌলিক বল কাজ করছে তা শনাক্ত করতে দৈনন্দিন ও পারমাণবিক-স্তরের পরিস্থিতি অনুসন্ধান করো।"
+    );
+    $("exploreLabel").textContent = ui("Choose a situation", "একটি পরিস্থিতি বেছে নাও");
+    $("controlHeading").textContent = ui("Explore controls", "অনুসন্ধান নিয়ন্ত্রণ");
+    $("tip").textContent = ui(
+      "Select a situation, adjust its control, then compare it with the other forces.",
+      "একটি পরিস্থিতি বেছে নিয়ে নিয়ন্ত্রণ বদলাও, তারপর অন্য বলগুলোর সঙ্গে তুলনা করো।"
+    );
+    $("observationTitle").textContent = ui("Observation", "পর্যবেক্ষণ");
+    $("compareTitle").textContent = ui("Relative strength comparison", "আপেক্ষিক শক্তির তুলনা");
+    $("compareNote").textContent = ui("Approximate particle-scale view", "কণা-স্তরের আনুমানিক তুলনা");
+    $("compareHint").textContent = ui("Select a force card to open its scene.", "দৃশ্য খুলতে একটি বলের কার্ড নির্বাচন করো।");
+    $("playBtn").textContent = state.playing ? ui("Pause motion", "গতি থামাও") : ui("Resume motion", "গতি চালাও");
+    $("resetBtn").textContent = ui("Return to overview", "পরিচিতিতে ফিরো");
+    renderNav();
+    renderControls();
+    renderPanels();
+    renderStage();
+  }
+
+  function renderNav() {
+    const nav = $("sceneNav");
+    const all = {
+      icon: "≡",
+      navEn: "Compare all four", navBn: "চারটির তুলনা",
+      titleEn: "Overview mode", titleBn: "পরিচিতি মোড"
+    };
+    nav.innerHTML = sceneOrder.map((key) => {
+      const p = key === "overview" ? all : profiles[key];
+      const name = state.lang === "en" ? p.navEn : p.navBn;
+      const sub = key === "overview"
+        ? ui("Overview mode", "পরিচিতি মোড")
+        : profileText(p, "force");
+      const icon = key === "overview" ? p.icon : p.icon;
+      return `<button type="button" class="scene-btn ${state.scene === key ? "active" : ""}" data-scene="${key}">
+        <span class="scene-icon">${icon}</span>
+        <span><span class="scene-name">${name}</span><span class="scene-small">${sub}</span></span>
+      </button>`;
+    }).join("");
+    nav.querySelectorAll("[data-scene]").forEach(btn => {
+      btn.addEventListener("click", () => selectScene(btn.dataset.scene));
+    });
+  }
+
+  function selectScene(scene) {
+    state.scene = scene;
+    state.playing = true;
+    if (scene === "gravity") { state.gravity.progress = 0; state.gravity.active = false; }
+    if (scene === "electromagnetic") { state.electromagnetic.progress = 0; state.electromagnetic.active = false; }
+    if (scene === "weak") { state.weak.progress = 0; state.weak.active = false; }
+    applyLanguage();
+  }
+
+  function renderControls() {
+    const box = $("controls");
+    if (state.scene === "overview") {
+      box.innerHTML = `<p class="control-note">${ui(
+        "Open any situation or tap one of the comparison cards. Watch its range and relative strength.",
+        "যেকোনো পরিস্থিতি বা তুলনা কার্ডে চাপ দাও। বলটির পাল্লা ও আপেক্ষিক শক্তি লক্ষ্য করো।"
+      )}</p>
+      <div class="action-row"><button class="primary" type="button" id="beginExplore">${ui("Explore gravity", "মহাকর্ষ অনুসন্ধান")}</button></div>`;
+      $("beginExplore").addEventListener("click", () => selectScene("gravity"));
+      return;
+    }
+
+    if (state.scene === "gravity") {
+      box.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${ui("Starting height", "শুরুর উচ্চতা")}</span><span class="value" id="gravityVal">${state.gravity.height}%</span></div>
+          <input id="gravityHeight" type="range" min="35" max="92" value="${state.gravity.height}" aria-label="${ui("Starting height", "শুরুর উচ্চতা")}">
+        </div>
+        <p class="control-note">${ui("Set the object's height, then release it.", "বস্তুর উচ্চতা নির্ধারণ করে ছেড়ে দাও।")}</p>
+        <div class="action-row"><button class="primary" type="button" id="dropBtn">${ui("Release object", "বস্তু ছাড়ো")}</button><button class="secondary" type="button" id="gravityReset">${ui("Reset", "পুনরায় সেট")}</button></div>`;
+      $("gravityHeight").addEventListener("input", (e) => {
+        state.gravity.height = Number(e.target.value);
+        state.gravity.progress = 0; state.gravity.active = false;
+        $("gravityVal").textContent = `${state.gravity.height}%`;
+        renderPanels(); renderStage();
+      });
+      $("dropBtn").addEventListener("click", () => {
+        state.gravity.progress = 0; state.gravity.active = true; state.playing = true; applyLanguage();
+      });
+      $("gravityReset").addEventListener("click", () => {
+        state.gravity.progress = 0; state.gravity.active = false; renderPanels(); renderStage();
+      });
+    }
+
+    if (state.scene === "electromagnetic") {
+      box.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${ui("Interaction type", "মিথস্ক্রিয়ার ধরন")}</span></div>
+          <select id="interaction">
+            <option value="attract" ${state.electromagnetic.interaction === "attract" ? "selected" : ""}>${ui("Opposite charges: attraction", "বিপরীত আধান: আকর্ষণ")}</option>
+            <option value="repel" ${state.electromagnetic.interaction === "repel" ? "selected" : ""}>${ui("Same charges: repulsion", "সমধর্মী আধান: বিকর্ষণ")}</option>
+          </select>
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${ui("Initial separation", "প্রাথমিক দূরত্ব")}</span><span class="value" id="sepVal">${state.electromagnetic.separation}%</span></div>
+          <input id="separation" type="range" min="30" max="86" value="${state.electromagnetic.separation}" aria-label="${ui("Initial separation", "প্রাথমিক দূরত্ব")}">
+        </div>
+        <div class="action-row"><button class="primary" type="button" id="emGo">${ui("Release charges", "আধান ছাড়ো")}</button><button class="secondary" type="button" id="emReset">${ui("Reset", "পুনরায় সেট")}</button></div>`;
+      $("interaction").addEventListener("change", (e) => {
+        state.electromagnetic.interaction = e.target.value;
+        state.electromagnetic.progress = 0; state.electromagnetic.active = false;
+        renderPanels(); renderStage();
+      });
+      $("separation").addEventListener("input", (e) => {
+        state.electromagnetic.separation = Number(e.target.value);
+        state.electromagnetic.progress = 0; state.electromagnetic.active = false;
+        $("sepVal").textContent = `${state.electromagnetic.separation}%`;
+        renderPanels(); renderStage();
+      });
+      $("emGo").addEventListener("click", () => {
+        state.electromagnetic.progress = 0; state.electromagnetic.active = true; state.playing = true; applyLanguage();
+      });
+      $("emReset").addEventListener("click", () => {
+        state.electromagnetic.progress = 0; state.electromagnetic.active = false; renderStage();
+      });
+    }
+
+    if (state.scene === "strong") {
+      box.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${ui("Pull nucleons apart", "নিউক্লিয়ন দূরে টানো")}</span><span class="value" id="spreadVal">${state.strong.spread}%</span></div>
+          <input id="spread" type="range" min="0" max="100" value="${state.strong.spread}" aria-label="${ui("Pull nucleons apart", "নিউক্লিয়ন দূরে টানো")}">
+        </div>
+        <p class="control-note">${ui("The strong force is effective only at extremely short nuclear distances.", "সবল বল কেবল অতি ক্ষুদ্র নিউক্লীয় দূরত্বে কার্যকর।")}</p>
+        <div class="action-row"><button class="secondary" type="button" id="strongReset">${ui("Restore nucleus", "নিউক্লিয়াস ফেরাও")}</button></div>`;
+      $("spread").addEventListener("input", (e) => {
+        state.strong.spread = Number(e.target.value);
+        $("spreadVal").textContent = `${state.strong.spread}%`;
+        renderPanels(); renderStage();
+      });
+      $("strongReset").addEventListener("click", () => {
+        state.strong.spread = 22; renderControls(); renderPanels(); renderStage();
+      });
+    }
+
+    if (state.scene === "weak") {
+      box.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${ui("Decay progress", "ক্ষয়ের অগ্রগতি")}</span><span class="value" id="decayVal">${Math.round(state.weak.progress * 100)}%</span></div>
+          <input id="decay" type="range" min="0" max="100" value="${Math.round(state.weak.progress * 100)}" aria-label="${ui("Decay progress", "ক্ষয়ের অগ্রগতি")}">
+        </div>
+        <p class="control-note">${ui("A simplified view: one particle changes and emitted particles move away.", "সরলীকৃত দৃশ্য: একটি কণা বদলায় এবং নির্গত কণা দূরে সরে যায়।")}</p>
+        <div class="action-row"><button class="primary" type="button" id="decayPlay">${ui("Animate decay", "ক্ষয় দেখাও")}</button><button class="secondary" type="button" id="weakReset">${ui("Reset", "পুনরায় সেট")}</button></div>`;
+      $("decay").addEventListener("input", (e) => {
+        state.weak.progress = Number(e.target.value) / 100; state.weak.active = false;
+        $("decayVal").textContent = `${Math.round(state.weak.progress * 100)}%`;
+        renderPanels(); renderStage();
+      });
+      $("decayPlay").addEventListener("click", () => {
+        state.weak.progress = 0; state.weak.active = true; state.playing = true; applyLanguage();
+      });
+      $("weakReset").addEventListener("click", () => {
+        state.weak.progress = 0; state.weak.active = false; renderControls(); renderPanels(); renderStage();
+      });
+    }
+  }
+
+  function currentObservation() {
+    if (state.scene === "overview") {
+      return ui(
+        "Every event shown here is explained by one fundamental force. Open the scenes to compare long-range forces with forces that act only inside nuclei.",
+        "এখানে দেখানো প্রতিটি ঘটনা একটি মৌলিক বল দিয়ে ব্যাখ্যা করা যায়। দীর্ঘ পাল্লার বল এবং নিউক্লিয়াসের ভেতরে কাজ করা বল তুলনা করতে দৃশ্যগুলো খোলো।"
+      );
+    }
+    if (state.scene === "gravity") {
+      if (state.gravity.progress >= 1) return ui(
+        "The object reaches Earth because Earth attracts masses gravitationally. This pull acts over long distances.",
+        "পৃথিবী ভরযুক্ত বস্তুকে মহাকর্ষীয়ভাবে আকর্ষণ করায় বস্তুটি পৃথিবীতে পৌঁছে। এই টান দীর্ঘ দূরত্বেও কাজ করে।"
+      );
+      return ui(
+        "When released, the object accelerates toward Earth. The responsible fundamental force is gravity.",
+        "ছাড়লে বস্তুটি পৃথিবীর দিকে ত্বরিত হয়। এর জন্য দায়ী মৌলিক বল হলো মহাকর্ষ।"
+      );
+    }
+    if (state.scene === "electromagnetic") {
+      return state.electromagnetic.interaction === "attract" ? ui(
+        "Opposite charges pull toward each other. This is electromagnetic attraction, a long-range interaction.",
+        "বিপরীত আধান পরস্পরের দিকে টানে। এটি দীর্ঘ পাল্লার তড়িৎচুম্বকীয় আকর্ষণ।"
+      ) : ui(
+        "Like charges move apart because electromagnetic force can also repel.",
+        "সমধর্মী আধান দূরে সরে যায়, কারণ তড়িৎচুম্বকীয় বল বিকর্ষণও করতে পারে।"
+      );
+    }
+    if (state.scene === "strong") {
+      return state.strong.spread < 62 ? ui(
+        "At very short nuclear distances, the strong nuclear force binds protons and neutrons together.",
+        "অতি ক্ষুদ্র নিউক্লীয় দূরত্বে সবল নিউক্লীয় বল প্রোটন ও নিউট্রনকে একত্রে আবদ্ধ রাখে।"
+      ) : ui(
+        "When nucleons are shown far apart, the binding is no longer effective in this simplified model: strong force has very short range.",
+        "নিউক্লিয়নগুলোকে দূরে দেখালে এই সরল মডেলে বন্ধন আর কার্যকর নয়: সবল বলের পাল্লা অতি স্বল্প।"
+      );
+    }
+    return state.weak.progress < .42 ? ui(
+      "Some radioactive changes begin through the weak nuclear force. Move the progress control or animate the event.",
+      "কিছু তেজস্ক্রিয় পরিবর্তন দুর্বল নিউক্লীয় বলের মাধ্যমে শুরু হয়। অগ্রগতির নিয়ন্ত্রণ বদলাও বা ঘটনাটি চালাও।"
+    ) : ui(
+      "In this simplified decay view, a neutron becomes a proton while small emitted particles move away; the weak force enables this change.",
+      "এই সরলীকৃত ক্ষয় দৃশ্যে একটি নিউট্রন প্রোটনে রূপ নেয় এবং ক্ষুদ্র নির্গত কণা দূরে যায়; দুর্বল বল এই পরিবর্তন সম্ভব করে।"
+    );
+  }
+
+  function renderPanels() {
+    const p = state.scene === "overview" ? null : profiles[state.scene];
+    $("sceneChip").style.background = p ? `${p.color}18` : "#e7f0ff";
+    $("sceneChip").style.color = p ? p.color : "#2768e8";
+    $("sceneChip").textContent = p ? profileText(p, "force") : ui("Compare all four", "চারটি বলের তুলনা");
+    $("visualTitle").textContent = p ? profileText(p, "title") : ui("Overview: choose a scene", "পরিচিতি: একটি দৃশ্য বেছে নাও");
+
+    const badges = p ? [
+      [ui("Force acting", "কার্যকর বল"), profileText(p, "force")],
+      [ui("Where it operates", "কোথায় কাজ করে"), profileText(p, "where")],
+      [ui("Range", "পাল্লা"), profileText(p, "range")]
+    ] : [
+      [ui("Scenes", "দৃশ্য"), ui("Four examples", "চারটি উদাহরণ")],
+      [ui("Long range", "দীর্ঘ পাল্লা"), ui("Gravity & electromagnetic", "মহাকর্ষ ও তড়িৎচুম্বকীয়")],
+      [ui("Very short range", "অতি স্বল্প পাল্লা"), ui("Strong & weak nuclear", "সবল ও দুর্বল নিউক্লীয়")]
+    ];
+    $("badges").innerHTML = badges.map(([k, v]) => `<div class="badge"><div class="badge-label">${k}</div><div class="badge-value">${v}</div></div>`).join("");
+
+    $("observation").textContent = currentObservation();
+    const rows = p ? [
+      [ui("Identified force", "শনাক্ত বল"), profileText(p, "force")],
+      [ui("Range", "পাল্লা"), profileText(p, "range")],
+      [ui("Example", "উদাহরণ"), profileText(p, "example")]
+    ] : [
+      [ui("Goal", "লক্ষ্য"), ui("Identify the responsible force", "দায়ী বল শনাক্ত করো")],
+      [ui("Compare", "তুলনা"), ui("Range and relative strength", "পাল্লা ও আপেক্ষিক শক্তি")],
+      [ui("Select", "নির্বাচন"), ui("Use a card or scene button", "কার্ড বা দৃশ্য বোতাম ব্যবহার করো")]
+    ];
+    $("keyGrid").innerHTML = rows.map(([k, v]) => `<div class="key-row"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+    renderComparison();
+  }
+
+  function renderComparison() {
+    $("forceCards").innerHTML = Object.entries(profiles).map(([key, p]) => {
+      const selected = state.scene === key ? "selected" : "";
+      return `<article class="force-card ${selected}" style="--accent:${p.color};--meter:${p.meter}%">
+        <button type="button" data-open="${key}" aria-label="${profileText(p, "force")}">
+          <div class="force-name">${profileText(p, "force")}</div>
+          <div class="sample">${profileText(p, "example")}</div>
+          <div class="meter" aria-hidden="true"><i></i></div>
+          <div class="scale">${p.approx}</div>
+          <div class="range">${profileText(p, "range")}</div>
+        </button>
+      </article>`;
+    }).join("");
+    $("forceCards").querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => selectScene(b.dataset.open)));
+  }
+
+  function defs() {
+    return `<defs>
+      <marker id="arrowBlue" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#2768e8"/></marker>
+      <marker id="arrowOrange" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#ef7e29"/></marker>
+      <marker id="arrowTeal" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#059b92"/></marker>
+      <filter id="softGlow"><feGaussianBlur stdDeviation="7"/></filter>
+      <linearGradient id="earth" x2="0" y2="1"><stop stop-color="#4b9bf1"/><stop offset="1" stop-color="#1e58c7"/></linearGradient>
+      <linearGradient id="space" x2="0" y2="1"><stop stop-color="#eff6ff"/><stop offset="1" stop-color="#e6f0fd"/></linearGradient>
+    </defs>`;
+  }
+
+  function renderStage() {
+    const stage = $("stage");
+    if (state.scene === "overview") stage.innerHTML = overviewSVG();
+    if (state.scene === "gravity") stage.innerHTML = gravitySVG();
+    if (state.scene === "electromagnetic") stage.innerHTML = electromagneticSVG();
+    if (state.scene === "strong") stage.innerHTML = strongSVG();
+    if (state.scene === "weak") stage.innerHTML = weakSVG();
+    stage.querySelectorAll("[data-go]").forEach(el => {
+      el.addEventListener("click", () => selectScene(el.getAttribute("data-go")));
+    });
+  }
+
+  function overviewSVG() {
+    const wave = Math.sin(state.phase * 2) * 4;
+    return `${defs()}
+      <rect width="900" height="440" fill="url(#space)"/>
+      <text x="450" y="33" text-anchor="middle" font-size="17" font-weight="700" fill="#12233f">${ui("Select a situation to explore its force", "কোন বল কাজ করছে জানতে একটি পরিস্থিতি নির্বাচন করো")}</text>
+
+      <g class="clickable" data-go="gravity">
+        <rect x="28" y="62" width="198" height="322" rx="19" fill="#fff" stroke="#dce6f3"/>
+        <rect x="28" y="62" width="198" height="45" rx="19" fill="#edf4ff"/>
+        <text x="46" y="90" font-size="14" font-weight="700" fill="#2768e8">${ui("Gravity", "মহাকর্ষ")}</text>
+        <circle cx="127" cy="291" r="48" fill="url(#earth)"/>
+        <path d="M93 286 q20 -15 40 -2 t38 -1 M108 313 q22 -10 42 3" stroke="#8ee0bb" stroke-width="6" fill="none" opacity=".9"/>
+        <circle cx="127" cy="${175 + wave}" r="12" fill="#ef7e29"/>
+        <path d="M127 ${195 + wave} L127 229" stroke="#2768e8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+        <text x="127" y="360" text-anchor="middle" font-size="12" fill="#5f7089">${ui("Earth attracts mass", "পৃথিবী ভরকে টানে")}</text>
+      </g>
+
+      <g class="clickable" data-go="electromagnetic">
+        <rect x="243" y="62" width="198" height="322" rx="19" fill="#fff" stroke="#dce6f3"/>
+        <rect x="243" y="62" width="198" height="45" rx="19" fill="#fff3e9"/>
+        <text x="261" y="90" font-size="14" font-weight="700" fill="#ef7e29">${ui("Electromagnetic", "তড়িৎচুম্বকীয়")}</text>
+        <circle cx="${298 + wave}" cy="229" r="28" fill="#ef7e29"/>
+        <circle cx="${386 - wave}" cy="229" r="28" fill="#2768e8"/>
+        <text x="${298 + wave}" y="237" text-anchor="middle" font-size="27" font-weight="700" fill="#fff">+</text>
+        <text x="${386 - wave}" y="237" text-anchor="middle" font-size="27" font-weight="700" fill="#fff">−</text>
+        <path d="M325 184 L352 184" stroke="#ef7e29" stroke-width="4" marker-end="url(#arrowOrange)"/>
+        <path d="M359 274 L332 274" stroke="#ef7e29" stroke-width="4" marker-end="url(#arrowOrange)"/>
+        <text x="342" y="360" text-anchor="middle" font-size="12" fill="#5f7089">${ui("Charges interact", "আধান মিথস্ক্রিয়া করে")}</text>
+      </g>
+
+      <g class="clickable" data-go="strong">
+        <rect x="458" y="62" width="198" height="322" rx="19" fill="#fff" stroke="#dce6f3"/>
+        <rect x="458" y="62" width="198" height="45" rx="19" fill="#f1edff"/>
+        <text x="476" y="90" font-size="14" font-weight="700" fill="#7356df">${ui("Strong nuclear", "সবল নিউক্লীয়")}</text>
+        <g transform="translate(557 224)">
+          <line x1="-27" y1="-23" x2="26" y2="18" stroke="#7356df" stroke-width="6" opacity=".45"/>
+          <line x1="27" y1="-23" x2="-26" y2="18" stroke="#7356df" stroke-width="6" opacity=".45"/>
+          <line x1="-27" y1="-23" x2="27" y2="-23" stroke="#7356df" stroke-width="6" opacity=".45"/>
+          <circle cx="-27" cy="-23" r="22" fill="#e84963"/><circle cx="27" cy="-23" r="22" fill="#4e8be9"/>
+          <circle cx="-27" cy="19" r="22" fill="#4e8be9"/><circle cx="27" cy="19" r="22" fill="#e84963"/>
+          <text x="-27" y="-17" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">p</text>
+          <text x="27" y="-17" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">n</text>
+          <text x="-27" y="25" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">n</text>
+          <text x="27" y="25" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">p</text>
+        </g>
+        <text x="557" y="360" text-anchor="middle" font-size="12" fill="#5f7089">${ui("Binds nucleus", "নিউক্লিয়াস বাঁধে")}</text>
+      </g>
+
+      <g class="clickable" data-go="weak">
+        <rect x="673" y="62" width="198" height="322" rx="19" fill="#fff" stroke="#dce6f3"/>
+        <rect x="673" y="62" width="198" height="45" rx="19" fill="#e5faf5"/>
+        <text x="691" y="90" font-size="14" font-weight="700" fill="#059b92">${ui("Weak nuclear", "দুর্বল নিউক্লীয়")}</text>
+        <circle cx="726" cy="225" r="29" fill="#4e8be9"/><text x="726" y="232" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">n</text>
+        <path d="M760 225 L790 225" stroke="#059b92" stroke-width="4" marker-end="url(#arrowTeal)"/>
+        <circle cx="818" cy="212" r="24" fill="#e84963"/><text x="818" y="218" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">p</text>
+        <circle cx="818" cy="264" r="10" fill="#ef7e29"/><text x="835" y="268" font-size="12" fill="#5f7089">e⁻</text>
+        <text x="772" y="360" text-anchor="middle" font-size="12" fill="#5f7089">${ui("Enables decay", "ক্ষয় সম্ভব করে")}</text>
+      </g>`;
+  }
+
+  function gravitySVG() {
+    const g = state.gravity;
+    const startY = 83 + (100 - g.height) * 2.05;
+    const groundY = 318;
+    const ease = 1 - Math.pow(1 - Math.min(1, g.progress), 2);
+    const y = startY + (groundY - startY) * ease;
+    const velocityMarks = g.active ? 1 + Math.floor(g.progress * 3) : 0;
+    const fallingText = g.active && g.progress < 1 ? ui("Accelerating downward", "নিচের দিকে ত্বরিত") :
+      g.progress >= 1 ? ui("Reached Earth", "পৃথিবীতে পৌঁছেছে") : ui("Ready to release", "ছাড়ার জন্য প্রস্তুত");
+    let lines = "";
+    for (let i = 0; i < velocityMarks; i++) {
+      const yy = y - 26 - i * 14;
+      lines += `<line x1="451" y1="${yy}" x2="451" y2="${yy + 8 + i * 4}" stroke="#2768e8" stroke-width="3" marker-end="url(#arrowBlue)"/>`;
+    }
+    return `${defs()}
+      <rect width="900" height="440" fill="url(#space)"/>
+      <circle cx="160" cy="70" r="2" fill="#aac7ed"/><circle cx="740" cy="95" r="3" fill="#aac7ed"/><circle cx="640" cy="168" r="2" fill="#aac7ed"/>
+      <ellipse cx="450" cy="391" rx="215" ry="14" fill="#d1def2"/>
+      <circle cx="450" cy="386" r="92" fill="url(#earth)"/>
+      <path d="M386 358 q41 -24 88 -7 t59 8 M404 401 q44 -19 72 7 t41 4" stroke="#8ee0bb" stroke-width="11" fill="none" opacity=".88"/>
+      <circle cx="450" cy="${y.toFixed(1)}" r="17" fill="#ef7e29" stroke="#fff" stroke-width="4"/>
+      ${lines}
+      <line x1="500" y1="${startY}" x2="500" y2="305" stroke="#cddbf0" stroke-width="2" stroke-dasharray="5 6"/>
+      <text x="516" y="${startY + 7}" fill="#5f7089" font-size="13">${ui("start", "শুরু")}</text>
+      <rect x="53" y="54" width="235" height="79" rx="15" fill="#fff" stroke="#dce6f3"/>
+      <text x="72" y="81" font-size="13" font-weight="700" fill="#2768e8">${ui("GRAVITATIONAL FORCE", "মহাকর্ষীয় বল")}</text>
+      <text x="72" y="109" font-size="15" font-weight="700" fill="#12233f">${fallingText}</text>
+      <text x="675" y="347" font-size="13" font-weight="700" fill="#2768e8">${ui("Earth", "পৃথিবী")}</text>
+      <text x="450" y="41" text-anchor="middle" font-size="14" fill="#5f7089">${ui("Adjust height and release the object", "উচ্চতা বদলে বস্তুটি ছাড়ো")}</text>`;
+  }
+
+  function electromagneticSVG() {
+    const e = state.electromagnetic;
+    const baseHalf = 92 + e.separation * 1.2;
+    const travel = e.interaction === "attract" ? Math.min(baseHalf - 50, baseHalf * .72) : 92;
+    const move = travel * e.progress;
+    const leftX = 450 - baseHalf + (e.interaction === "attract" ? move : -move);
+    const rightX = 450 + baseHalf + (e.interaction === "attract" ? -move : move);
+    const symbolRight = e.interaction === "attract" ? "−" : "+";
+    const leftArrowEnd = e.interaction === "attract" ? leftX + 78 : leftX - 78;
+    const rightArrowEnd = e.interaction === "attract" ? rightX - 78 : rightX + 78;
+    const marker = "url(#arrowOrange)";
+    return `${defs()}
+      <rect width="900" height="440" fill="url(#space)"/>
+      <text x="450" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="#12233f">${e.interaction === "attract" ? ui("Opposite charges attract", "বিপরীত আধান আকর্ষণ করে") : ui("Like charges repel", "সমধর্মী আধান বিকর্ষণ করে")}</text>
+      <line x1="78" y1="295" x2="822" y2="295" stroke="#d6e3f6" stroke-width="3"/>
+      <line x1="${leftX}" y1="297" x2="${leftX}" y2="313" stroke="#aebed4" stroke-width="3"/>
+      <line x1="${rightX}" y1="297" x2="${rightX}" y2="313" stroke="#aebed4" stroke-width="3"/>
+      <circle cx="${leftX}" cy="214" r="48" fill="#ef7e29"/>
+      <circle cx="${rightX}" cy="214" r="48" fill="#2768e8"/>
+      <circle cx="${leftX}" cy="214" r="58" fill="none" stroke="#ef7e29" opacity=".14" stroke-width="10"/>
+      <circle cx="${rightX}" cy="214" r="58" fill="none" stroke="#2768e8" opacity=".14" stroke-width="10"/>
+      <text x="${leftX}" y="229" text-anchor="middle" font-size="45" font-weight="700" fill="#fff">+</text>
+      <text x="${rightX}" y="229" text-anchor="middle" font-size="45" font-weight="700" fill="#fff">${symbolRight}</text>
+      <line x1="${leftX + (e.interaction === "attract" ? 57 : -57)}" y1="147" x2="${leftArrowEnd}" y2="147" stroke="#ef7e29" stroke-width="5" marker-end="${marker}"/>
+      <line x1="${rightX + (e.interaction === "attract" ? -57 : 57)}" y1="147" x2="${rightArrowEnd}" y2="147" stroke="#ef7e29" stroke-width="5" marker-end="${marker}"/>
+      <rect x="294" y="338" width="312" height="53" rx="14" fill="#fff" stroke="#e2eaf7"/>
+      <text x="450" y="370" text-anchor="middle" font-size="14" font-weight="700" fill="#ef7e29">${ui("Electromagnetic force • long range", "তড়িৎচুম্বকীয় বল • দীর্ঘ পাল্লা")}</text>`;
+  }
+
+  function strongSVG() {
+    const spread = state.strong.spread;
+    const d = 30 + spread * 1.02;
+    const pulse = Math.sin(state.phase * 4) * (spread < 62 ? 2.5 : 1);
+    const alpha = Math.max(0.08, 0.72 - spread / 128);
+    const label = spread < 62 ? ui("Nucleons remain bound", "নিউক্লিয়ন আবদ্ধ থাকে") : ui("Too far apart for strong binding here", "এখানে সবল বন্ধনের জন্য অতিরিক্ত দূরে");
+    const positions = [[-d,-d + pulse,"p","#e84963"],[d,-d - pulse,"n","#4e8be9"],[-d,d - pulse,"n","#4e8be9"],[d,d + pulse,"p","#e84963"]];
+    const cx = 450, cy = 220;
+    const bonds = `<line x1="${cx-d}" y1="${cy-d}" x2="${cx+d}" y2="${cy-d}" />
+      <line x1="${cx-d}" y1="${cy+d}" x2="${cx+d}" y2="${cy+d}" />
+      <line x1="${cx-d}" y1="${cy-d}" x2="${cx-d}" y2="${cy+d}" />
+      <line x1="${cx+d}" y1="${cy-d}" x2="${cx+d}" y2="${cy+d}" />
+      <line x1="${cx-d}" y1="${cy-d}" x2="${cx+d}" y2="${cy+d}" />
+      <line x1="${cx+d}" y1="${cy-d}" x2="${cx-d}" y2="${cy+d}" />`;
+    return `${defs()}
+      <rect width="900" height="440" fill="url(#space)"/>
+      <text x="450" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="#12233f">${ui("A safe simplified nucleus model", "নিরাপদ সরলীকৃত নিউক্লিয়াস মডেল")}</text>
+      <circle cx="${cx}" cy="${cy}" r="${93 + spread * .78}" fill="#7356df" opacity=".045"/>
+      <g stroke="#7356df" stroke-width="7" opacity="${alpha}" stroke-linecap="round">${bonds}</g>
+      ${positions.map(([x,y,labelText,color]) => `<circle cx="${cx+x}" cy="${cy+y}" r="34" fill="${color}" stroke="#fff" stroke-width="4"/><text x="${cx+x}" y="${cy+y+7}" text-anchor="middle" font-size="21" font-weight="700" fill="#fff">${labelText}</text>`).join("")}
+      <path d="M${cx-185} 219 L${cx-d-49} 219" stroke="#7356df" stroke-width="4" marker-end="url(#arrowBlue)" opacity="${spread > 35 ? 1 : .25}"/>
+      <path d="M${cx+185} 219 L${cx+d+49} 219" stroke="#7356df" stroke-width="4" marker-end="url(#arrowBlue)" opacity="${spread > 35 ? 1 : .25}"/>
+      <rect x="275" y="355" width="350" height="48" rx="14" fill="#fff" stroke="#e2eaf7"/>
+      <text x="450" y="385" text-anchor="middle" font-size="14" font-weight="700" fill="#7356df">${label}</text>
+      <text x="690" y="201" font-size="13" fill="#5f7089">p = ${ui("proton", "প্রোটন")}</text>
+      <text x="690" y="229" font-size="13" fill="#5f7089">n = ${ui("neutron", "নিউট্রন")}</text>`;
+  }
+
+  function weakSVG() {
+    const progress = state.weak.progress;
+    const transformAlpha = Math.min(1, Math.max(0, (progress - .3) * 3));
+    const electronX = 520 + progress * 198;
+    const electronY = 245 + progress * 74;
+    const neutrinoX = 518 + progress * 245;
+    const neutrinoY = 203 - progress * 62;
+    return `${defs()}
+      <rect width="900" height="440" fill="url(#space)"/>
+      <text x="450" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="#12233f">${ui("Simplified decay-related particle change", "ক্ষয়-সম্পর্কিত কণা পরিবর্তনের সরলীকৃত দৃশ্য")}</text>
+      <circle cx="304" cy="217" r="58" fill="#4e8be9" opacity="${1 - transformAlpha * .75}"/>
+      <text x="304" y="225" text-anchor="middle" font-size="28" font-weight="700" fill="#fff" opacity="${1 - transformAlpha}">n</text>
+      <circle cx="304" cy="217" r="58" fill="#e84963" opacity="${transformAlpha}"/>
+      <text x="304" y="225" text-anchor="middle" font-size="28" font-weight="700" fill="#fff" opacity="${transformAlpha}">p</text>
+      <path d="M381 217 L481 217" stroke="#059b92" stroke-width="5" marker-end="url(#arrowTeal)"/>
+      <text x="431" y="195" text-anchor="middle" font-size="12" fill="#059b92" font-weight="700">${ui("weak interaction", "দুর্বল মিথস্ক্রিয়া")}</text>
+      <circle cx="${electronX}" cy="${electronY}" r="18" fill="#ef7e29" opacity="${transformAlpha}"/>
+      <text x="${electronX}" y="${electronY+5}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff" opacity="${transformAlpha}">e⁻</text>
+      <circle cx="${neutrinoX}" cy="${neutrinoY}" r="13" fill="#059b92" opacity="${transformAlpha}"/>
+      <text x="${neutrinoX + 25}" y="${neutrinoY + 5}" font-size="13" font-weight="700" fill="#059b92" opacity="${transformAlpha}">ν</text>
+      <text x="304" y="303" text-anchor="middle" font-size="14" font-weight="700" fill="#4e8be9" opacity="${1-transformAlpha}">${ui("neutron", "নিউট্রন")}</text>
+      <text x="304" y="303" text-anchor="middle" font-size="14" font-weight="700" fill="#e84963" opacity="${transformAlpha}">${ui("proton", "প্রোটন")}</text>
+      <rect x="201" y="349" width="498" height="48" rx="14" fill="#fff" stroke="#e2eaf7"/>
+      <text x="450" y="379" text-anchor="middle" font-size="14" font-weight="700" fill="#059b92">${ui("Weak nuclear force enables certain radioactive decays", "দুর্বল নিউক্লীয় বল কিছু তেজস্ক্রিয় ক্ষয় সম্ভব করে")}</text>`;
+  }
+
+  $("enBtn").addEventListener("click", () => { state.lang = "en"; applyLanguage(); });
+  $("bnBtn").addEventListener("click", () => { state.lang = "bn"; applyLanguage(); });
+  $("playBtn").addEventListener("click", () => {
+    state.playing = !state.playing;
+    $("playBtn").textContent = state.playing ? ui("Pause motion", "গতি থামাও") : ui("Resume motion", "গতি চালাও");
+  });
+  $("resetBtn").addEventListener("click", () => selectScene("overview"));
+
+  let previous = performance.now();
+  function animate(now) {
+    const dt = Math.min(.05, (now - previous) / 1000);
+    previous = now;
+    if (state.playing) {
+      state.phase += dt;
+      if (state.scene === "gravity" && state.gravity.active && state.gravity.progress < 1) {
+        state.gravity.progress = Math.min(1, state.gravity.progress + dt * .53);
+        if (state.gravity.progress >= 1) { state.gravity.active = false; renderPanels(); }
+      }
+      if (state.scene === "electromagnetic" && state.electromagnetic.active && state.electromagnetic.progress < 1) {
+        state.electromagnetic.progress = Math.min(1, state.electromagnetic.progress + dt * .66);
+        if (state.electromagnetic.progress >= 1) state.electromagnetic.active = false;
+      }
+      if (state.scene === "weak" && state.weak.active && state.weak.progress < 1) {
+        state.weak.progress = Math.min(1, state.weak.progress + dt * .46);
+        const slider = $("decay"), val = $("decayVal");
+        if (slider) slider.value = String(Math.round(state.weak.progress * 100));
+        if (val) val.textContent = `${Math.round(state.weak.progress * 100)}%`;
+        if (state.weak.progress >= 1) { state.weak.active = false; renderPanels(); }
+      }
+      renderStage();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  applyLanguage();
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

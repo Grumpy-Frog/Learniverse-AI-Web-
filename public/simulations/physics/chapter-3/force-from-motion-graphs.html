@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detecting Force from Motion Graphs / লেখচিত্র থেকে বল শনাক্তকরণ</title>
+<style>
+  :root {
+    --bg: #eef5ff;
+    --card: rgba(255,255,255,.92);
+    --ink: #12233f;
+    --muted: #5b6b82;
+    --blue: #2266e3;
+    --blue-2: #e7f0ff;
+    --teal: #03968f;
+    --teal-2: #dff8f4;
+    --orange: #ef7c29;
+    --orange-2: #fff1e4;
+    --red: #e24652;
+    --purple: #6956db;
+    --line: #dce6f3;
+    --shadow: 0 16px 42px rgba(28,50,83,.10);
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: Arial, "Noto Sans Bengali", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 8% 2%, #d7e9ff 0, transparent 30%),
+      radial-gradient(circle at 92% 0%, #d7f7f0 0, transparent 25%),
+      var(--bg);
+    line-height: 1.45;
+  }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  .app { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 18px; margin-bottom: 18px;
+  }
+  .eyebrow {
+    display: inline-flex; gap: 7px; align-items: center; color: var(--blue);
+    background: var(--blue-2); border-radius: 999px; padding: 6px 12px;
+    font-weight: 700; font-size: .84rem; margin-bottom: 9px;
+  }
+  h1 { font-size: clamp(1.5rem, 2.7vw, 2.35rem); margin: 0 0 5px; letter-spacing: -.035em; }
+  .subtitle { margin: 0; color: var(--muted); max-width: 720px; font-size: .98rem; }
+  .lang-toggle {
+    flex-shrink: 0; display: flex; background: #fff; border: 1px solid var(--line);
+    box-shadow: 0 6px 18px rgba(23,51,82,.06); padding: 4px; border-radius: 13px;
+  }
+  .lang-toggle button {
+    border: 0; background: transparent; color: var(--muted); font-weight: 700;
+    padding: 9px 14px; border-radius: 10px; transition: .18s;
+  }
+  .lang-toggle button.active { background: var(--blue); color: #fff; }
+  .layout { display: grid; grid-template-columns: 328px minmax(0,1fr); gap: 18px; align-items: start; }
+  .card {
+    background: var(--card); border: 1px solid rgba(219,230,244,.95);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  aside { padding: 18px; position: sticky; top: 16px; }
+  aside h2 { margin: 0 0 14px; font-size: 1.08rem; }
+  .control { margin-bottom: 16px; }
+  .labelrow { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 6px; }
+  label { font-size: .89rem; color: var(--muted); font-weight: 700; }
+  output {
+    color: var(--blue); background: var(--blue-2); font-weight: 700;
+    font-size: .84rem; border-radius: 8px; padding: 3px 8px; white-space: nowrap;
+  }
+  input[type=range] {
+    appearance: none; -webkit-appearance: none; width: 100%; height: 6px;
+    border-radius: 99px; background: #dbe6f5; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none; width: 19px; height: 19px; border-radius: 50%;
+    background: var(--blue); border: 3px solid #fff; box-shadow: 0 2px 7px rgba(20,50,100,.23);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 19px; height: 19px; border-radius: 50%; background: var(--blue);
+    border: 3px solid #fff; box-shadow: 0 2px 7px rgba(20,50,100,.23);
+  }
+  .direction-set { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .direction-set button {
+    padding: 9px 6px; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 11px; background: #fff; font-weight: 700; transition: .18s;
+  }
+  .direction-set button.selected { background: var(--orange-2); border-color: #ffc594; color: #b9530d; }
+  .hint { color: var(--muted); font-size: .79rem; margin: 4px 0 15px; }
+  .controls-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-top: 19px; }
+  .actions-btn {
+    height: 43px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+    color: var(--ink); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .actions-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .actions-btn:active { transform: translateY(1px); }
+  .main { display: grid; gap: 18px; }
+  .track-card { overflow: hidden; }
+  .track-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 18px 0;
+  }
+  .time-pill { font-weight: 700; font-variant-numeric: tabular-nums; background: #f4f7fb; border-radius: 10px; padding: 7px 11px; color: var(--muted); }
+  .legend-inline { display:flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .82rem; font-weight: 700; }
+  .dot { width: 11px; height: 11px; display: inline-block; vertical-align: -1px; border-radius: 99px; margin-right: 5px; }
+  .motion-canvas-wrap { padding: 9px 14px 6px; }
+  #trackSvg { display: block; width: 100%; height: auto; }
+  .readouts {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+    padding: 0 18px 18px;
+  }
+  .readout { background: #f6f9fd; border: 1px solid #e7eef7; border-radius: 14px; padding: 10px 12px; min-height: 71px; }
+  .readout span { color: var(--muted); font-size: .76rem; font-weight: 700; display: block; margin-bottom: 4px; }
+  .readout strong { font-size: .94rem; display: block; }
+  .yes { color: var(--orange); }
+  .no { color: var(--teal); }
+  .graphs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .graph-card { padding: 13px 13px 10px; min-width: 0; }
+  .graph-title {
+    margin: 0 0 7px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    font-size: 1rem;
+  }
+  .force-band-key { color: var(--orange); font-size: .75rem; font-weight: 700; background: var(--orange-2); border-radius: 8px; padding: 4px 7px; }
+  .graph-svg { display: block; width: 100%; height: auto; background: #fff; border-radius: 12px; }
+  .observation {
+    padding: 17px 18px; display: grid; grid-template-columns: auto 1fr; gap: 13px; align-items: start;
+  }
+  .bulb {
+    width: 43px; height: 43px; border-radius: 13px; display:grid; place-items:center;
+    background: var(--teal-2); color: var(--teal); font-size: 1.35rem; font-weight: 700;
+  }
+  .observation h2 { font-size: 1rem; margin: 1px 0 5px; }
+  .observation p { margin: 0; color: var(--muted); font-size: .94rem; }
+  .principle {
+    display: inline-block; margin-top: 8px; padding: 5px 9px; border-radius: 8px;
+    background: #f2efff; color: var(--purple); font-weight: 700; font-size: .8rem;
+  }
+  .footer-note { color: var(--muted); font-size: .78rem; text-align: center; margin: 13px 0 2px; }
+  @media (max-width: 990px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { position: static; }
+    .control-grid { display:grid; grid-template-columns: repeat(2, 1fr); column-gap: 22px; }
+    .controls-actions { max-width: 370px; }
+  }
+  @media (max-width: 700px) {
+    .app { padding: 12px; }
+    header { flex-direction: column; }
+    .graphs, .readouts, .control-grid { grid-template-columns: 1fr; }
+    .readouts { gap: 7px; }
+    .readout { min-height: 58px; }
+    .track-top { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div>
+      <div class="eyebrow" data-i18n="topic">⚙ Newton's Laws • Motion graphs</div>
+      <h1 data-i18n="title">Detecting Force from Motion Graphs</h1>
+      <p class="subtitle" data-i18n="subtitle">Explore how a net force changes velocity and reshapes motion graphs.</p>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" class="active" data-lang="en">English</button>
+      <button type="button" data-lang="bn">বাংলা</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="card" aria-label="Controls">
+      <h2 data-i18n="controls">Experiment controls</h2>
+      <div class="control-grid">
+        <div class="control">
+          <div class="labelrow"><label for="initialV" data-i18n="initialVelocity">Initial velocity</label><output id="initialVOut">3.0 m/s →</output></div>
+          <input id="initialV" type="range" min="-8" max="8" value="3" step="0.5">
+        </div>
+        <div class="control">
+          <div class="labelrow"><label for="mass" data-i18n="mass">Object mass</label><output id="massOut">2.0 kg</output></div>
+          <input id="mass" type="range" min="1" max="5" value="2" step="0.5">
+        </div>
+        <div class="control">
+          <div class="labelrow"><label for="force" data-i18n="magnitude">Applied force</label><output id="forceOut">6.0 N</output></div>
+          <input id="force" type="range" min="0" max="14" value="6" step="0.5">
+        </div>
+        <div class="control">
+          <div class="labelrow"><label data-i18n="direction">Force direction</label></div>
+          <div class="direction-set" id="directionButtons">
+            <button type="button" data-direction="-1" data-i18n="left">← Left</button>
+            <button type="button" class="selected" data-direction="1" data-i18n="right">Right →</button>
+          </div>
+        </div>
+        <div class="control">
+          <div class="labelrow"><label for="forceStart" data-i18n="startAt">Force starts at</label><output id="startOut">2.0 s</output></div>
+          <input id="forceStart" type="range" min="0" max="9" value="2" step="0.5">
+        </div>
+        <div class="control">
+          <div class="labelrow"><label for="duration" data-i18n="duration">Force duration</label><output id="durationOut">3.0 s</output></div>
+          <input id="duration" type="range" min="0.5" max="5" value="3" step="0.5">
+        </div>
+      </div>
+      <p class="hint" data-i18n="changeHint">Changing a control starts a fresh trial.</p>
+      <div class="controls-actions">
+        <button class="actions-btn primary" id="playBtn" type="button"><span id="playIcon">▶</span><span id="playText" data-i18n="play">Play</span></button>
+        <button class="actions-btn" id="pauseBtn" type="button"><span>❚❚</span><span data-i18n="pause">Pause</span></button>
+        <button class="actions-btn" id="resetBtn" type="button"><span>↺</span><span data-i18n="reset">Reset</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card track-card" aria-label="Object motion">
+        <div class="track-top">
+          <div class="legend-inline">
+            <span><span class="dot" style="background:var(--blue)"></span><span data-i18n="object">Object</span></span>
+            <span><span class="dot" style="background:var(--orange)"></span><span data-i18n="forceArrow">Force arrow</span></span>
+            <span><span class="dot" style="background:var(--teal)"></span><span data-i18n="velocityArrow">Velocity arrow</span></span>
+          </div>
+          <div class="time-pill"><span data-i18n="time">Time</span>: <span id="timeOut">0.0 s</span></div>
+        </div>
+        <div class="motion-canvas-wrap">
+          <svg id="trackSvg" viewBox="0 0 1000 185" role="img" aria-label="Object moving on a straight track"></svg>
+        </div>
+        <div class="readouts">
+          <div class="readout"><span data-i18n="motionState">Motion state</span><strong id="motionState">Moving right steadily</strong></div>
+          <div class="readout"><span data-i18n="forceActing">Force currently acting?</span><strong id="forceState" class="no">No</strong></div>
+          <div class="readout"><span data-i18n="velocityStatus">Velocity status</span><strong id="velocityState">Constant</strong></div>
+          <div class="readout"><span data-i18n="measurements">Measurements</span><strong id="measureState">x = 0.0 m, v = 3.0 m/s</strong></div>
+        </div>
+      </section>
+
+      <section class="graphs" aria-label="Live graphs">
+        <div class="card graph-card">
+          <h2 class="graph-title"><span data-i18n="vGraph">Velocity–time graph</span><span class="force-band-key" data-i18n="shaded">Shaded = force interval</span></h2>
+          <svg class="graph-svg" id="velocityGraph" viewBox="0 0 590 276" role="img" aria-label="Velocity time graph"></svg>
+        </div>
+        <div class="card graph-card">
+          <h2 class="graph-title"><span data-i18n="xGraph">Position–time graph</span><span class="force-band-key" data-i18n="shaded">Shaded = force interval</span></h2>
+          <svg class="graph-svg" id="positionGraph" viewBox="0 0 590 276" role="img" aria-label="Position time graph"></svg>
+        </div>
+      </section>
+
+      <section class="card observation" aria-label="Observation">
+        <div class="bulb">i</div>
+        <div>
+          <h2 data-i18n="observation">Observation</h2>
+          <p id="observationText"></p>
+          <span class="principle" data-i18n="principle">Net force changes velocity; constant velocity means no net force is changing the motion.</span>
+        </div>
+      </section>
+      <p class="footer-note" data-i18n="footer">Use different directions and durations to compare the slopes of both graphs.</p>
+    </main>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    initialV: $('initialV'), mass: $('mass'), force: $('force'), forceStart: $('forceStart'), duration: $('duration'),
+    initialVOut: $('initialVOut'), massOut: $('massOut'), forceOut: $('forceOut'), startOut: $('startOut'), durationOut: $('durationOut'),
+    directionButtons: $('directionButtons'), playBtn: $('playBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn'),
+    playIcon: $('playIcon'), playText: $('playText'), timeOut: $('timeOut'), trackSvg: $('trackSvg'),
+    velocityGraph: $('velocityGraph'), positionGraph: $('positionGraph'), motionState: $('motionState'), forceState: $('forceState'),
+    velocityState: $('velocityState'), measureState: $('measureState'), observationText: $('observationText')
+  };
+  const dictionary = {
+    en: {
+      topic: "⚙ Newton's Laws • Motion graphs", title: 'Detecting Force from Motion Graphs',
+      subtitle: 'Explore how a net force changes velocity and reshapes motion graphs.', controls: 'Experiment controls',
+      initialVelocity: 'Initial velocity', mass: 'Object mass', magnitude: 'Applied force', direction: 'Force direction',
+      left: '← Left', right: 'Right →', startAt: 'Force starts at', duration: 'Force duration',
+      changeHint: 'Changing a control starts a fresh trial.', play: 'Play', pause: 'Pause', reset: 'Reset',
+      object: 'Object', forceArrow: 'Force arrow', velocityArrow: 'Velocity arrow', time: 'Time',
+      motionState: 'Motion state', forceActing: 'Force currently acting?', velocityStatus: 'Velocity status', measurements: 'Measurements',
+      vGraph: 'Velocity–time graph', xGraph: 'Position–time graph', shaded: 'Shaded = force interval',
+      observation: 'Observation', principle: 'Net force changes velocity; constant velocity means no net force is changing the motion.',
+      footer: 'Use different directions and durations to compare the slopes of both graphs.',
+      yes: 'Yes', no: 'No', constant: 'Constant', changing: 'Changing', atRest: 'At rest', movingRight: 'Moving right', movingLeft: 'Moving left',
+      steady: ' steadily', speeding: ' and speeding up', slowing: ' and slowing down', reversing: ' and changing direction',
+      before: 'Before the force interval, the velocity–time graph is flat because the object continues with constant velocity.',
+      during: 'A net force is acting now. The velocity–time graph has a slope, and the position–time graph begins to curve.',
+      after: 'The force has ended. Velocity now stays constant at its new value, so the velocity–time graph becomes flat again.',
+      zeroForce: 'Applied force is zero. Velocity remains constant, so the velocity–time graph is flat and the position–time graph is a straight line.',
+      acceleration: 'Acceleration', position: 'Position', velocity: 'Velocity', sec: 'Time (s)', posUnit: 'Position (m)', velUnit: 'Velocity (m/s)', forceLabel: 'FORCE', velocityLabel: 'v'
+    },
+    bn: {
+      topic: '⚙ নিউটনের সূত্র • গতির লেখচিত্র', title: 'লেখচিত্র থেকে বল শনাক্তকরণ',
+      subtitle: 'লব্ধি বল কীভাবে বেগ বদলায় এবং গতির লেখচিত্র পরিবর্তন করে তা অনুসন্ধান করো।', controls: 'পরীক্ষার নিয়ন্ত্রণ',
+      initialVelocity: 'প্রারম্ভিক বেগ', mass: 'বস্তুর ভর', magnitude: 'প্রয়োগ করা বল', direction: 'বলের দিক',
+      left: '← বামে', right: 'ডানে →', startAt: 'বল শুরু হবে', duration: 'বলের স্থায়িত্ব',
+      changeHint: 'কোনো নিয়ন্ত্রণ বদলালে নতুন করে পরীক্ষা শুরু হবে।', play: 'চালাও', pause: 'বিরতি', reset: 'পুনরায় শুরু',
+      object: 'বস্তু', forceArrow: 'বলের তীর', velocityArrow: 'বেগের তীর', time: 'সময়',
+      motionState: 'গতির অবস্থা', forceActing: 'এখন কি বল ক্রিয়াশীল?', velocityStatus: 'বেগের অবস্থা', measurements: 'পরিমাপ',
+      vGraph: 'বেগ–সময় লেখচিত্র', xGraph: 'অবস্থান–সময় লেখচিত্র', shaded: 'ছায়া = বলের সময়কাল',
+      observation: 'পর্যবেক্ষণ', principle: 'লব্ধি বল বেগ পরিবর্তন করে; ধ্রুব বেগ মানে কোনো লব্ধি বল গতি বদলাচ্ছে না।',
+      footer: 'দুই লেখচিত্রের ঢাল তুলনা করতে বলের দিক ও স্থায়িত্ব বদলে দেখো।',
+      yes: 'হ্যাঁ', no: 'না', constant: 'ধ্রুব', changing: 'পরিবর্তনশীল', atRest: 'স্থির', movingRight: 'ডানে চলছে', movingLeft: 'বামে চলছে',
+      steady: ' ধ্রুব বেগে', speeding: ' এবং দ্রুততর হচ্ছে', slowing: ' এবং ধীর হচ্ছে', reversing: ' এবং দিক বদলাচ্ছে',
+      before: 'বল প্রয়োগের আগে বেগ ধ্রুব থাকে, তাই বেগ–সময় লেখচিত্রটি সমান্তরাল সরলরেখা।',
+      during: 'এখন লব্ধি বল ক্রিয়াশীল। বেগ–সময় লেখচিত্রে ঢাল তৈরি হয় এবং অবস্থান–সময় লেখচিত্র বাঁকতে শুরু করে।',
+      after: 'বল প্রয়োগ শেষ হয়েছে। নতুন বেগ এখন ধ্রুব, তাই বেগ–সময় লেখচিত্র আবার সমান্তরাল সরলরেখা হয়।',
+      zeroForce: 'প্রয়োগ করা বল শূন্য। বেগ ধ্রুব থাকে, তাই বেগ–সময় লেখচিত্র সমান্তরাল এবং অবস্থান–সময় লেখচিত্র সরলরেখা।',
+      acceleration: 'ত্বরণ', position: 'অবস্থান', velocity: 'বেগ', sec: 'সময় (s)', posUnit: 'অবস্থান (m)', velUnit: 'বেগ (m/s)', forceLabel: 'বল', velocityLabel: 'v'
+    }
+  };
+  const sim = { lang: 'en', t: 0, running: false, direction: 1, lastStamp: 0 };
+  const n = (el) => Number(el.value);
+  const txt = (key) => dictionary[sim.lang][key];
+  const params = () => {
+    const start = n(els.forceStart), duration = n(els.duration);
+    return {
+      v0: n(els.initialV), mass: n(els.mass), force: n(els.force), direction: sim.direction,
+      start, duration, end: start + duration, total: Math.max(12, start + duration + 2)
+    };
+  };
+  function signedNumber(value, unit) {
+    return `${value.toFixed(1)} ${unit}${Math.abs(value) < 0.01 ? '' : value > 0 ? ' →' : ' ←'}`;
+  }
+  function modelAt(t, p) {
+    const a = p.force === 0 ? 0 : (p.direction * p.force / p.mass);
+    const activeDuration = Math.min(Math.max(t - p.start, 0), p.duration);
+    const v = p.v0 + a * activeDuration;
+    let x;
+    if (t <= p.start) {
+      x = p.v0 * t;
+    } else if (t <= p.end) {
+      const dt = t - p.start;
+      x = p.v0 * p.start + p.v0 * dt + 0.5 * a * dt * dt;
+    } else {
+      const xEnd = p.v0 * p.end + 0.5 * a * p.duration * p.duration;
+      const vEnd = p.v0 + a * p.duration;
+      x = xEnd + vEnd * (t - p.end);
+    }
+    const active = p.force > 0 && t >= p.start && t <= p.end;
+    return { x, v, a: active ? a : 0, nominalA: a, active };
+  }
+  function resetTrial() {
+    sim.running = false;
+    sim.t = 0;
+    sim.lastStamp = 0;
+    updateAll();
+  }
+  function updateOutputs() {
+    const p = params();
+    els.initialVOut.textContent = signedNumber(p.v0, 'm/s');
+    els.massOut.textContent = `${p.mass.toFixed(1)} kg`;
+    els.forceOut.textContent = `${p.force.toFixed(1)} N`;
+    els.startOut.textContent = `${p.start.toFixed(1)} s`;
+    els.durationOut.textContent = `${p.duration.toFixed(1)} s`;
+  }
+  function escapeText(s) {
+    return String(s).replace(/[&<>"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  }
+  function drawArrow(x1, y1, x2, y2, color, width, label) {
+    const angle = Math.atan2(y2-y1, x2-x1), size = 10 + width;
+    const ax = x2 - size * Math.cos(angle - Math.PI / 6), ay = y2 - size * Math.sin(angle - Math.PI / 6);
+    const bx = x2 - size * Math.cos(angle + Math.PI / 6), by = y2 - size * Math.sin(angle + Math.PI / 6);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>` +
+      `<polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${color}"/>` +
+      `<text x="${(x1+x2)/2}" y="${Math.min(y1,y2)-8}" text-anchor="middle" font-size="12" font-weight="700" fill="${color}">${escapeText(label)}</text>`;
+  }
+  function drawTrack(p, state) {
+    const width = 1000, roadY = 130, scale = 11;
+    const leftSafe = 95, rightSafe = 900;
+    let camera = 0;
+    let objectX = 150 + state.x * scale;
+    if (objectX > rightSafe) camera = state.x - (rightSafe - 150) / scale;
+    if (objectX < leftSafe) camera = state.x - (leftSafe - 150) / scale;
+    objectX = 150 + (state.x - camera) * scale;
+    let ticks = '';
+    const worldLeft = camera - 14, worldRight = camera + 82;
+    const tickStart = Math.floor(worldLeft / 5) * 5;
+    for (let m = tickStart; m <= worldRight; m += 5) {
+      const sx = 150 + (m - camera) * scale;
+      if (sx > 18 && sx < width - 18) {
+        ticks += `<line x1="${sx}" y1="${roadY}" x2="${sx}" y2="${roadY+14}" stroke="#8ba0bc" stroke-width="2"/>`;
+        ticks += `<text x="${sx}" y="${roadY+32}" text-anchor="middle" font-size="11" fill="#65758c">${m} m</text>`;
+      }
+    }
+    const carY = 83;
+    const direction = state.v >= 0 ? 1 : -1;
+    const velocityLength = Math.min(108, Math.abs(state.v) * 8 + 14);
+    const velocityStart = objectX;
+    const velocityEnd = objectX + direction * velocityLength;
+    const forceLength = Math.min(145, p.force * 7 + 20);
+    const forceY = 46;
+    let arrows = '';
+    if (Math.abs(state.v) > 0.04) arrows += drawArrow(velocityStart, carY - 6, velocityEnd, carY - 6, '#03968f', 4, txt('velocityLabel'));
+    if (state.active) arrows += drawArrow(objectX, forceY, objectX + p.direction * forceLength, forceY, '#ef7c29', 6, txt('forceLabel'));
+    els.trackSvg.innerHTML = `
+      <defs>
+        <linearGradient id="trackBg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#ecf7ff"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+        <linearGradient id="blockFill" x1="0" x2="1"><stop stop-color="#2266e3"/><stop offset="1" stop-color="#4897ff"/></linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1000" height="185" rx="18" fill="url(#trackBg)"/>
+      <line x1="18" y1="${roadY}" x2="982" y2="${roadY}" stroke="#344b68" stroke-width="4" stroke-linecap="round"/>
+      ${ticks}
+      ${arrows}
+      <g transform="translate(${objectX-36},${carY})">
+        <rect x="0" y="0" width="72" height="37" rx="9" fill="url(#blockFill)"/>
+        <rect x="12" y="9" width="48" height="9" rx="4" fill="#bfdcff" opacity=".8"/>
+        <circle cx="16" cy="40" r="8" fill="#243750"/><circle cx="56" cy="40" r="8" fill="#243750"/>
+        <circle cx="16" cy="40" r="3" fill="#e5edf6"/><circle cx="56" cy="40" r="3" fill="#e5edf6"/>
+      </g>`;
+  }
+  function sampleCurve(p, key) {
+    const points = [];
+    for (let i = 0; i <= 160; i++) {
+      const t = p.total * i / 160;
+      points.push({ t, y: modelAt(t, p)[key] });
+    }
+    return points;
+  }
+  function niceBounds(values) {
+    let lo = Math.min(0, ...values), hi = Math.max(0, ...values);
+    if (Math.abs(hi - lo) < 0.4) { hi += 1; lo -= 1; }
+    const pad = (hi - lo) * .12;
+    lo -= pad; hi += pad;
+    const rough = (hi - lo) / 4;
+    const pow = Math.pow(10, Math.floor(Math.log10(Math.max(rough, 0.001))));
+    const normal = rough / pow;
+    const tick = (normal <= 1 ? 1 : normal <= 2 ? 2 : normal <= 5 ? 5 : 10) * pow;
+    lo = Math.floor(lo / tick) * tick;
+    hi = Math.ceil(hi / tick) * tick;
+    return { lo, hi, tick };
+  }
+  function fmtTick(value) {
+    if (Math.abs(value) < 0.0001) return '0';
+    return Math.abs(value) >= 10 || Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+  }
+  function drawGraph(svg, p, key, yLabel, color) {
+    const W = 590, H = 276, left = 56, top = 18, right = 17, bottom = 43;
+    const pw = W-left-right, ph = H-top-bottom;
+    const curve = sampleCurve(p, key);
+    const bounds = niceBounds(curve.map(q => q.y));
+    const xMap = t => left + pw * t / p.total;
+    const yMap = y => top + ph - ph * (y - bounds.lo) / (bounds.hi - bounds.lo);
+    let grid = '';
+    for (let i=0; i<=4; i++) {
+      const tt = p.total * i / 4, x = xMap(tt);
+      grid += `<line x1="${x}" y1="${top}" x2="${x}" y2="${top+ph}" stroke="#e8eef7"/><text x="${x}" y="${H-18}" text-anchor="middle" font-size="11" fill="#687a92">${tt.toFixed(1)}</text>`;
+    }
+    let guard = 0;
+    for (let y = bounds.lo; y <= bounds.hi + bounds.tick/2 && guard < 10; y += bounds.tick, guard++) {
+      const sy = yMap(y);
+      grid += `<line x1="${left}" y1="${sy}" x2="${left+pw}" y2="${sy}" stroke="${Math.abs(y)<1e-8 ? '#c0cee0' : '#e8eef7'}" stroke-width="${Math.abs(y)<1e-8 ? 1.4 : 1}"/>`;
+      grid += `<text x="${left-8}" y="${sy+4}" text-anchor="end" font-size="11" fill="#687a92">${fmtTick(y)}</text>`;
+    }
+    const nowState = modelAt(sim.t, p);
+    const shown = curve.filter(q => q.t < sim.t);
+    shown.push({ t: Math.min(sim.t, p.total), y: nowState[key] });
+    const path = shown.map((q,i) => `${i===0?'M':'L'} ${xMap(q.t).toFixed(2)} ${yMap(q.y).toFixed(2)}`).join(' ');
+    const cy = yMap(nowState[key]), cx = xMap(Math.min(sim.t, p.total));
+    const band = p.force > 0 ? `<rect x="${xMap(p.start)}" y="${top}" width="${xMap(p.end)-xMap(p.start)}" height="${ph}" fill="#fff0df"/>` : '';
+    svg.innerHTML = `
+      <rect width="${W}" height="${H}" rx="12" fill="#fff"/>
+      ${band}${grid}
+      <line x1="${left}" y1="${top}" x2="${left}" y2="${top+ph}" stroke="#8093aa" stroke-width="1.5"/>
+      <line x1="${left}" y1="${top+ph}" x2="${left+pw}" y2="${top+ph}" stroke="#8093aa" stroke-width="1.5"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="${cx}" y1="${top}" x2="${cx}" y2="${top+ph}" stroke="#384a64" stroke-dasharray="4 4" opacity=".65"/>
+      <circle cx="${cx}" cy="${cy}" r="5.5" fill="${color}" stroke="#fff" stroke-width="2"/>
+      <text x="${left + pw/2}" y="${H-3}" text-anchor="middle" font-size="12" fill="#51647e" font-weight="700">${escapeText(txt('sec'))}</text>
+      <text transform="translate(15 ${top + ph/2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#51647e" font-weight="700">${escapeText(yLabel)}</text>`;
+  }
+  function motionDescription(state) {
+    const activeAcceleration = state.active ? state.nominalA : 0;
+    if (Math.abs(state.v) < 0.05) return txt('atRest');
+    const base = state.v > 0 ? txt('movingRight') : txt('movingLeft');
+    if (!state.active || Math.abs(activeAcceleration) < 0.001) return base + txt('steady');
+    const change = state.v * activeAcceleration > 0.03 ? txt('speeding') : state.v * activeAcceleration < -0.03 ? txt('slowing') : txt('reversing');
+    return base + change;
+  }
+  function updateReadouts(p, state) {
+    els.timeOut.textContent = `${sim.t.toFixed(1)} s`;
+    els.motionState.textContent = motionDescription(state);
+    els.forceState.textContent = state.active ? txt('yes') : txt('no');
+    els.forceState.className = state.active ? 'yes' : 'no';
+    els.velocityState.textContent = state.active && Math.abs(state.nominalA) > 0.001 ? txt('changing') : txt('constant');
+    els.velocityState.className = state.active ? 'yes' : 'no';
+    els.measureState.textContent = `x = ${state.x.toFixed(1)} m, v = ${state.v.toFixed(1)} m/s`;
+    if (p.force === 0) els.observationText.textContent = txt('zeroForce');
+    else if (sim.t < p.start) els.observationText.textContent = txt('before');
+    else if (sim.t <= p.end) els.observationText.textContent = txt('during');
+    else els.observationText.textContent = txt('after');
+  }
+  function updateAll() {
+    updateOutputs();
+    const p = params();
+    const state = modelAt(sim.t, p);
+    drawTrack(p, state);
+    drawGraph(els.velocityGraph, p, 'v', txt('velUnit'), '#2266e3');
+    drawGraph(els.positionGraph, p, 'x', txt('posUnit'), '#6956db');
+    updateReadouts(p, state);
+  }
+  function applyLanguage() {
+    document.documentElement.lang = sim.lang === 'en' ? 'en' : 'bn';
+    document.querySelectorAll('[data-i18n]').forEach(node => {
+      const key = node.getAttribute('data-i18n');
+      if (dictionary[sim.lang][key]) node.textContent = dictionary[sim.lang][key];
+    });
+    document.querySelectorAll('.lang-toggle button').forEach(button => button.classList.toggle('active', button.dataset.lang === sim.lang));
+    updateAll();
+  }
+  function animate(stamp) {
+    if (!sim.running) return;
+    if (!sim.lastStamp) sim.lastStamp = stamp;
+    const dt = Math.min((stamp - sim.lastStamp) / 1000, 0.05);
+    sim.lastStamp = stamp;
+    const total = params().total;
+    sim.t = Math.min(total, sim.t + dt);
+    updateAll();
+    if (sim.t >= total) {
+      sim.running = false;
+      sim.lastStamp = 0;
+      return;
+    }
+    requestAnimationFrame(animate);
+  }
+  [els.initialV, els.mass, els.force, els.forceStart, els.duration].forEach(input => input.addEventListener('input', resetTrial));
+  els.directionButtons.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-direction]');
+    if (!button) return;
+    sim.direction = Number(button.dataset.direction);
+    els.directionButtons.querySelectorAll('button').forEach(b => b.classList.toggle('selected', b === button));
+    resetTrial();
+  });
+  document.querySelector('.lang-toggle').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-lang]');
+    if (!button) return;
+    sim.lang = button.dataset.lang;
+    applyLanguage();
+  });
+  els.playBtn.addEventListener('click', () => {
+    if (sim.t >= params().total) sim.t = 0;
+    if (!sim.running) {
+      sim.running = true;
+      sim.lastStamp = 0;
+      requestAnimationFrame(animate);
+    }
+  });
+  els.pauseBtn.addEventListener('click', () => { sim.running = false; sim.lastStamp = 0; updateAll(); });
+  els.resetBtn.addEventListener('click', resetTrial);
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

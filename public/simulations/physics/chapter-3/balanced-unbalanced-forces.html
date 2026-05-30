@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balanced and Unbalanced Forces / সাম্য ও অসাম্য বল</title>
+<style>
+  :root{
+    --bg:#eef5ff; --card:#ffffffee; --ink:#132640; --muted:#62748d; --line:#dde7f4;
+    --blue:#2768e8; --green:#079679; --orange:#ee7b28; --red:#db4055; --violet:#7357df;
+    --blue-soft:#e8f1ff; --green-soft:#e4f8f2; --red-soft:#fdebed;
+    --shadow:0 16px 42px rgba(29,52,85,.10); --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:Arial,"Noto Sans Bengali",sans-serif; color:var(--ink); line-height:1.42;
+    background:
+      radial-gradient(circle at 7% 0%,#d7e8ff 0,transparent 28%),
+      radial-gradient(circle at 95% 4%,#dbfaf3 0,transparent 24%),var(--bg);
+  }
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1440px;margin:0 auto;padding:20px}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;color:var(--blue);background:var(--blue-soft);
+    font-size:.83rem;font-weight:700;border-radius:999px;padding:6px 12px;margin-bottom:9px
+  }
+  .eyebrow i{display:block;width:8px;height:8px;background:var(--blue);border-radius:50%}
+  h1{font-size:clamp(1.45rem,2.72vw,2.35rem);letter-spacing:-.04em;margin:0 0 5px}
+  .subtitle{margin:0;color:var(--muted);max-width:790px;font-size:.98rem}
+  .lang{
+    flex-shrink:0;display:flex;gap:3px;padding:4px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;box-shadow:0 6px 18px rgba(23,51,82,.06)
+  }
+  .lang button{border:0;background:transparent;border-radius:10px;padding:9px 14px;color:var(--muted);font-weight:700}
+  .lang button.active{background:var(--blue);color:#fff}
+  .layout{display:grid;grid-template-columns:324px minmax(0,1fr);gap:18px;align-items:start}
+  .card{background:var(--card);border:1px solid rgba(215,226,241,.92);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .sidebar{padding:16px;display:grid;gap:15px;position:sticky;top:18px}
+  .label{color:var(--muted);font-size:.76rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;margin-bottom:9px}
+  .scenes{display:grid;gap:8px}
+  .scene-btn{
+    width:100%;border:1px solid transparent;background:#f5f8fd;color:var(--ink);padding:11px;border-radius:15px;
+    display:grid;grid-template-columns:41px 1fr;text-align:left;gap:11px;align-items:center;transition:.18s
+  }
+  .scene-btn:hover{border-color:#cbdcf2;transform:translateY(-1px)}
+  .scene-btn.active{background:#eaf1ff;color:var(--blue);border-color:#c8daff}
+  .scene-icon{height:41px;width:41px;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:1.17rem;font-weight:700}
+  .scene-btn.active .scene-icon{background:var(--blue);color:#fff}
+  .scene-name{display:block;font-size:.92rem;font-weight:700}
+  .scene-small{display:block;font-size:.76rem;color:var(--muted);margin-top:1px}
+  .control-box{background:#f7faff;border:1px solid #e1eafb;border-radius:17px;padding:13px}
+  .control-title{font-size:.93rem;margin:0 0 10px}
+  .control{margin:12px 0}
+  .control:first-child{margin-top:3px}
+  .control-line{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;font-size:.86rem;font-weight:700}
+  .value{border:1px solid #e1eafb;background:#fff;color:var(--blue);font-variant-numeric:tabular-nums;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  input[type="range"]{width:100%;accent-color:var(--blue);cursor:pointer}
+  .note{font-size:.85rem;color:var(--muted);margin:9px 0 0}
+  .actions{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+  .actions button,.tool-btn{
+    border:0;border-radius:11px;padding:9px 12px;font-size:.88rem;font-weight:700;transition:.18s
+  }
+  .primary{background:var(--blue);color:#fff}
+  .secondary{background:#e9f1ff;color:var(--blue)}
+  .quiet{background:#f1f4f9;color:var(--ink)}
+  .actions button:hover,.tool-btn:hover{transform:translateY(-1px)}
+  .tip{border-radius:15px;padding:12px 13px;background:#fff9eb;border:1px solid #ffe8b2;color:#644b10;font-size:.87rem}
+  .main{display:grid;gap:16px;min-width:0}
+  .visual{padding:14px;overflow:hidden}
+  .visual-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .headline{display:flex;align-items:center;gap:10px;min-width:0}
+  .status-pill{
+    font-size:.8rem;font-weight:700;border-radius:999px;padding:6px 11px;white-space:nowrap;
+    background:var(--green-soft);color:var(--green)
+  }
+  .status-pill.unbalanced{background:var(--red-soft);color:var(--red)}
+  .visual-title{font-size:1.02rem;font-weight:700}
+  .tools{display:flex;gap:7px}
+  .tool-btn{background:#f2f6fc;color:var(--ink)}
+  .stage-wrap{
+    border:1px solid #e3ebf8;border-radius:18px;overflow:hidden;
+    background:radial-gradient(circle at 72% 25%,rgba(83,115,204,.12),transparent 29%),linear-gradient(180deg,#f7faff,#f0f6ff)
+  }
+  #stage{display:block;width:100%;height:auto;aspect-ratio:900/448}
+  .readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:11px}
+  .readout{background:#f6f9fe;border:1px solid #e3ebf7;border-radius:14px;padding:9px 10px;min-width:0}
+  .readout-label{font-size:.73rem;color:var(--muted);font-weight:700}
+  .readout-value{font-size:.9rem;font-weight:700;margin-top:3px}
+  .lower{display:grid;grid-template-columns:minmax(285px,.92fr) minmax(390px,1.35fr);gap:16px}
+  .panel{padding:17px}
+  .panel-title{display:flex;align-items:center;gap:8px;margin:0 0 11px;font-size:1rem}
+  .panel-title i{width:9px;height:9px;border-radius:50%;display:block;background:var(--blue)}
+  .observation{
+    min-height:78px;background:#f7faff;border-left:4px solid var(--blue);border-radius:0 13px 13px 0;
+    padding:12px 13px;font-size:.93rem;color:#263955
+  }
+  .summary{display:grid;gap:8px;margin-top:12px}
+  .sum-row{display:grid;grid-template-columns:112px 1fr;gap:8px;font-size:.87rem}
+  .sum-row .key{color:var(--muted);font-weight:700}
+  .sum-row .val{font-weight:700}
+  .vector-panel{padding:17px}
+  .vector-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+  .tiny{font-size:.78rem;color:var(--muted)}
+  .force-list{display:grid;gap:9px}
+  .force-item{
+    display:grid;grid-template-columns:110px minmax(0,1fr) 68px;align-items:center;gap:9px;
+    font-size:.82rem
+  }
+  .force-name{font-weight:700}
+  .bar{height:9px;border-radius:999px;background:#edf2fa;overflow:hidden}
+  .bar > i{height:100%;display:block;border-radius:inherit;background:var(--c);width:var(--w)}
+  .force-num{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:#31455f}
+  .net-card{
+    margin-top:13px;background:#f7faff;border:1px solid #e1eafa;border-radius:14px;padding:11px;
+    display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap
+  }
+  .net-label{font-size:.82rem;color:var(--muted);font-weight:700}
+  .net-number{font-size:1.02rem;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
+  .legend{font-size:.76rem;color:var(--muted);margin-top:10px}
+  svg text{font-family:Arial,"Noto Sans Bengali",sans-serif}
+  @media(max-width:1060px){
+    .layout{grid-template-columns:292px minmax(0,1fr)}
+    .lower{grid-template-columns:1fr}
+  }
+  @media(max-width:790px){
+    .app{padding:12px}
+    header{display:block}
+    .lang{margin-top:13px;width:max-content}
+    .layout{display:block}
+    .sidebar{position:static;margin-bottom:14px}
+    .scenes{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .scene-btn{display:block;text-align:center;padding:9px}
+    .scene-icon{margin:0 auto 6px;width:37px;height:37px}
+    .scene-small{display:none}
+    .readouts{grid-template-columns:1fr}
+  }
+  @media(max-width:520px){
+    .scenes{grid-template-columns:1fr}
+    .scene-btn{display:grid;text-align:left}
+    .scene-icon{margin:0}
+    .scene-small{display:block}
+    .force-item{grid-template-columns:90px 1fr 60px}
+    #stage{aspect-ratio:900/565}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="eyebrow"><i></i><span id="tag">Class 9 Physics • Interactive Simulation</span></div>
+      <h1>Balanced and Unbalanced Forces / সাম্য ও অসাম্য বল</h1>
+      <p class="subtitle" id="subtitle">Adjust forces, observe the resultant, and discover when motion changes.</p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="enBtn" class="active" type="button">English</button>
+      <button id="bnBtn" type="button">বাংলা</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar card">
+      <section>
+        <div class="label" id="sceneLabel">Choose a situation</div>
+        <nav class="scenes" id="sceneNav" aria-label="Simulation situations"></nav>
+      </section>
+      <section class="control-box">
+        <h2 class="control-title" id="controlsHeading">Adjust conditions</h2>
+        <div id="controls"></div>
+      </section>
+      <div class="tip" id="tip">Balanced forces give zero resultant force. Unbalanced forces change motion.</div>
+    </aside>
+
+    <main class="main">
+      <section class="visual card">
+        <div class="visual-head">
+          <div class="headline">
+            <span class="status-pill" id="statusPill">Balanced</span>
+            <span class="visual-title" id="visualTitle">Ball hanging from a thread</span>
+          </div>
+          <div class="tools">
+            <button class="tool-btn" type="button" id="pauseBtn">Pause motion</button>
+            <button class="tool-btn" type="button" id="resetBtn">Reset scene</button>
+          </div>
+        </div>
+        <div class="stage-wrap">
+          <svg id="stage" viewBox="0 0 900 448" role="img" aria-label="Balanced and unbalanced forces visualisation"></svg>
+        </div>
+        <div class="readouts" id="readouts"></div>
+      </section>
+
+      <div class="lower">
+        <section class="panel card">
+          <h2 class="panel-title"><i></i><span id="obTitle">Observation</span></h2>
+          <div class="observation" id="observation"></div>
+          <div class="summary" id="summary"></div>
+        </section>
+        <section class="vector-panel card">
+          <div class="vector-heading">
+            <h2 class="panel-title" style="margin:0"><i></i><span id="forcesTitle">Acting forces</span></h2>
+            <span class="tiny" id="scaleNote">Arrow length shows relative size</span>
+          </div>
+          <div class="force-list" id="forceList"></div>
+          <div class="net-card">
+            <span class="net-label" id="netLabel">Resultant force</span>
+            <span class="net-number" id="netNumber">0.0 N</span>
+            <span class="status-pill" id="netStatus">Balanced</span>
+          </div>
+          <div class="legend" id="legend">For learning clarity, near-zero resultant values are shown as balanced.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const g = 9.8;
+  const $ = id => document.getElementById(id);
+  const state = {
+    lang: "en", scene: "hanging", playing: true, phase: 0,
+    hanging: { mass: 2, tension: 19.6, y: 224, vy: 0, running: false },
+    pendulum: { mass: 1.5, setAngle: 32, theta: 32*Math.PI/180, omega: 0, held: true },
+    ropes: { mass: 4, leftT: 25, rightT: 25, leftA: 52, rightA: 52, x: 450, y: 230, vx: 0, vy: 0, running: false }
+  };
+  const blue = "#2768e8", green = "#079679", orange = "#ee7b28", red = "#db4055", violet = "#7357df";
+
+  function t(en,bn){ return state.lang === "en" ? en : bn; }
+  function fmt(n){ return (Math.abs(n) < 0.05 ? 0 : n).toFixed(1); }
+  function esc(v){ return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function deg(v){ return v * 180 / Math.PI; }
+  function rad(v){ return v * Math.PI / 180; }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function hypot(x,y){ return Math.sqrt(x*x+y*y); }
+  function balanced(mag){ return mag < 0.6; }
+
+  const sceneInfo = {
+    hanging:{
+      icon:"●", nameEn:"Hanging ball", nameBn:"ঝুলন্ত বল", smallEn:"Vertical forces", smallBn:"উল্লম্ব বল",
+      titleEn:"Ball hanging from a thread", titleBn:"সুতা থেকে ঝুলন্ত বল"
+    },
+    pendulum:{
+      icon:"◔", nameEn:"Displaced pendulum", nameBn:"সরানো দোলক", smallEn:"Release & swing", smallBn:"ছেড়ে দাও ও দোলাও",
+      titleEn:"Displaced hanging object", titleBn:"সরানো ঝুলন্ত বস্তু"
+    },
+    ropes:{
+      icon:"◇", nameEn:"Two-rope object", nameBn:"দুই দড়ির বস্তু", smallEn:"Tensions at angles", smallBn:"কোণে টান",
+      titleEn:"Object pulled by ropes", titleBn:"দড়ি দ্বারা টানা বস্তু"
+    }
+  };
+
+  function hangingForces(){
+    const s = state.hanging, w = s.mass*g, netY = s.tension - w;
+    return {
+      components:[
+        {key:"T", en:"Tension (up)", bn:"টান (উপরে)", value:s.tension, color:blue},
+        {key:"W", en:"Weight (down)", bn:"ওজন (নিচে)", value:w, color:orange}
+      ],
+      nx:0, ny:netY, mag:Math.abs(netY),
+      direction: netY > .6 ? t("upward","উপরের দিকে") : netY < -.6 ? t("downward","নিচের দিকে") : t("none","নেই")
+    };
+  }
+
+  function pendulumForces(){
+    const s = state.pendulum, Lm = 1.4, w = s.mass*g;
+    const sin = Math.sin(s.theta), cos = Math.cos(s.theta);
+    const tension = s.held ? Math.max(0,w*cos) : Math.max(0,w*cos + s.mass*Lm*s.omega*s.omega);
+    const tx = -tension*sin, ty = -tension*cos; // y positive downward
+    let hx = 0, hy = 0, comps = [
+      {key:"T", en:"Tension", bn:"টান", value:tension, color:blue},
+      {key:"W", en:"Weight", bn:"ওজন", value:w, color:orange}
+    ];
+    if(s.held){
+      hx = -(tx); hy = -(ty + w);
+      comps.push({key:"H", en:"Holding force", bn:"ধরে রাখার বল", value:hypot(hx,hy), color:violet});
+    }
+    const nx = tx + hx, ny = ty + w + hy, mag = hypot(nx,ny);
+    return {components:comps, nx, ny, mag, tension, w,
+      direction: directionFrom(nx,ny)};
+  }
+
+  function ropesForces(){
+    const s = state.ropes, w = s.mass*g, la = rad(s.leftA), ra = rad(s.rightA);
+    const lx = -s.leftT*Math.cos(la), ly = -s.leftT*Math.sin(la);
+    const rx = s.rightT*Math.cos(ra), ry = -s.rightT*Math.sin(ra);
+    const nx = lx + rx, ny = ly + ry + w, mag = hypot(nx,ny);
+    return {
+      components:[
+        {key:"T₁", en:"Left tension", bn:"বাম টান", value:s.leftT, color:blue},
+        {key:"T₂", en:"Right tension", bn:"ডান টান", value:s.rightT, color:violet},
+        {key:"W", en:"Weight", bn:"ওজন", value:w, color:orange}
+      ],
+      nx,ny,mag,w,lx,ly,rx,ry,direction:directionFrom(nx,ny)
+    };
+  }
+
+  function forceData(){
+    return state.scene === "hanging" ? hangingForces() : state.scene === "pendulum" ? pendulumForces() : ropesForces();
+  }
+  function directionFrom(x,y){
+    if(hypot(x,y)<.6) return t("none","নেই");
+    const h = x > .35 ? t("right","ডানে") : x < -.35 ? t("left","বামে") : "";
+    const v = y > .35 ? t("down","নিচে") : y < -.35 ? t("up","উপরে") : "";
+    return h && v ? `${v}-${h}` : (h || v);
+  }
+
+  function applyLanguage(){
+    document.documentElement.lang = state.lang === "en" ? "en" : "bn";
+    $("enBtn").classList.toggle("active", state.lang === "en");
+    $("bnBtn").classList.toggle("active", state.lang === "bn");
+    $("tag").textContent = t("Class 9 Physics • Interactive Simulation","নবম শ্রেণির পদার্থবিজ্ঞান • ইন্টারঅ্যাকটিভ সিমুলেশন");
+    $("subtitle").textContent = t(
+      "Adjust forces, observe the resultant, and discover when motion changes.",
+      "বল পরিবর্তন করো, লব্ধি বল দেখো এবং কখন গতি বদলায় তা আবিষ্কার করো।"
+    );
+    $("sceneLabel").textContent = t("Choose a situation","একটি পরিস্থিতি বেছে নাও");
+    $("controlsHeading").textContent = t("Adjust conditions","শর্ত পরিবর্তন করো");
+    $("tip").textContent = t(
+      "Balanced forces give zero resultant force. Unbalanced forces change motion.",
+      "সাম্য বলে লব্ধি বল শূন্য হয়। অসাম্য বল বস্তুর গতি পরিবর্তন করে।"
+    );
+    $("obTitle").textContent = t("Observation","পর্যবেক্ষণ");
+    $("forcesTitle").textContent = t("Acting forces","কার্যকর বলসমূহ");
+    $("scaleNote").textContent = t("Arrow length shows relative size","তীরের দৈর্ঘ্য আপেক্ষিক মান বোঝায়");
+    $("netLabel").textContent = t("Resultant force","লব্ধি বল");
+    $("legend").textContent = t(
+      "For learning clarity, near-zero resultant values are shown as balanced.",
+      "শেখার সুবিধার জন্য প্রায়-শূন্য লব্ধি বলকে সাম্য দেখানো হয়েছে।"
+    );
+    $("pauseBtn").textContent = state.playing ? t("Pause motion","গতি থামাও") : t("Resume motion","গতি চালাও");
+    $("resetBtn").textContent = t("Reset scene","দৃশ্য পুনরায় সেট");
+    renderNav(); renderControls(); renderAll();
+  }
+
+  function renderNav(){
+    $("sceneNav").innerHTML = Object.entries(sceneInfo).map(([key,p]) => `
+      <button type="button" class="scene-btn ${key===state.scene?"active":""}" data-scene="${key}">
+        <span class="scene-icon">${p.icon}</span>
+        <span><span class="scene-name">${t(p.nameEn,p.nameBn)}</span><span class="scene-small">${t(p.smallEn,p.smallBn)}</span></span>
+      </button>`).join("");
+    $("sceneNav").querySelectorAll("[data-scene]").forEach(b=>b.addEventListener("click",()=>selectScene(b.dataset.scene)));
+  }
+  function selectScene(key){
+    state.scene = key;
+    state.playing = true;
+    resetScene(false);
+    applyLanguage();
+  }
+
+  function renderControls(){
+    const c = $("controls");
+    if(state.scene==="hanging"){
+      const s=state.hanging;
+      c.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${t("Mass of ball","বলের ভর")}</span><span class="value" id="massVal">${s.mass.toFixed(1)} kg</span></div>
+          <input id="mass" type="range" min="0.5" max="4" value="${s.mass}" step="0.1">
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${t("Upward tension","ঊর্ধ্বমুখী টান")}</span><span class="value" id="tensionVal">${fmt(s.tension)} N</span></div>
+          <input id="tension" type="range" min="0" max="55" value="${s.tension}" step="0.1">
+        </div>
+        <p class="note">${t("Balance occurs when tension equals weight (T = W).","টান ও ওজন সমান হলে সাম্য হয় (T = W)।")}</p>
+        <div class="actions">
+          <button type="button" class="primary" id="hRun">${t("Release / test","ছেড়ে পরীক্ষা")}</button>
+          <button type="button" class="secondary" id="hBalance">${t("Set balanced","সাম্য নির্ধারণ")}</button>
+        </div>`;
+      $("mass").addEventListener("input",e=>{
+        s.mass=Number(e.target.value); $("massVal").textContent=`${s.mass.toFixed(1)} kg`;
+        s.running=false; s.vy=0; renderAll();
+      });
+      $("tension").addEventListener("input",e=>{
+        s.tension=Number(e.target.value); $("tensionVal").textContent=`${fmt(s.tension)} N`;
+        renderAll();
+      });
+      $("hRun").addEventListener("click",()=>{s.running=true; state.playing=true; applyLanguage();});
+      $("hBalance").addEventListener("click",()=>{
+        s.tension=s.mass*g; s.running=false; s.vy=0; s.y=224; renderControls(); renderAll();
+      });
+    }
+    if(state.scene==="pendulum"){
+      const s=state.pendulum;
+      c.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${t("Mass of bob","গোলকের ভর")}</span><span class="value" id="pMassVal">${s.mass.toFixed(1)} kg</span></div>
+          <input id="pMass" type="range" min="0.5" max="3.5" value="${s.mass}" step="0.1">
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${t("Displacement angle","সরণ কোণ")}</span><span class="value" id="angleVal">${s.setAngle}°</span></div>
+          <input id="angle" type="range" min="-58" max="58" value="${s.setAngle}" step="1">
+        </div>
+        <p class="note">${t("While held, an extra holding force prevents motion. Release removes it.","ধরে রাখলে অতিরিক্ত ধরে রাখার বল গতি রোধ করে। ছাড়লে এটি দূর হয়।")}</p>
+        <div class="actions">
+          <button type="button" class="primary" id="release">${s.held?t("Release bob","গোলক ছাড়ো"):t("Hold at angle","কোণে ধরো")}</button>
+          <button type="button" class="secondary" id="pReset">${t("Reset","পুনরায় সেট")}</button>
+        </div>`;
+      $("pMass").addEventListener("input",e=>{s.mass=Number(e.target.value);$("pMassVal").textContent=`${s.mass.toFixed(1)} kg`;renderAll();});
+      $("angle").addEventListener("input",e=>{
+        s.setAngle=Number(e.target.value); s.theta=rad(s.setAngle); s.omega=0; s.held=true;
+        $("angleVal").textContent=`${s.setAngle}°`; renderControls(); renderAll();
+      });
+      $("release").addEventListener("click",()=>{
+        if(s.held){s.held=false; state.playing=true;} else {s.held=true; s.theta=rad(s.setAngle); s.omega=0;}
+        renderControls(); applyLanguage();
+      });
+      $("pReset").addEventListener("click",()=>{s.theta=rad(s.setAngle);s.omega=0;s.held=true;renderControls();renderAll();});
+    }
+    if(state.scene==="ropes"){
+      const s=state.ropes;
+      c.innerHTML = `
+        <div class="control">
+          <div class="control-line"><span>${t("Object mass","বস্তুর ভর")}</span><span class="value" id="rMassVal">${s.mass.toFixed(1)} kg</span></div>
+          <input id="rMass" type="range" min="1" max="7" value="${s.mass}" step="0.1">
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${t("Left tension T₁","বাম টান T₁")}</span><span class="value" id="lTVal">${fmt(s.leftT)} N</span></div>
+          <input id="leftT" type="range" min="0" max="70" value="${s.leftT}" step="0.1">
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${t("Right tension T₂","ডান টান T₂")}</span><span class="value" id="rTVal">${fmt(s.rightT)} N</span></div>
+          <input id="rightT" type="range" min="0" max="70" value="${s.rightT}" step="0.1">
+        </div>
+        <div class="control">
+          <div class="control-line"><span>${t("Left / right rope angles","বাম / ডান দড়ির কোণ")}</span><span class="value" id="angVal">${s.leftA}° / ${s.rightA}°</span></div>
+          <input id="leftA" type="range" min="15" max="80" value="${s.leftA}" step="1" aria-label="${t("Left rope angle","বাম দড়ির কোণ")}">
+          <input id="rightA" type="range" min="15" max="80" value="${s.rightA}" step="1" aria-label="${t("Right rope angle","ডান দড়ির কোণ")}">
+        </div>
+        <div class="actions">
+          <button type="button" class="primary" id="rRun">${t("Release object","বস্তু ছাড়ো")}</button>
+          <button type="button" class="secondary" id="rBalance">${t("Symmetric balance","সমমিত সাম্য")}</button>
+        </div>`;
+      const rerender=()=>{s.running=false;s.vx=0;s.vy=0;s.x=450;s.y=230;renderAll();};
+      $("rMass").addEventListener("input",e=>{s.mass=Number(e.target.value);$("rMassVal").textContent=`${s.mass.toFixed(1)} kg`;rerender();});
+      $("leftT").addEventListener("input",e=>{s.leftT=Number(e.target.value);$("lTVal").textContent=`${fmt(s.leftT)} N`;rerender();});
+      $("rightT").addEventListener("input",e=>{s.rightT=Number(e.target.value);$("rTVal").textContent=`${fmt(s.rightT)} N`;rerender();});
+      $("leftA").addEventListener("input",e=>{s.leftA=Number(e.target.value);$("angVal").textContent=`${s.leftA}° / ${s.rightA}°`;rerender();});
+      $("rightA").addEventListener("input",e=>{s.rightA=Number(e.target.value);$("angVal").textContent=`${s.leftA}° / ${s.rightA}°`;rerender();});
+      $("rRun").addEventListener("click",()=>{s.running=true;state.playing=true;applyLanguage();});
+      $("rBalance").addEventListener("click",()=>{
+        s.leftA=52;s.rightA=52;s.leftT=s.rightT=(s.mass*g)/(2*Math.sin(rad(52)));
+        s.x=450;s.y=230;s.vx=s.vy=0;s.running=false;renderControls();renderAll();
+      });
+    }
+  }
+
+  function resetScene(redraw=true){
+    if(state.scene==="hanging"){
+      const s=state.hanging; s.mass=2;s.tension=19.6;s.y=224;s.vy=0;s.running=false;
+    }else if(state.scene==="pendulum"){
+      const s=state.pendulum;s.mass=1.5;s.setAngle=32;s.theta=rad(32);s.omega=0;s.held=true;
+    }else{
+      const s=state.ropes;s.mass=4;s.leftT=25;s.rightT=25;s.leftA=52;s.rightA=52;s.x=450;s.y=230;s.vx=0;s.vy=0;s.running=false;
+    }
+    if(redraw){renderControls();renderAll();}
+  }
+
+  function observation(data){
+    const isBal=balanced(data.mag);
+    if(state.scene==="hanging"){
+      if(isBal) return t(
+        "Tension upward equals weight downward. The resultant force is zero, so the hanging ball stays at rest.",
+        "উপরের টান ও নিচের ওজন সমান। লব্ধি বল শূন্য, তাই ঝুলন্ত বল স্থির থাকে।"
+      );
+      return data.ny < 0 ? t(
+        "Tension is smaller than weight. A downward resultant force makes the ball accelerate downward.",
+        "টান ওজনের চেয়ে কম। নিচের দিকে লব্ধি বল বলটিকে নিচে ত্বরিত করে।"
+      ) : t(
+        "Tension is greater than weight. An upward resultant force changes the ball's motion upward.",
+        "টান ওজনের চেয়ে বেশি। উপরের দিকে লব্ধি বল বলটির গতি উপরের দিকে পরিবর্তন করে।"
+      );
+    }
+    if(state.scene==="pendulum"){
+      if(state.pendulum.held) return t(
+        "The bob is displaced but held still. Tension, weight and the holding force balance, so it does not move.",
+        "গোলকটি সরানো হলেও ধরে রাখা হয়েছে। টান, ওজন ও ধরে রাখার বল সাম্যে থাকায় এটি নড়ে না।"
+      );
+      return t(
+        "After release, the holding force is removed. Tension and weight produce a resultant force that changes the bob's motion along the swing.",
+        "ছাড়ার পরে ধরে রাখার বল দূর হয়। টান ও ওজনের লব্ধি বল দোলনের পথে গোলকের গতি পরিবর্তন করে।"
+      );
+    }
+    if(isBal) return t(
+      "The two rope tensions and the object's weight combine to give nearly zero resultant force. The object remains steady.",
+      "দুই দড়ির টান ও বস্তুর ওজন মিলিয়ে লব্ধি বল প্রায় শূন্য হয়। বস্তুটি স্থির থাকে।"
+    );
+    return t(
+      "The angled tensions and weight do not cancel. The non-zero resultant force makes the object move in its direction.",
+      "কোণযুক্ত টান ও ওজন পরস্পরকে বাতিল করে না। অশূন্য লব্ধি বল বস্তুটিকে তার দিকে সরায়।"
+    );
+  }
+
+  function renderAll(){
+    const d=forceData(), isBal=balanced(d.mag), info=sceneInfo[state.scene];
+    $("visualTitle").textContent=t(info.titleEn,info.titleBn);
+    $("statusPill").textContent=isBal?t("Balanced","সাম্য"):t("Unbalanced","অসাম্য");
+    $("statusPill").classList.toggle("unbalanced",!isBal);
+    $("netStatus").textContent=isBal?t("Balanced","সাম্য"):t("Unbalanced","অসাম্য");
+    $("netStatus").classList.toggle("unbalanced",!isBal);
+    $("observation").textContent=observation(d);
+    const moving = state.scene==="hanging" ? state.hanging.running :
+      state.scene==="pendulum" ? !state.pendulum.held : state.ropes.running;
+    $("readouts").innerHTML = [
+      [t("Resultant force","লব্ধি বল"), `${fmt(d.mag)} N`],
+      [t("Resultant direction","লব্ধির দিক"), d.direction],
+      [t("Motion state","গতির অবস্থা"), isBal ? t("No change in motion","গতির পরিবর্তন নেই") : moving ? t("Motion changing","গতি পরিবর্তিত হচ্ছে") : t("Release to observe motion","গতি দেখতে ছেড়ে দাও")]
+    ].map(([k,v])=>`<div class="readout"><div class="readout-label">${k}</div><div class="readout-value">${v}</div></div>`).join("");
+    $("summary").innerHTML = [
+      [t("Status","অবস্থা"),isBal?t("Balanced forces","সাম্য বল"):t("Unbalanced forces","অসাম্য বল")],
+      [t("Resultant","লব্ধি"),isBal?t("Zero / nearly zero","শূন্য / প্রায় শূন্য"):`${fmt(d.mag)} N ${d.direction}`],
+      [t("Rule","নীতি"),t("Motion changes only with non-zero resultant force.","অশূন্য লব্ধি বলেই গতি পরিবর্তিত হয়।")]
+    ].map(([k,v])=>`<div class="sum-row"><span class="key">${k}</span><span class="val">${v}</span></div>`).join("");
+    const max = Math.max(...d.components.map(f=>f.value), d.mag, 1);
+    $("forceList").innerHTML = d.components.map(f=>`
+      <div class="force-item">
+        <span class="force-name">${t(f.en,f.bn)} <b style="color:${f.color}">${f.key}</b></span>
+        <span class="bar" style="--c:${f.color};--w:${Math.max(2,f.value/max*100)}%"><i></i></span>
+        <span class="force-num">${fmt(f.value)} N</span>
+      </div>`).join("");
+    $("netNumber").textContent = `${fmt(d.mag)} N • ${d.direction}`;
+    renderStage(d);
+  }
+
+  function defs(){
+    return `<defs>
+      <marker id="arrBlue" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${blue}"/></marker>
+      <marker id="arrOrange" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${orange}"/></marker>
+      <marker id="arrViolet" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${violet}"/></marker>
+      <marker id="arrRed" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${red}"/></marker>
+      <linearGradient id="back" x2="0" y2="1"><stop stop-color="#f7faff"/><stop offset="1" stop-color="#eef5ff"/></linearGradient>
+      <linearGradient id="ball" x2="0" y2="1"><stop stop-color="#4b8ef2"/><stop offset="1" stop-color="#225bd3"/></linearGradient>
+    </defs>`;
+  }
+  function arrow(x1,y1,x2,y2,color,marker,label,lx,ly){
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="5" stroke-linecap="round" marker-end="url(#${marker})"/>
+      <rect x="${lx-4}" y="${ly-16}" width="${label.length*7.3+12}" height="22" rx="8" fill="#fff" opacity=".95"/>
+      <text x="${lx+2}" y="${ly}" font-size="13" font-weight="700" fill="${color}">${esc(label)}</text>`;
+  }
+
+  function renderStage(d){
+    const svg=$("stage");
+    svg.innerHTML = state.scene==="hanging" ? hangingSVG(d) : state.scene==="pendulum" ? pendulumSVG(d) : ropesSVG(d);
+  }
+
+  function hangingSVG(d){
+    const s=state.hanging, w=s.mass*g, scale=3.15, bx=450, by=s.y;
+    const tLen=clamp(s.tension*scale,12,124), wLen=clamp(w*scale,12,124);
+    const nLen=clamp(d.mag*scale,0,128);
+    const status=balanced(d.mag)?t("Forces cancel: object remains still","বল বাতিল: বস্তু স্থির থাকে"):t("Non-zero resultant: motion changes","অশূন্য লব্ধি: গতি বদলায়");
+    const net = balanced(d.mag) ? "" :
+      arrow(bx+109,by,bx+109,by+(d.ny>0?-nLen:nLen),red,"arrRed",t("R","ল"),bx+121,by+(d.ny>0?-nLen/2:nLen/2));
+    return `${defs()}<rect width="900" height="448" fill="url(#back)"/>
+      <text x="450" y="35" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Adjust tension relative to weight, then release the ball","ওজনের তুলনায় টান বদলে বলটি ছেড়ে দাও")}</text>
+      <rect x="366" y="66" width="168" height="15" rx="7.5" fill="#8da3bf"/>
+      <line x1="${bx}" y1="81" x2="${bx}" y2="${by-27}" stroke="#6b7f9b" stroke-width="3"/>
+      <circle cx="${bx}" cy="${by}" r="29" fill="url(#ball)" stroke="#fff" stroke-width="4"/>
+      <text x="${bx}" y="${by+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">${t("ball","বল")}</text>
+      ${arrow(bx-45,by-7,bx-45,by-tLen,blue,"arrBlue",`T = ${fmt(s.tension)} N`,bx-154,by-tLen/2)}
+      ${arrow(bx+45,by+7,bx+45,by+wLen,orange,"arrOrange",`W = ${fmt(w)} N`,bx+64,by+wLen/2)}
+      ${net}
+      <rect x="246" y="382" width="408" height="45" rx="14" fill="#fff" stroke="#dde7f4"/>
+      <text x="450" y="410" text-anchor="middle" font-size="14" font-weight="700" fill="${balanced(d.mag)?green:red}">${status}</text>
+      <text x="102" y="136" font-size="13" font-weight="700" fill="${blue}">${t("UPWARD","উপরে")}</text>
+      <text x="102" y="158" font-size="12" fill="#62748d">${t("Tension through thread","সুতার মাধ্যমে টান")}</text>
+      <text x="670" y="296" font-size="13" font-weight="700" fill="${orange}">${t("DOWNWARD","নিচে")}</text>
+      <text x="670" y="318" font-size="12" fill="#62748d">${t("Weight due to Earth","পৃথিবীর কারণে ওজন")}</text>`;
+  }
+
+  function pendulumSVG(d){
+    const s=state.pendulum, px=450, py=75, L=212, bx=px+L*Math.sin(s.theta), by=py+L*Math.cos(s.theta);
+    const unitX=(px-bx)/L, unitY=(py-by)/L;
+    const wLen=clamp(d.w*3.1,26,100), tLen=clamp(d.tension*3.1,20,116);
+    const tx=bx+unitX*tLen, ty=by+unitY*tLen;
+    const tangentX=Math.cos(s.theta), tangentY=-Math.sin(s.theta);
+    const holdMag = s.held ? d.components[2].value : 0;
+    const holdLen = clamp(holdMag*3.1,0,88);
+    const holdDir = Math.sign(s.theta) || 1;
+    const hx=bx+tangentX*holdLen*holdDir, hy=by+tangentY*holdLen*holdDir;
+    const netScale=4, nl=clamp(d.mag*netScale,0,118), nux=d.mag?d.nx/d.mag:0, nuy=d.mag?d.ny/d.mag:0;
+    const net = balanced(d.mag) ? "" : arrow(bx+8,by+4,bx+8+nux*nl,by+4+nuy*nl,red,"arrRed",t("R","ল"),bx+22+nux*nl*.58,by+nuy*nl*.58);
+    return `${defs()}<rect width="900" height="448" fill="url(#back)"/>
+      <text x="450" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${s.held?t("The displaced bob is being held","সরানো গোলকটি ধরে রাখা হয়েছে"):t("Released: forces change its motion","ছাড়া হয়েছে: বলগুলো গতি বদলায়")}</text>
+      <rect x="384" y="54" width="132" height="14" rx="7" fill="#8da3bf"/>
+      <circle cx="${px}" cy="${py}" r="7" fill="#283f5e"/>
+      <path d="M${px} ${py} L${bx} ${by}" stroke="#667b97" stroke-width="3"/>
+      <path d="M${px} ${py+12} L${px} ${py+210}" stroke="#cedaeb" stroke-width="2" stroke-dasharray="5 6"/>
+      <path d="M${px} ${py+112} A112 112 0 0 ${s.theta>0?1:0} ${px+112*Math.sin(s.theta)} ${py+112*Math.cos(s.theta)}" fill="none" stroke="#c8d9f2" stroke-width="2"/>
+      <text x="${px+55*Math.sin(s.theta/2)+8}" y="${py+55*Math.cos(s.theta/2)}" font-size="13" fill="#62748d">${Math.abs(Math.round(deg(s.theta)))}°</text>
+      <circle cx="${bx}" cy="${by}" r="29" fill="url(#ball)" stroke="#fff" stroke-width="4"/>
+      ${arrow(bx,by-4,tx,ty,blue,"arrBlue",`T`,tx-17,ty-10)}
+      ${arrow(bx+42,by+3,bx+42,by+wLen,orange,"arrOrange",`W`,bx+53,by+wLen*.65)}
+      ${s.held && holdLen>2 ? arrow(bx,by,hx,hy,violet,"arrViolet",`H`,hx+7,hy-8) : ""}
+      ${net}
+      <rect x="232" y="381" width="436" height="45" rx="14" fill="#fff" stroke="#dde7f4"/>
+      <text x="450" y="409" text-anchor="middle" font-size="14" font-weight="700" fill="${balanced(d.mag)?green:red}">${
+        s.held?t("Holding force completes balance","ধরে রাখার বল সাম্য পূর্ণ করে"):t("Resultant force drives swinging motion","লব্ধি বল দোলন গতি ঘটায়")
+      }</text>
+      <text x="78" y="197" font-size="12" fill="#62748d">${t("H = holding force","H = ধরে রাখার বল")}</text>
+      <text x="78" y="219" font-size="12" fill="#62748d">${t("Removed on release","ছাড়লে দূর হয়")}</text>`;
+  }
+
+  function ropesSVG(d){
+    const s=state.ropes, x=s.x, y=s.y, w=s.mass*g, scale=2.55;
+    const la=rad(s.leftA), ra=rad(s.rightA), supportY=65;
+    const leftY=supportY, rightY=supportY;
+    const leftX=x-(y-supportY)/Math.tan(la), rightX=x+(y-supportY)/Math.tan(ra);
+    const lLen=clamp(s.leftT*scale,15,124), rLen=clamp(s.rightT*scale,15,124), wLen=clamp(w*scale,22,124);
+    const nl=clamp(d.mag*3.1,0,122), nux=d.mag?d.nx/d.mag:0, nuy=d.mag?d.ny/d.mag:0;
+    const net = balanced(d.mag) ? "" : arrow(x,y+5,x+nux*nl,y+5+nuy*nl,red,"arrRed",t("R","ল"),x+12+nux*nl*.65,y+nuy*nl*.65);
+    return `${defs()}<rect width="900" height="448" fill="url(#back)"/>
+      <text x="450" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#132640">${t("Change rope tensions and angles, then release","দড়ির টান ও কোণ বদলে বস্তুটি ছাড়ো")}</text>
+      <line x1="90" y1="57" x2="810" y2="57" stroke="#8da3bf" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="${leftX}" cy="${leftY}" r="7" fill="#31455f"/><circle cx="${rightX}" cy="${rightY}" r="7" fill="#31455f"/>
+      <line x1="${leftX}" y1="${leftY}" x2="${x-35}" y2="${y-24}" stroke="#6b7f9b" stroke-width="3"/>
+      <line x1="${rightX}" y1="${rightY}" x2="${x+35}" y2="${y-24}" stroke="#6b7f9b" stroke-width="3"/>
+      <rect x="${x-48}" y="${y-28}" width="96" height="58" rx="12" fill="#3d7fe6" stroke="#fff" stroke-width="4"/>
+      <text x="${x}" y="${y+6}" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">${t("object","বস্তু")}</text>
+      ${arrow(x-28,y-20,x-28-Math.cos(la)*lLen,y-20-Math.sin(la)*lLen,blue,"arrBlue","T₁",x-61-Math.cos(la)*lLen*.6,y-32-Math.sin(la)*lLen*.6)}
+      ${arrow(x+28,y-20,x+28+Math.cos(ra)*rLen,y-20-Math.sin(ra)*rLen,violet,"arrViolet","T₂",x+38+Math.cos(ra)*rLen*.58,y-30-Math.sin(ra)*rLen*.58)}
+      ${arrow(x,y+27,x,y+27+wLen,orange,"arrOrange","W",x+13,y+33+wLen*.63)}
+      ${net}
+      <path d="M${x-82} ${y+105} L${x+82} ${y+105}" stroke="#ccd9eb" stroke-width="2" stroke-dasharray="4 5"/>
+      <rect x="223" y="383" width="454" height="44" rx="14" fill="#fff" stroke="#dde7f4"/>
+      <text x="450" y="411" text-anchor="middle" font-size="14" font-weight="700" fill="${balanced(d.mag)?green:red}">${
+        balanced(d.mag)?t("Tensions and weight cancel","টান ও ওজন পরস্পরকে বাতিল করে"):t("Resultant force moves the object","লব্ধি বল বস্তুটিকে সরায়")
+      }</text>`;
+  }
+
+  function update(dt){
+    state.phase += dt;
+    if(state.scene==="hanging"){
+      const s=state.hanging, d=hangingForces();
+      if(s.running && !balanced(d.mag)){
+        const a = d.ny/s.mass; // positive means upward physical
+        s.vy += a*dt*0.95;
+        s.vy *= Math.pow(.985,dt*60);
+        s.y -= s.vy*dt*23;
+        if(s.y<128 || s.y>330){ s.y=clamp(s.y,128,330);s.vy=0;s.running=false; }
+      }
+    }
+    if(state.scene==="pendulum"){
+      const s=state.pendulum;
+      if(!s.held){
+        const L=1.4;
+        const alpha=-(g/L)*Math.sin(s.theta)-0.055*s.omega;
+        s.omega += alpha*dt;
+        s.theta += s.omega*dt;
+      }
+    }
+    if(state.scene==="ropes"){
+      const s=state.ropes,d=ropesForces();
+      if(s.running && !balanced(d.mag)){
+        s.vx += (d.nx/s.mass)*dt*.75;
+        s.vy += (d.ny/s.mass)*dt*.75;
+        s.vx *= Math.pow(.987,dt*60); s.vy *= Math.pow(.987,dt*60);
+        s.x += s.vx*dt*22; s.y += s.vy*dt*22;
+        if(s.x<255 || s.x>645 || s.y<145 || s.y>320){
+          s.x=clamp(s.x,255,645);s.y=clamp(s.y,145,320);s.vx=s.vy=0;s.running=false;
+        }
+      }
+    }
+  }
+
+  $("enBtn").addEventListener("click",()=>{state.lang="en";applyLanguage();});
+  $("bnBtn").addEventListener("click",()=>{state.lang="bn";applyLanguage();});
+  $("pauseBtn").addEventListener("click",()=>{state.playing=!state.playing;applyLanguage();});
+  $("resetBtn").addEventListener("click",()=>resetScene(true));
+
+  let prev=performance.now();
+  function animate(now){
+    const dt=Math.min(.04,(now-prev)/1000); prev=now;
+    if(state.playing){ update(dt); renderAll(); }
+    requestAnimationFrame(animate);
+  }
+  applyLanguage();
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
