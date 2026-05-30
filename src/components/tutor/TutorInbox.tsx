@@ -11,6 +11,7 @@ import MarkdownContent from '../markdown/MarkdownContent';
 import UnderstandingCheck from '../diagnostics/UnderstandingCheck';
 import DiagnosticQuiz from '../diagnostics/DiagnosticQuiz';
 import RemediationPanel from '../remediation/RemediationPanel';
+import Modal from '../ui/Modal';
 import {
   MessageSquare,
   Sparkles,
@@ -317,6 +318,62 @@ export default function TutorInbox() {
   return (
     <div className="w-full h-full flex overflow-hidden bg-slate-950 isolate">
       
+      {/* Modals for Diagnostics */}
+      <Modal
+        isOpen={activeDiagnosticTab === 'check'}
+        onClose={() => setActiveDiagnosticTab('none')}
+        title="Knowledge Inventory"
+        maxWidth="max-w-3xl"
+      >
+        {selectedTopic && (
+          <UnderstandingCheck
+            topicId={selectedTopic.topic_id}
+            topicTitle={selectedTopic.topic_title}
+            language={language}
+            conversationId={activeConversation?.id}
+            onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
+            onSuccessCheck={() => { refreshWorkspace(); }}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={activeDiagnosticTab === 'quiz'}
+        onClose={() => setActiveDiagnosticTab('none')}
+        title="Comprehensive Evaluation"
+        maxWidth="max-w-5xl"
+      >
+        {selectedTopic && (
+          <DiagnosticQuiz
+            topicId={selectedTopic.topic_id}
+            topicTitle={selectedTopic.topic_title}
+            language={language}
+            conversationId={activeConversation?.id}
+            onQuizCompleted={(res) => {
+              sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session.id);
+              // if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
+              refreshWorkspace();
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={activeDiagnosticTab === 'remediation'}
+        onClose={() => setActiveDiagnosticTab('none')}
+        title="Structured Support Desk"
+        maxWidth="max-w-4xl"
+      >
+        {selectedTopic && (
+          <RemediationPanel
+            topicId={selectedTopic.topic_id}
+            topicTitle={selectedTopic.topic_title}
+            language={language}
+            onRemediationCompleted={() => { refreshWorkspace(); }}
+          />
+        )}
+      </Modal>
+
       {/* Left Sidebar - Compact Setup & Inbox */}
       <aside className="w-[320px] shrink-0 border-r border-slate-800/60 bg-slate-900/40 flex flex-col min-h-0">
         
@@ -651,42 +708,6 @@ export default function TutorInbox() {
                 </div>
               )}
 
-              {/* Diagnostic Integrated Panel - Positioned below messages */}
-              {selectedTopic && activeDiagnosticTab !== 'none' && (
-                <div className="space-y-6 pt-12 border-t border-white/5">
-                   {activeDiagnosticTab === 'check' && (
-                      <UnderstandingCheck
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        conversationId={activeConversation?.id}
-                        onWeaknessDetected={() => { setActiveDiagnosticTab('quiz'); refreshWorkspace(); }}
-                        onSuccessCheck={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'quiz' && (
-                      <DiagnosticQuiz
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        conversationId={activeConversation?.id}
-                        onQuizCompleted={(res) => {
-                          sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session.id);
-                          if (res.weaknesses && res.weaknesses.length > 0) setActiveDiagnosticTab('remediation');
-                          refreshWorkspace();
-                        }}
-                      />
-                   )}
-                   {activeDiagnosticTab === 'remediation' && (
-                      <RemediationPanel
-                        topicId={selectedTopic.topic_id}
-                        topicTitle={selectedTopic.topic_title}
-                        language={language}
-                        onRemediationCompleted={() => { refreshWorkspace(); }}
-                      />
-                   )}
-                </div>
-              )}
            </div>
         </div>
 
