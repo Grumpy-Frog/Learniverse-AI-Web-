@@ -38,6 +38,14 @@ export default function AdminSimulationManager() {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
+  const isValidUrl = (url: string) => {
+    if (!url) return false;
+    const lowerUrl = url.toLowerCase();
+    const validPrefix = lowerUrl.startsWith('/simulations/') || lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://');
+    const validExtension = lowerUrl.endsWith('.html');
+    return validPrefix && validExtension;
+  };
+
   useEffect(() => {
     fetchGrades();
   }, []);
@@ -166,6 +174,14 @@ export default function AdminSimulationManager() {
       return;
     }
     if (!form.title.trim() || !form.simulationUrl.trim()) return;
+
+    if (!isValidUrl(form.simulationUrl)) {
+      setFeedback({ 
+        type: 'error', 
+        msg: 'Invalid simulation URL. Must start with /simulations/, http://, or https:// and end with .html' 
+      });
+      return;
+    }
 
     setSaving(true);
     setFeedback(null);
@@ -328,13 +344,37 @@ export default function AdminSimulationManager() {
                 </div>
               </div>
 
-              <Input
-                label="Laboratory Sandbox URL"
-                placeholder="e.g., /simulations/physics/ch-3/force-motion.html or PhET web url"
-                value={form.simulationUrl}
-                onChange={(e) => setForm({ ...form, simulationUrl: e.target.value })}
-                required
-              />
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold text-slate-500 block">Simulation HTML URL / Public Path</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g., /simulations/physics/ch-3/force-motion.html"
+                    value={form.simulationUrl}
+                    onChange={(e) => setForm({ ...form, simulationUrl: e.target.value })}
+                    className="flex-1 text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                    required
+                  />
+                  <button
+                    type="button"
+                    disabled={!form.simulationUrl || !isValidUrl(form.simulationUrl)}
+                    onClick={() => {
+                      const url = form.simulationUrl.startsWith('/') 
+                        ? window.location.origin + form.simulationUrl 
+                        : form.simulationUrl;
+                      window.open(url, '_blank');
+                    }}
+                    className="px-3 rounded-lg border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-950 text-slate-500 hover:text-blue-500 disabled:opacity-30 transition-colors"
+                    title="Preview Simulation"
+                  >
+                    <Globe className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-[9px] text-slate-500 font-medium leading-relaxed">
+                  Place simulation HTML files inside <code className="text-blue-500">public/simulations/</code> and register the path. 
+                  Example: <code className="text-blue-500">/simulations/physics/chapter-3/force-motion-en.html</code>
+                </p>
+              </div>
 
               <Input
                 label="Thumbnail preview image URL (Optional)"
@@ -354,19 +394,28 @@ export default function AdminSimulationManager() {
                 />
               </div>
 
-              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950 rounded-lg gap-3">
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                    className="rounded border-slate-350"
-                  />
-                  <span>Active & visible</span>
-                </label>
-                <Button type="submit" size="sm" isLoading={saving}>
-                  {editingSim ? 'Save Update' : 'Register Simulator'}
-                </Button>
+              <div className="grid grid-cols-2 gap-3 items-end p-3 bg-slate-50 dark:bg-slate-950 rounded-lg">
+                <Input
+                  label="Display Order"
+                  type="number"
+                  value={form.displayOrder}
+                  onChange={(e) => setForm({ ...form, displayOrder: parseInt(e.target.value) || 0 })}
+                  className="bg-white dark:bg-slate-900"
+                />
+                <div className="flex justify-between items-center h-full pb-0.5">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold text-slate-500 uppercase">
+                    <input
+                      type="checkbox"
+                      checked={form.isActive}
+                      onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                      className="rounded border-slate-350"
+                    />
+                    <span>Active</span>
+                  </label>
+                  <Button type="submit" size="sm" isLoading={saving}>
+                    {editingSim ? 'Save' : 'Register'}
+                  </Button>
+                </div>
               </div>
             </form>
           </Card>
