@@ -1,0 +1,671 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { api } from '../../lib/api';
+import { getSelectedTopic } from '../../lib/auth';
+import { Conversation, ChatMessage, TopicStatus } from '../../types';
+import Button from '../ui/Button';
+import Card from '../ui/Card';
+import Badge from '../ui/Badge';
+import StatusMessage from '../ui/StatusMessage';
+import LoadingState from '../ui/LoadingState';
+import MarkdownContent from '../markdown/MarkdownContent';
+import UnderstandingCheck from '../diagnostics/UnderstandingCheck';
+import DiagnosticQuiz from '../diagnostics/DiagnosticQuiz';
+import RemediationPanel from '../remediation/RemediationPanel';
+import {
+  MessageSquare,
+  Sparkles,
+  BookOpen,
+  Send,
+  PlusCircle,
+  HelpCircle,
+  PlayCircle,
+  Settings,
+  ChevronDown,
+  RotateCcw,
+  Book,
+  FileText
+} from 'lucide-react';
+
+export default function TutorInbox() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [topicStatus, setTopicStatus] = useState<TopicStatus | null>(null);
+
+  // Settings
+  const [useRag, setUseRag] = useState(true);
+  const [language, setLanguage] = useState<'en' | 'bn'>('en');
+  const [studentPreference, setStudentPreference] = useState('');
+  
+  // UI inputs
+  const [typedMessage, setTypedMessage] = useState('');
+  
+  // Loaders
+  const [loadingConv, setLoadingConv] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState(false);
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const [generatingStory, setGeneratingStory] = useState(false);
+  
+  // Error states
+  const [errorHeader, setErrorHeader] = useState<string | null>(null);
+  const [activeDiagnosticTab, setActiveDiagnosticTab] = useState<'none' | 'check' | 'quiz' | 'remediation'>('none');
+
+  // Selected Topic context
+  const selectedTopic = getSelectedTopic();
+
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll to bottom helper
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, sendingMsg]);
+
+  // Initial catalog load
+  useEffect(() => {
+    fetchConversations();
+    if (selectedTopic?.topic_id) {
+      fetchTopicStatus();
+    }
+  }, [selectedTopic?.topic_id]);
+
+  const fetchTopicStatus = async () => {
+    if (!selectedTopic?.topic_id) return;
+    try {
+      const status = await api.getTopicStatus(selectedTopic.topic_id);
+      setTopicStatus(status);
+    } catch (e) {
+      // Not started yet
+      setTopicStatus({
+        topic_id: selectedTopic.topic_id,
+        status: 'not_started',
+        completion_percentage: 0,
+        strengths: [],
+        weaknesses: []
+      });
+    }
+  };
+
+  const fetchConversations = async () => {
+    setLoadingConv(true);
+    setErrorHeader(null);
+    try {
+      const list = await api.getConversations();
+      setConversations(list || []);
+
+      // If a topic is selected, let's filter conversations for this topic, or auto select the last one
+      if (selectedTopic?.topic_id) {
+        const topicConvs = list.filter((c: Conversation) => c.topic_id === selectedTopic.topic_id);
+        if (topicConvs.length > 0) {
+          handleSelectConversation(topicConvs[0]);
+        } else {
+          // Empty, force creating one if they decide to chat
+        }
+      } else if (list.length > 0) {
+        handleSelectConversation(list[0]);
+      }
+    } catch (err: any) {
+      setErrorHeader(err.message || 'Error occurred while loading learning channels.');
+    } finally {
+      setLoadingConv(false);
+    }
+  };
+
+  const handleSelectConversation = async (conv: Conversation) => {
+    setActiveConversation(conv);
+    setUseRag(conv.use_rag);
+    setLanguage(conv.language);
+    setLoadingMsg(true);
+    setMessages([]);
+    try {
+      const msgs = await api.getMessages(conv.id);
+      setMessages(msgs || []);
+    } catch (err: any) {
+      setErrorHeader(`Error loading messages: ${err.message}`);
+    } finally {
+      setLoadingMsg(false);
+    }
+  };
+
+  const handleCreateConversation = async () => {
+    if (!selectedTopic?.topic_id) {
+      setErrorHeader('Please select an active syllabus topic from the Learning Catalog page first.');
+      return;
+    }
+    setLoadingMsg(true);
+    setErrorHeader(null);
+    try {
+      const newConv = await api.createConversation(selectedTopic.topic_id, language, useRag);
+      setConversations(prev => [newConv, ...prev]);
+      setActiveConversation(newConv);
+      setMessages([]);
+    } catch (err: any) {
+      setErrorHeader(`Failed to initialize learning conversation: ${err.message}`);
+    } finally {
+      setLoadingMsg(false);
+    }
+  };
+
+  const handleToggleSettings = async (newRag: boolean, newLang: 'en' | 'bn') => {
+    setUseRag(newRag);
+    setLanguage(newLang);
+    if (activeConversation) {
+      try {
+        await api.updateConversationSettings(activeConversation.id, newRag, newLang);
+        // Refresh conversations to update badges
+        const list = await api.getConversations();
+        setConversations(list || []);
+      } catch (e: any) {
+        setErrorHeader(`Could not save settings on active conversation: ${e.message}`);
+      }
+    }
+  };
+
+  const handleGenerateStoryLesson = async () => {
+    if (!activeConversation) {
+      if (!selectedTopic) {
+        setErrorHeader('Please browse the course catalog and highlight a topic first.');
+        return;
+      }
+      // Auto create conversation
+      setGeneratingStory(true);
+      setErrorHeader(null);
+      try {
+        const newConv = await api.createConversation(selectedTopic.topic_id, language, useRag);
+        setConversations(prev => [newConv, ...prev]);
+        setActiveConversation(newConv);
+        
+        const storyPayload = await api.generateStoryLesson(newConv.id, studentPreference || 'Explain cleanly through interactive science examples.');
+        const msgs = await api.getMessages(newConv.id);
+        setMessages(msgs || []);
+        setStudentPreference('');
+      } catch (err: any) {
+        setErrorHeader(err.message || 'Error occurred while synthesizing story-guided lesson.');
+      } finally {
+        setGeneratingStory(false);
+      }
+      return;
+    }
+
+    setGeneratingStory(true);
+    setErrorHeader(null);
+    try {
+      await api.generateStoryLesson(activeConversation.id, studentPreference || 'Explain cleanly through interactive science examples.');
+      const msgs = await api.getMessages(activeConversation.id);
+      setMessages(msgs || []);
+      setStudentPreference('');
+    } catch (err: any) {
+      setErrorHeader(err.message || 'Error compiling lesson narrative.');
+    } finally {
+      setGeneratingStory(false);
+    }
+  };
+
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!typedMessage.trim()) return;
+
+    let targetConv = activeConversation;
+    setErrorHeader(null);
+
+    setSendingMsg(true);
+    try {
+      // 1. Double check / auto initialize conversation if none selected
+      if (!targetConv) {
+        if (!selectedTopic) {
+          throw new Error('Please highlight an active syllabus topic from the Learning Catalog first.');
+        }
+        targetConv = await api.createConversation(selectedTopic.topic_id, language, useRag);
+        setConversations(prev => [targetConv!, ...prev]);
+        setActiveConversation(targetConv);
+      }
+
+      const msgContent = typedMessage;
+      setTypedMessage('');
+
+      // Send
+      await api.sendMessage(targetConv.id, msgContent);
+
+      // Reload messages list
+      const msgs = await api.getMessages(targetConv.id);
+      setMessages(msgs || []);
+    } catch (err: any) {
+      setErrorHeader(err.message || 'Could not send message.');
+    } finally {
+      setSendingMsg(false);
+    }
+  };
+
+  // Helper inside quiz success / remediation complete triggers
+  const refreshWorkspace = () => {
+    fetchTopicStatus();
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 h-full flex flex-col gap-6">
+      
+      {/* Page Header */}
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
+        <div className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase mb-1">Interactive Classroom</div>
+        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white heading-font">
+          AI TUTOR STUDY LAB
+        </h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-semibold">
+          Your topic-bound study companion. Ask clarifying questions, synthesize fun scenario stories, and trigger quick checks.
+        </p>
+      </div>
+
+      {errorHeader && (
+        <StatusMessage type="error" message={errorHeader} />
+      )}
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Column / Setup & Inbox List */}
+        <div className="lg:col-span-4 space-y-6">
+          
+          {/* Active Binder Info */}
+          <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900">
+            <span className="text-[9px] font-black uppercase text-indigo-500 tracking-wider">Active Workspace Binder</span>
+            {selectedTopic ? (
+              <div className="space-y-3 mt-1.5">
+                <div className="border-l-2 border-indigo-500 pl-2.5">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedTopic.grade_name} &bull; {selectedTopic.subject_name}</h4>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-slate-50 line-clamp-1 heading-font">{selectedTopic.topic_title}</h3>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-450 uppercase text-[9px] font-black">Status:</span>
+                  {topicStatus?.status === 'completed' ? (
+                    <Badge variant="completed">Completed ✓</Badge>
+                  ) : topicStatus?.status === 'needs_practice' ? (
+                    <Badge variant="needs_practice">Needs Practice</Badge>
+                  ) : (
+                    <Badge variant="not_started">Not Started</Badge>
+                  )}
+                  {topicStatus && topicStatus.completion_percentage > 0 && (
+                    <span className="text-xs font-mono font-extrabold text-slate-700 dark:text-slate-350">
+                      {topicStatus.completion_percentage}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-xs italic text-slate-450">
+                No syllabus topic selected. Go to learning catalog to load one.
+              </div>
+            )}
+          </Card>
+
+          {/* Configuration and settings Pane */}
+          <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-4">
+            <span className="text-[9px] font-black uppercase text-slate-450 tracking-wider block">TUTOR PREFERENCES</span>
+
+            {/* Language Selection */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 capitalize block">Dialect Language</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleToggleSettings(useRag, 'en')}
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${
+                    language === 'en' 
+                      ? 'bg-blue-600 text-white border-transparent dark:bg-blue-400 dark:text-slate-950 shadow-xs' 
+                      : 'bg-white dark:bg-slate-950 text-slate-705 border-slate-200 dark:border-slate-800'
+                  }`}
+                >
+                  English (en)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleSettings(useRag, 'bn')}
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${
+                    language === 'bn' 
+                      ? 'bg-blue-600 text-white border-transparent dark:bg-blue-400 dark:text-slate-950 shadow-xs' 
+                      : 'bg-white dark:bg-slate-950 text-slate-705 border-slate-200 dark:border-slate-800'
+                  }`}
+                >
+                  Bangla (bn)
+                </button>
+              </div>
+            </div>
+
+            {/* RAG Toggle */}
+            <div className="pt-2">
+              <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={useRag}
+                  onChange={(e) => handleToggleSettings(e.target.checked, language)}
+                  className="rounded-md border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-blue-500/20 shadow-xs h-4 w-4 shrink-0 transition"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-slate-850 dark:text-slate-105 block">Enable AI Textbook RAG</span>
+                  <p className="text-[10px] text-slate-450 leading-relaxed">Let AI read compiled textbooks details for precise answers.</p>
+                </div>
+              </label>
+            </div>
+
+            {/* Explanatory Story preference */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/85">
+              <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Learning Style preference</label>
+              <textarea
+                value={studentPreference}
+                onChange={(e) => setStudentPreference(e.target.value)}
+                placeholder="e.g., Explain through a bicycle story, a visual recipe, or step-by-step math solver proofs..."
+                className="w-full text-xs p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 outline-hidden focus:border-indigo-500"
+                rows={2}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleGenerateStoryLesson}
+                isLoading={generatingStory}
+                className="w-full justify-center text-[10px] font-black uppercase tracking-wider bg-slate-900 border-none text-white dark:bg-white dark:text-slate-950"
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" /> Synthesize Story Lesson
+              </Button>
+            </div>
+
+            {/* Controls */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/85 flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCreateConversation}
+                disabled={loadingConv}
+                className="flex-1 justify-center border border-dashed border-slate-300 dark:border-indigo-950 hover:bg-slate-50 dark:hover:bg-slate-950/20 text-xs"
+              >
+                <PlusCircle className="h-3.5 w-3.5 mr-1.5 text-blue-500" /> New Chat
+              </Button>
+            </div>
+          </Card>
+
+          {/* Conversations History List */}
+          <Card className="p-4 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-3">
+            <span className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">LEARNING CHANNELS ({conversations.length})</span>
+            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              {loadingConv ? (
+                <LoadingState message="Loading channels..." size="sm" />
+              ) : conversations.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-4">No dialogues synthesized yet.</p>
+              ) : (
+                conversations.map(conv => {
+                  const isActive = activeConversation?.id === conv.id;
+                  const targetTopic = selectedTopic && selectedTopic.topic_id === conv.topic_id ? selectedTopic.topic_title : 'Chapter Concept Topic';
+                  return (
+                    <div
+                      key={conv.id}
+                      onClick={() => handleSelectConversation(conv)}
+                      className={`p-2.5 rounded-xl border text-xs cursor-pointer transition select-none flex justify-between items-start gap-2
+                        ${isActive 
+                          ? 'bg-slate-105 border-indigo-500 dark:bg-slate-905 dark:border-blue-400' 
+                          : 'bg-white dark:bg-slate-950 hover:border-slate-300 dark:hover:border-slate-800 border-slate-200 dark:border-slate-850'
+                        }`}
+                    >
+                      <div className="space-y-0.5 truncate max-w-[190px]">
+                        <p className="font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                          {conv.title || 'Learning Dialogue'}
+                        </p>
+                        <p className="text-[10px] text-slate-450 truncate">
+                          Topic Focus: {conv.topic_id === selectedTopic?.topic_id ? selectedTopic.topic_title : 'Physics / Science Theme'}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 font-mono text-[8px] opacity-70 shrink-0">
+                        <Badge variant={conv.use_rag ? 'rag_on' : 'rag_off'}>
+                          {conv.use_rag ? 'RAG' : 'Base'}
+                        </Badge>
+                        <span className="uppercase text-[8px] font-semibold text-slate-450">{conv.language}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </Card>
+
+        </div>
+
+        {/* Right Column / Conversations and diagnostics */}
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          
+          {/* Chat Inbox Visual Area */}
+          <Card className="border-slate-200 dark:border-slate-850 bg-[#FCFDFE] dark:bg-slate-950 flex flex-col h-[540px]">
+            
+            {/* Header info */}
+            <div className="p-4 border-b border-slate-200 dark:border-slate-855 bg-white dark:bg-slate-900 flex justify-between items-center gap-4 select-none rounded-t-2xl shrink-0">
+              <div className="space-y-0.5 max-w-[70%]">
+                <span className="text-[9px] font-black uppercase text-blue-500 tracking-wider">
+                  Dialogue Channel
+                </span>
+                <h3 className="font-black text-sm text-slate-900 dark:text-slate-50 heading-font truncate">
+                  {activeConversation ? activeConversation.title || 'Classroom Discussion' : 'Learniverse AI Tutoring desk'}
+                </h3>
+              </div>
+
+              {/* Settings labels status items */}
+              <div className="flex gap-1.5 text-[10px] font-semibold tracking-wider uppercase shrink-0">
+                {useRag ? <Badge variant="rag_on">RAG: Grounded</Badge> : <Badge variant="not_started">Base Model</Badge>}
+                <Badge variant="student">{language === 'bn' ? 'Bangla bn' : 'English en'}</Badge>
+              </div>
+            </div>
+
+            {/* Bubble contents */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {loadingMsg ? (
+                <div className="flex items-center justify-center h-full">
+                  <LoadingState message="Restoring discussion context parameters..." />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400 dark:text-slate-650 max-w-sm mx-auto space-y-3 select-none">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-350 shrink-0 border border-slate-100 dark:border-slate-805">
+                    <MessageSquare className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-605">Concept dialogue initialized</h4>
+                  <p className="text-[10px] leading-relaxed font-normal">
+                    Draft a custom clarifying question in the input panel below, or compile a tailored **Scenario Narrative Story** using style prefs in the sidebar!
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg, i) => {
+                  const isUser = msg.sender === 'student';
+                  return (
+                    <div key={msg.id || i} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                      {/* Name tag */}
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 select-none font-semibold px-1">
+                        {isUser ? 'You (Student)' : msg.is_story ? 'AI Story-Guided Lesson' : 'AI Tutor'}
+                      </span>
+
+                      {/* Msg bubble container layout styles */}
+                      <div className={`p-4 rounded-xl text-sm leading-relaxed max-w-[85%]
+                        ${isUser 
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-medium' 
+                          : msg.is_refusal 
+                            ? 'bg-rose-50 border border-rose-200 dark:bg-rose-955/15 dark:border-rose-905/30 text-rose-800 dark:text-rose-400' 
+                            : 'bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-850 text-slate-800 dark:text-slate-205'
+                        }`}
+                      >
+                        {/* Custom label tags for story or refusals */}
+                        {msg.is_story && (
+                          <div className="mb-2">
+                            <Badge variant="source_grounded">Story lesson compile</Badge>
+                          </div>
+                        )}
+                        {msg.is_refusal && (
+                          <div className="mb-2">
+                            <Badge variant="refusal">Knowledge refusal block</Badge>
+                          </div>
+                        )}
+
+                        <MarkdownContent content={msg.content} />
+
+                        {/* Citations/RAG Sources list underneath message if provided */}
+                        {msg.sources && msg.sources.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
+                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest select-none">
+                              <FileText className="h-3 w-3 shrink-0" />
+                              GROUNDED SOURCE CITATIONS ({msg.sources.length})
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {msg.sources.map((src, srcIdx) => (
+                                <div key={srcIdx} className="p-2.5 rounded-lg border border-slate-150 dark:border-slate-805 bg-slate-50 dark:bg-slate-950/60 flex flex-col gap-1 text-[10px] select-text pointer-events-auto leading-normal">
+                                  <div className="flex justify-between font-bold text-slate-800 dark:text-slate-250 truncate">
+                                    <span className="truncate">{src.title || 'Source Textbook'}</span>
+                                    <span className="text-slate-400 shrink-0 ml-1.5 font-mono text-[8px]">Pages {src.page_start}-{src.page_end}</span>
+                                  </div>
+                                  <p className="text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed italic">
+                                    "{src.text_preview}"
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              {sendingMsg && (
+                <div className="flex items-center gap-2 pl-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" />
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-100" />
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce delay-200" />
+                  <span className="text-xs text-slate-405 italic ml-1">AI synthesis parsing...</span>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input keyboard controls panels */}
+            <form onSubmit={handleSendMessage} className="p-3.5 border-t border-slate-200 dark:border-slate-855 bg-white dark:bg-slate-900 rounded-b-2xl shrink-0">
+              <div className="flex gap-2.5 items-end">
+                <textarea
+                  value={typedMessage}
+                  onChange={(e) => setTypedMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder={selectedTopic ? `Ask about "${selectedTopic.topic_title}"...` : "Choose a learning context catalog topic or write here..."}
+                  className="flex-1 min-h-[40px] max-h-[140px] p-2.5 text-xs text-slate-850 dark:text-slate-50 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 placeholder:text-slate-400 dark:placeholder:text-slate-650 outline-hidden focus:outline-hidden focus:border-indigo-500"
+                  rows={2}
+                />
+                <Button
+                  type="submit"
+                  disabled={sendingMsg || !typedMessage.trim()}
+                  className="rounded-xl h-[40px] w-[40px] px-0 justify-center flex items-center shrink-0"
+                >
+                  <Send className="h-4 w-4 text-white" />
+                </Button>
+              </div>
+              <div className="flex justify-between items-center text-[10px] text-slate-450 mt-1.5 select-none">
+                <span>Enter to Send &bull; Shift+Enter to create newline</span>
+                <span>Directly Grounded securely inside Render backend sandbox</span>
+              </div>
+            </form>
+
+          </Card>
+
+          {/* Interactive Diagnostic Probe Tabs Selector */}
+          {selectedTopic && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 border-b border-slate-200 dark:border-slate-805 pb-2">
+                <button
+                  onClick={() => {
+                    setActiveDiagnosticTab(activeDiagnosticTab === 'check' ? 'none' : 'check');
+                    // Cache last topic sessionId to prompt remediation checks
+                  }}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
+                    ${activeDiagnosticTab === 'check' 
+                      ? 'bg-blue-600 text-white font-black dark:bg-blue-400 dark:text-slate-955' 
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                    }`}
+                >
+                  Quick Understanding check
+                </button>
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'quiz' ? 'none' : 'quiz')}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
+                    ${activeDiagnosticTab === 'quiz' 
+                      ? 'bg-blue-600 text-white font-black dark:bg-blue-400 dark:text-slate-955' 
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                    }`}
+                >
+                  Diagnostic Quiz
+                </button>
+                {/* Only toggle remedial when weaknesses are established */}
+                <button
+                  onClick={() => setActiveDiagnosticTab(activeDiagnosticTab === 'reremedy' || activeDiagnosticTab === 'remediation' ? 'none' : 'remediation')}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition select-none cursor-pointer
+                    ${activeDiagnosticTab === 'remediation' 
+                      ? 'bg-amber-500 text-white font-black dark:bg-amber-400 dark:text-slate-955' 
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-705 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-350'
+                    }`}
+                >
+                  Focused help & Study
+                </button>
+              </div>
+
+              {/* Toggle diagnostic areas */}
+              {activeDiagnosticTab === 'check' && (
+                <div className="transition-all duration-300">
+                  <UnderstandingCheck
+                    topicId={selectedTopic.topic_id}
+                    topicTitle={selectedTopic.topic_title}
+                    onWeaknessDetected={() => {
+                      setActiveDiagnosticTab('quiz');
+                      refreshWorkspace();
+                    }}
+                    onSuccessCheck={() => {
+                      refreshWorkspace();
+                    }}
+                  />
+                </div>
+              )}
+
+              {activeDiagnosticTab === 'quiz' && (
+                <div className="transition-all duration-300">
+                  <DiagnosticQuiz
+                    topicId={selectedTopic.topic_id}
+                    topicTitle={selectedTopic.topic_title}
+                    onQuizCompleted={(res) => {
+                      // Save the session ID to prompt remediation easily in the diagnostic tab
+                      sessionStorage.setItem(`learniverse_last_session_id_${selectedTopic.topic_id}`, res.session_id);
+                      if (res.weaknesses && res.weaknesses.length > 0) {
+                        // Switch panel to focused remedial helper automatically!
+                        setActiveDiagnosticTab('remediation');
+                      }
+                      refreshWorkspace();
+                    }}
+                  />
+                </div>
+              )}
+
+              {activeDiagnosticTab === 'remediation' && (
+                <div className="transition-all duration-300">
+                  <RemediationPanel
+                    topicId={selectedTopic.topic_id}
+                    topicTitle={selectedTopic.topic_title}
+                    onRemediationCompleted={() => {
+                      refreshWorkspace();
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

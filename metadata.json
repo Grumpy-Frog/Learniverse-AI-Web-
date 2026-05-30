@@ -1,0 +1,6 @@
+{
+  "name": "Learniverse AI",
+  "description": "A dynamic AI-powered learning platform for school-level Science and Mathematics with tutor chat, educational simulations, diagnostics, focused remediation, and educational blogs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
