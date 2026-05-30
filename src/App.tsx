@@ -153,7 +153,7 @@ export default function App() {
       <Navbar currentPath={currentPath} onNavigate={navigateTo} />
 
       {/* Main Pages Content with transition effects */}
-      <main className={`flex-1 w-full ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24 overflow-y-auto'}`}>
+      <main className={`flex-1 w-full min-h-0 ${isTutorPage ? '' : 'max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24 overflow-y-auto'}`}>
         {renderView()}
       </main>
 
