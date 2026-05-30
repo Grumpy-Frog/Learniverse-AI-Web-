@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pressure in Solids / কঠিন বস্তুর চাপ</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--ink:#1e293b;--muted:#64748b;--blue:#2563eb;--red:#ef4444;--radius:16px;--shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+*{box-sizing:border-box}body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--ink)}.app{max-width:1100px;margin:20px auto;padding:0 20px}
+header{text-align:center;margin-bottom:30px}.lang{display:flex;justify-content:center;gap:10px;margin-top:10px}
+.lang button{padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}.lang button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:20px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.control-group{display:flex;flex-direction:column;gap:15px}label{font-size:14px;font-weight:600;display:block;margin-bottom:8px}
+.stage{height:300px;background:linear-gradient(#e0f2fe, #fff);border-radius:var(--radius);position:relative;overflow:hidden;border:2px solid #e2e8f0}
+.sand-bed{position:absolute;bottom:0;width:100%;height:100px;background:#fde68a;border-top:2px solid #fbbf24}
+.block{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:#94a3b8;border:2px solid #475569;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:12px}
+.indent{position:absolute;bottom:0;left:50%;transform:translateX(-50%);background:#fbbf24;opacity:0.5;border-radius:0 0 4px 4px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.stat-box{background:#f8fafc;padding:15px;border-radius:10px;text-align:center}.stat-val{font-size:20px;font-weight:bold;color:var(--blue)}
+.formula-box{background:var(--ink);color:#fff;padding:20px;border-radius:var(--radius);text-align:center;margin-top:20px}.formula{font-size:24px;font-weight:bold;color:#60a5fa}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1 id="h1">Pressure in Solids</h1><div class="lang"><button id="en-btn" class="active">English</button><button id="bn-btn">বাংলা</button></div></header>
+<div class="grid">
+<aside class="sidebar"><div class="card"><div class="control-group"><div><label id="l-orient">Block Orientation</label><select id="orient"><option value="wide" id="o-wide">Wide Face (Horizontal)</option><option value="narrow" id="o-narrow">Narrow Face (Vertical)</option></select></div><div><label id="l-mass">Block Mass (m)</label><input type="range" id="mass" min="1" max="10" value="5"><div style="text-align:right"><span id="m-val">5</span> kg</div></div><button id="reset" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:0;border-radius:8px;cursor:pointer;margin-top:10px">Reset</button></div></div></aside>
+<main>
+<div class="stage"><div class="sand-bed"></div><div id="indent" class="indent"></div><div id="block" class="block">BLOCK</div></div>
+<div class="stats"><div class="stat-box"><div id="s-area">Area (A)</div><div class="stat-val"><span id="area-val">40</span> cm²</div></div><div class="stat-box"><div id="s-pressure">Pressure (P)</div><div class="stat-val" style="color:var(--red)"><span id="pressure-val">1.25</span> N/cm²</div></div></div>
+<div class="formula-box"><p id="f-desc">Pressure is Force divided by Area</p><div class="formula">P = F / A</div><p style="font-size:12px;opacity:0.8" id="f-note">F = Weight (m × g)</p></div>
+</main>
+</div>
+</div>
+<script>
+const t = {
+en:{h1:"Pressure in Solids",orient:"Block Orientation",wide:"Wide Face (Horizontal)",narrow:"Narrow Face (Vertical)",mass:"Block Mass (m)",reset:"Reset",area:"Base Area (A)",press:"Pressure (P)",fdesc:"Pressure is Force divided by Area",fnote:"F = Weight (m × g)"},
+bn:{h1:"কঠিন বস্তুর চাপ",orient:"বস্তুর অবস্থান",wide:"প্রশস্ত দিক (আনুভূমিক)",narrow:"সরু দিক (উলম্ব)",mass:"বস্তুর ভর (m)",reset:"পুনরায় সেট",area:"তলের ক্ষেত্রফল (A)",press:"চাপ (P)",fdesc:"চাপ হলো বল এবং ক্ষেত্রফলের অনুপাত",fnote:"বল = ওজন (ভর × অভিকর্ষজ ত্বরণ)"}
+};
+let lang='en',mass=5,orient='wide';
+const update=()=>{
+const isWide=orient==='wide', area=isWide?40:10, width=isWide?120:30, height=isWide?30:120;
+const force=mass*9.8, pressure=force/area, depth=Math.min(pressure*5, 30);
+const block=document.getElementById('block'), indent=document.getElementById('indent');
+block.style.width=width+'px'; block.style.height=height+'px'; block.style.bottom=(100-depth)+'px';
+indent.style.width=width+'px'; indent.style.height=depth+'px'; indent.style.bottom=(100-depth)+'px';
+document.getElementById('area-val').textContent=area;
+document.getElementById('pressure-val').textContent=pressure.toFixed(2);
+document.getElementById('m-val').textContent=mass;
+};
+const setLang=(l)=>{
+lang=l;document.getElementById('en-btn').className=l==='en'?'active':'';document.getElementById('bn-btn').className=l==='bn'?'active':'';
+const d=t[l];document.getElementById('h1').textContent=d.h1;document.getElementById('l-orient').textContent=d.orient;document.getElementById('o-wide').textContent=d.wide;document.getElementById('o-narrow').textContent=d.narrow;document.getElementById('l-mass').textContent=d.mass;document.getElementById('reset').textContent=d.reset;document.getElementById('s-area').textContent=d.area;document.getElementById('s-pressure').textContent=d.press;document.getElementById('f-desc').textContent=d.fdesc;document.getElementById('f-note').textContent=d.fnote;
+};
+document.getElementById('orient').onchange=(e)=>{orient=e.target.value;update()};
+document.getElementById('mass').oninput=(e)=>{mass=parseInt(e.target.value);update()};
+document.getElementById('reset').onclick=()=>{mass=5;orient='wide';document.getElementById('mass').value=5;document.getElementById('orient').value='wide';update()};
+document.getElementById('en-btn').onclick=()=>setLang('en');
+document.getElementById('bn-btn').onclick=()=>setLang('bn');
+update();setLang('en');
+</script>
+</body>
+</html>

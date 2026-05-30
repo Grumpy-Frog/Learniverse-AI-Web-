@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liquid Pressure / তরলের চাপ</title>
+<style>
+:root{--bg:#f0f9ff;--card:#fff;--ink:#0c4a6e;--blue:#0284c7;--radius:20px}
+body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--ink)}.app{max-width:1200px;margin:20px auto;padding:0 20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.lang button{padding:8px 16px;border-radius:10px;border:1px solid #bae6fd;background:#fff;cursor:pointer}.lang button.active{background:var(--blue);color:#fff}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:30px}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);padding:24px;border-radius:var(--radius);box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);border:1px solid #e0f2fe}
+.stage{height:450px;background:#fff;border-radius:var(--radius);position:relative;border:2px solid #bae6fd;display:flex;justify-content:center;align-items:flex-end}
+.container-box{width:160px;height:350px;border:4px solid #334155;border-top:0;position:relative;background:rgba(186,230,253,0.3)}
+.water{position:absolute;bottom:0;width:100%;background:rgba(2,132,199,0.5);transition:height 0.3s}
+.hole{position:absolute;right:-8px;width:12px;height:12px;background:#334155;border-radius:50%}
+.jet{position:absolute;top:50%;left:50%;transform-origin:left center;height:2px;background:var(--blue);pointer-events:none}
+.stats{display:grid;gap:15px;margin-top:20px}.stat-item{display:flex;justify-content:space-between;font-weight:600;font-size:14px;padding:10px;background:#f8fafc;border-radius:8px}
+.formula-box{background:var(--ink);color:#fff;padding:20px;border-radius:var(--radius);text-align:center}.formula{font-size:28px;font-weight:bold;color:#7dd3fc;margin:10px 0}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1 id="h1">Liquid Pressure vs Depth</h1><div class="lang"><button id="en-btn" class="active">EN</button><button id="bn-btn">বাংলা</button></div></header>
+<div class="grid">
+<aside><div class="card">
+<h3 id="set-h">Experiment Controls</h3>
+<label id="l-height">Water Level</label><input type="range" id="level" min="50" max="100" value="95" style="width:100%;accent-color:var(--blue)">
+<div style="margin-top:20px"><label id="l-density">Liquid Density</label><select id="density" style="width:100%;padding:8px;border-radius:8px"><option value="1">Water (1000 kg/m³)</option><option value="1.2">Salt Water (1200 kg/m³)</option><option value="0.8">Oil (800 kg/m³)</option></select></div>
+<div class="stats"><div class="stat-item"><span id="s-p1">Pressure at Hole 1</span><span id="v-p1">10 Pa</span></div><div class="stat-item"><span id="s-p2">Pressure at Hole 2</span><span id="v-p2">20 Pa</span></div><div class="stat-item"><span id="s-p3">Pressure at Hole 3</span><span id="v-p3">30 Pa</span></div></div>
+</div></aside>
+<main>
+<div class="stage" id="stage"><canvas id="canvas"></canvas><div class="container-box"><div id="water" class="water"></div><div class="hole" style="top:80px"></div><div class="hole" style="top:180px"></div><div class="hole" style="top:280px"></div></div></div>
+<div class="formula-box" style="margin-top:20px"><p id="f-desc">Pressure in a liquid depends on depth and density.</p><div class="formula">P = h × ρ × g</div><p style="font-size:12px" id="f-note">h: Depth, ρ: Density, g: Gravity</p></div>
+</main>
+</div>
+</div>
+<script>
+const t = {
+en:{h1:"Liquid Pressure vs Depth",set:"Experiment Controls",h:"Water Level",d:"Liquid Density",p1:"Hole 1 (Top) Pressure",p2:"Hole 2 (Mid) Pressure",p3:"Hole 3 (Bottom) Pressure",fdesc:"Pressure in a liquid depends on depth and density.",fnote:"h: Depth, ρ: Density, g: Gravity"},
+bn:{h1:"তরলের চাপ ও গভীরতা",set:"পরীক্ষার নিয়ন্ত্রণ",h:"পানির স্তর",d:"তরলের ঘনত্ব",p1:"ছিদ্র ১ (ওপর) চাপ",p2:"ছিদ্র ২ (মাঝামাঝি) চাপ",p3:"ছিদ্র ৩ (নিচে) চাপ",fdesc:"তরলে চাপ গভীরতা এবং ঘনত্বের ওপর নির্ভর করে।",fnote:"h: গভীরতা, ρ: ঘনত্ব, g: অভিকর্ষ"}
+};
+let lang='en',level=95,density=1;
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+const holes=[80,180,280];
+function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight}
+window.onresize=resize;resize();
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+const stageWidth=canvas.width,stageHeight=canvas.height,waterHeight=350*(level/100),waterTop=stageHeight-waterHeight;
+document.getElementById('water').style.height=level+'%';
+const g=9.8, rho=density*1000;
+holes.forEach((top,i)=>{
+const holeY=stageHeight-350+top, depth=(waterHeight-(350-top))/350*5;
+if(depth>0){
+const pressure=depth*rho*g, vel=Math.sqrt(2*9.8*depth), range=vel*Math.sqrt(2*(stageHeight-holeY)/9.8);
+ctx.beginPath();ctx.moveTo(stageWidth/2+80,holeY);
+ctx.bezierCurveTo(stageWidth/2+80+range/2,holeY,stageWidth/2+80+range,holeY,stageWidth/2+80+range,stageHeight);
+ctx.strokeStyle='rgba(2,132,199,0.6)';ctx.lineWidth=3;ctx.stroke();
+document.getElementById('v-p'+(i+1)).textContent=(pressure/1000).toFixed(1)+' kPa';
+}else{document.getElementById('v-p'+(i+1)).textContent='0 kPa'}});
+requestAnimationFrame(draw);
+}
+const setLang=(l)=>{
+lang=l;document.getElementById('en-btn').className=l==='en'?'active':'';document.getElementById('bn-btn').className=l==='bn'?'active':'';const d=t[l];
+document.getElementById('h1').textContent=d.h1;document.getElementById('set-h').textContent=d.set;document.getElementById('l-height').textContent=d.h;document.getElementById('l-density').textContent=d.d;document.getElementById('s-p1').textContent=d.p1;document.getElementById('s-p2').textContent=d.p2;document.getElementById('s-p3').textContent=d.p3;document.getElementById('f-desc').textContent=d.fdesc;document.getElementById('f-note').textContent=d.fnote;
+};
+document.getElementById('level').oninput=(e)=>{level=parseInt(e.target.value)};
+document.getElementById('density').onchange=(e)=>{density=parseFloat(e.target.value)};
+document.getElementById('en-btn').onclick=()=>setLang('en');
+document.getElementById('bn-btn').onclick=()=>setLang('bn');
+setLang('en');draw();
+</script>
+</body>
+</html>

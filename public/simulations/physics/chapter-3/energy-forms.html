@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Transformation / শক্তির রূপান্তর</title>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--blue:#3b82f6;--green:#22c55e;--orange:#f59e0b;--ink:#0f172a;--radius:16px}
+body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden}.app{max-width:1100px;margin:20px auto;padding:0 20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.lang button{padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer}.lang button.active{background:var(--ink);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 300px;gap:20px}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+.stage{height:450px;background:#fff;border-radius:var(--radius);border:2px solid #e2e8f0;position:relative}
+.swivel{position:absolute;top:50px;left:50%;transform:translateX(-50%);width:200px;height:10px;background:#94a3b8;border-radius:5px}
+.bob{position:absolute;width:40px;height:40px;background:radial-gradient(circle at 30% 30%, #ef4444, #991b1b);border-radius:50%;top:0;left:0;transform:translate(-20px, -20px);box-shadow:0 10px 15px -3px rgba(0,0,0,0.3)}
+.string{position:absolute;top:55px;left:50%;width:2px;background:#475569;transform-origin:top center}
+.chart{display:flex;flex-direction:column;gap:15px;padding:20px;height:100%}.bar-container{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:bold}
+.bar{height:24px;border-radius:6px;transition:width 0.05s linear;min-width:2px}
+.pe-bar{background:var(--blue)}.ke-bar{background:var(--green)}.te-bar{background:var(--orange)}
+.stat-val{font-family:monospace;font-size:14px;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1 id="h1">Energy Transformation</h1><div class="lang"><button id="en-btn" class="active">EN</button><button id="bn-btn">বাংলা</button></div></header>
+<div class="grid">
+<main><div class="stage" id="stage"><div class="swivel"></div><div id="string" class="string"></div><div id="bob" class="bob"></div></div></main>
+<aside><div class="card chart" style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+<h3 id="h-chart">Energy Levels</h3>
+<div class="bar-container"><span>PE</span><div id="pe-bar" class="bar pe-bar" style="width:50%"></div><span id="pe-val" class="stat-val">0J</span></div>
+<div class="bar-container"><span>KE</span><div id="ke-bar" class="bar ke-bar" style="width:50%"></div><span id="ke-val" class="stat-val">0J</span></div>
+<div class="bar-container"><span>Total</span><div id="te-bar" class="bar te-bar" style="width:100%"></div><span id="te-val" class="stat-val">100J</span></div>
+<hr style="width:100%;border:0;border-top:1px solid #e2e8f0;margin:10px 0">
+<div style="font-size:13px;color:#64748b" id="note">Potential Energy is max at the ends. Kinetic Energy is max at the center. Total Energy remains constant.</div>
+<button id="reset" style="margin-top:auto;padding:10px;border-radius:8px;border:0;background:var(--ink);color:#fff;cursor:pointer">Reset Motion</button>
+</div></aside>
+</div>
+</div>
+<script>
+const t={
+en:{h1:"Energy Transformation",hchart:"Energy Levels",pe:"Potential (PE)",ke:"Kinetic (KE)",total:"Total",note:"Total energy is conserved. PE converts to KE and back.",reset:"Reset Motion"},
+bn:{h1:"শক্তির রূপান্তর",hchart:"শক্তির স্তর",pe:"বিভব শক্তি",ke:"গতি শক্তি",total:"মোট শক্তি",note:"মোট শক্তি সংরক্ষিত থাকে। বিভব শক্তি গতি শক্তিতে এবং গতি শক্তি পুনরায় বিভব শক্তিতে রূপান্তরিত হয়।",reset:"পুনরায় সেট"}
+};
+let lang='en',angle=1,angleAcc=0,angleVel=0,gravity=0.05,length=300;
+const bob=document.getElementById('bob'),string=document.getElementById('string');
+function loop(){
+angleAcc = -gravity * Math.sin(angle);
+angleVel += angleAcc;
+angleVel *= 0.998; 
+angle += angleVel;
+const x = 500 + Math.sin(angle) * length;
+const y = 55 + Math.cos(angle) * length;
+bob.style.left = x + 'px'; bob.style.top = y + 'px';
+string.style.transform = `rotate(${-angle * 180 / Math.PI}deg)`;
+string.style.height = length + 'px';
+const total = 100;
+const h = length * (1 - Math.cos(angle));
+const pe = (h / (length * 0.5)) * 100;
+const ke = Math.max(0, total - pe);
+document.getElementById('pe-bar').style.width = pe + '%';
+document.getElementById('ke-bar').style.width = ke + '%';
+document.getElementById('pe-val').textContent = pe.toFixed(0) + ' J';
+document.getElementById('ke-val').textContent = ke.toFixed(0) + ' J';
+document.getElementById('te-val').textContent = total + ' J';
+requestAnimationFrame(loop);
+}
+function setLang(l){
+lang=l;document.getElementById('en-btn').className=l==='en'?'active':'';document.getElementById('bn-btn').className=l==='bn'?'active':'';const d=t[l];
+document.getElementById('h1').textContent=d.h1;document.getElementById('h-chart').textContent=d.hchart;document.getElementById('note').textContent=d.note;document.getElementById('reset').textContent=d.reset;
+}
+document.getElementById('reset').onclick=()=>{angle=1;angleVel=0;angleAcc=0;};
+document.getElementById('en-btn').onclick=()=>setLang('en');
+document.getElementById('bn-btn').onclick=()=>setLang('bn');
+setLang('en');loop();
+</script>
+</body>
+</html>

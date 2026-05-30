@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work and Power / কাজ ও ক্ষমতা</title>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--blue:#2563eb;--green:#10b981;--red:#ef4444;--radius:16px;--shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
+body{margin:0;font-family:system-ui;background:var(--bg);color:#1e293b}.app{max-width:1100px;margin:20px auto;padding:0 20px}
+header{text-align:center;margin-bottom:30px}.lang{display:flex;justify-content:center;gap:10px;margin-top:10px}
+.lang button{padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}.lang button.active{background:#2563eb;color:#fff}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:20px}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+.stage{height:400px;background:#fff;border:2px solid #e2e8f0;border-radius:var(--radius);position:relative;overflow:hidden}
+.motor-hub{position:absolute;top:50px;left:50%;transform:translateX(-50%);width:100px;height:60px;background:#475569;border-radius:8px;z-index:2}
+.pulley-wheel{position:absolute;top:60px;left:50%;transform:translateX(-50%);width:40px;height:40px;background:#94a3b8;border:4px solid #334155;border-radius:50%;z-index:3}
+.rope{position:absolute;top:80px;left:50%;transform:translateX(-50%);width:2px;background:#1e293b;z-index:1}
+.crate{position:absolute;width:60px;height:60px;background:#b45309;border:3px solid #78350f;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;z-index:2}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-top:20px}
+.stat-card{background:#fff;padding:15px;border-radius:12px;border:1px solid #e2e8f0;text-align:center}.stat-val{font-size:22px;font-weight:bold;color:var(--blue)}
+.efficiency-ring{width:100px;height:100px;border-radius:50%;background:conic-gradient(var(--green) 0%, #e2e8f0 0%);margin:0 auto;display:flex;align-items:center;justify-content:center;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1 id="h1">Work, Power & Efficiency</h1><div class="lang"><button id="en-btn" class="active">English</button><button id="bn-btn">বাংলা</button></div></header>
+<div class="grid">
+<aside><div class="card" style="background:#fff;padding:20px;border-radius:16px;box-shadow:var(--shadow)">
+<h3 id="h-ctrl">Motor Controls</h3>
+<label id="l-power">Motor Power (Watts)</label><input type="range" id="power-input" min="100" max="1000" value="500" style="width:100%"><div align="right"><span id="p-val">500</span> W</div><br>
+<label id="l-mass">Crate Mass (kg)</label><input type="range" id="mass-input" min="5" max="50" value="10" style="width:100%"><div align="right"><span id="m-val">10</span> kg</div><br>
+<button id="start" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:0;border-radius:8px;cursor:pointer">Start Lift</button>
+<p style="font-size:12px;color:#64748b;margin-top:15px" id="note">Efficiency is lower when lifting heavy loads with a weak motor due to friction and heat loss.</p>
+</div></aside>
+<main>
+<div class="stage"><div class="motor-hub"></div><div id="pulley" class="pulley-wheel"></div><div id="rope" class="rope"></div><div id="crate" class="crate">10kg</div></div>
+<div class="stats-grid">
+<div class="stat-card"><div id="s-work">Useful Work Done</div><div class="stat-val" id="v-work">0 J</div></div>
+<div class="stat-card"><div id="s-time">Time Taken</div><div class="stat-val" id="v-time">0.0 s</div></div>
+<div class="stat-card"><div id="s-eff">Efficiency</div><div id="eff-ring" class="efficiency-ring"><div id="eff-val" style="background:#fff;width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center">0%</div></div></div>
+</div>
+</main>
+</div>
+</div>
+<script>
+const t={
+en:{h1:"Work, Power & Efficiency",ctrl:"Motor Controls",power:"Motor Power (W)",mass:"Crate Mass (kg)",start:"Start Lift",hwork:"Useful Work",htime:"Time Taken",heff:"Efficiency",note:"Work is Force (weight) × distance. Power is how fast work is done. Efficiency accounts for energy loss.",lifting:"Lifting..."},
+bn:{h1:"কাজ, ক্ষমতা ও দক্ষতা",ctrl:"মোটর নিয়ন্ত্রণ",power:"মোটর ক্ষমতা (ওয়াট)",mass:"বস্তুর ভর (কেজি)",start:"উত্তোলন শুরু",hwork:"কার্যকর কাজ",htime:"সময় লেগেছে",heff:"কর্মদক্ষতা",note:"কাজ হলো বল (ওজন) এবং দূরত্বের গুণফল। কাজ করার হার হলো ক্ষমতা। শক্তির অপচয় বাদ দিলে কর্মদক্ষতা পাওয়া যায়।",lifting:"উঠছে..."}
+};
+let lang='en',power=500,mass=10,height=0,isRunning=false,startTime=0,elapsed=0;
+const crate=document.getElementById('crate'),rope=document.getElementById('rope'),pulley=document.getElementById('pulley');
+function update(){
+if(isRunning){
+const g=9.8, weight=mass*g, liftHeight=3;
+const forceRequired=weight;
+const effectivePower = power * 0.85; 
+const vel = effectivePower / forceRequired;
+height += vel * 0.016; 
+elapsed += 0.016;
+if(height >= 250){
+height=250; isRunning=false;
+const workDone = weight * (250/100);
+const energyUsed = power * elapsed;
+const eff = (workDone/energyUsed)*100;
+document.getElementById('v-work').textContent = workDone.toFixed(0) + ' J';
+document.getElementById('v-time').textContent = elapsed.toFixed(1) + ' s';
+document.getElementById('eff-val').textContent = eff.toFixed(1) + '%';
+document.getElementById('eff-ring').style.background = `conic-gradient(#10b981 ${eff}%, #e2e8f0 0%)`;
+document.getElementById('start').disabled=false;
+document.getElementById('start').textContent=t[lang].start;
+}
+crate.style.bottom = height + 'px';
+rope.style.height = (320-height) + 'px';
+pulley.style.transform = `rotate(${height*2}deg)`;
+requestAnimationFrame(update);
+}
+}
+const setLang=(l)=>{
+lang=l;document.getElementById('en-btn').className=l==='en'?'active':'';document.getElementById('bn-btn').className=l==='bn'?'active':'';const d=t[l];
+document.getElementById('h1').textContent=d.h1;document.getElementById('h-ctrl').textContent=d.ctrl;document.getElementById('l-power').textContent=d.power;document.getElementById('l-mass').textContent=d.mass;document.getElementById('start').textContent=isRunning?d.lifting:d.start;document.getElementById('s-work').textContent=d.hwork;document.getElementById('s-time').textContent=d.htime;document.getElementById('s-eff').textContent=d.heff;document.getElementById('note').textContent=d.note;
+};
+document.getElementById('power-input').oninput=(e)=>{power=parseInt(e.target.value);document.getElementById('p-val').textContent=power};
+document.getElementById('mass-input').oninput=(e)=>{mass=parseInt(e.target.value);document.getElementById('m-val').textContent=mass;crate.textContent=mass+'kg'};
+document.getElementById('start').onclick=()=>{
+height=0;elapsed=0;isRunning=true;
+document.getElementById('start').disabled=true;
+document.getElementById('start').textContent=t[lang].lifting;
+update();
+};
+document.getElementById('en-btn').onclick=()=>setLang('en');
+document.getElementById('bn-btn').onclick=()=>setLang('bn');
+setLang('en');
+</script>
+</body>
+</html>
