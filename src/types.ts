@@ -289,6 +289,62 @@ export interface TopicStatus {
   weaknesses: string[];
 }
 
+export interface DashboardTopic {
+  grade_id: string;
+  grade_name: string;
+  subject_id: string;
+  subject_name: string;
+  chapter_id: string;
+  chapter_title: string;
+  topic_id: string;
+  topic_title: string;
+  topic_description?: string;
+  learning_objective?: string;
+  completion_status: "not_started" | "needs_practice" | "completed";
+  latest_score: number | null;
+  best_score: number | null;
+  strength_labels: string[];
+  weakness_labels: string[];
+  show_checkmark: boolean;
+}
+
+export interface DashboardSubjectSummary {
+  subject_id: string;
+  total_topics: number;
+  completed_topics: number;
+  is_completed: boolean;
+  strength_labels: string[];
+  weakness_labels: string[];
+}
+
+export interface DashboardProgressModel {
+  topics: DashboardTopic[];
+  subjectSummaries: DashboardSubjectSummary[];
+  totalTopics: number;
+  completedTopics: number;
+  needsPracticeTopics: DashboardTopic[];
+  notStartedTopics: DashboardTopic[];
+  masteredTopics: DashboardTopic[];
+  improvingTopics: DashboardTopic[];
+  practiceTopics: DashboardTopic[];
+  weakTopics: DashboardTopic[];
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export interface SelectedTopic {
+  grade_id: string;
+  grade_name: string;
+  subject_id: string;
+  subject_name: string;
+  chapter_id: string;
+  chapter_title: string;
+  topic_id: string;
+  topic_title: string;
+  topic_description?: string;
+  learning_objective?: string;
+}
+
 export interface SubjectSummary {
   subject_id: string;
   subject_name: string;
