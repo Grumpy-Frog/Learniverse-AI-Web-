@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { getProfile, getCurrentUser } from '../../lib/auth';
 import { Grade, Subject, SubjectSummary } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -23,6 +24,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
   const [subjectsWithSummary, setSubjectsWithSummary] = useState<SubjectWithSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   // Aggregated Stats
   const [stats, setStats] = useState({
@@ -40,6 +42,12 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     setIsLoading(true);
     setErrorMsg(null);
     try {
+      let profile = getProfile();
+      setUserProfile(profile);
+      getCurrentUser().then(user => {
+        if (user) setUserProfile(user);
+      }).catch(console.error);
+
       const gList = await api.getGrades();
       setGrades(gList);
       if (gList.length > 0) {
@@ -127,7 +135,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                Level 4 Scholar
             </span>
             <h1 className="text-2xl font-black mt-1">
-              Welcome back, Alex!
+              Welcome back, {userProfile?.fullname || userProfile?.name || 'Student'}!
             </h1>
           </div>
           

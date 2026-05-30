@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getProfile, isAuthenticated, purgeSession } from '../../lib/auth';
+import { getProfile, isAuthenticated, purgeSession, getCurrentUser } from '../../lib/auth';
 import { getApiBaseUrl, setApiBaseUrlOverride } from '../../lib/api';
 import ThemeToggle from '../ui/ThemeToggle';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import { BookOpen, User, LogOut, Menu, X, Landmark, Cpu, Sparkles, Settings } from 'lucide-react';
-
-const DEFAULT_API_URL = 'https://learniverse-ai-backend.onrender.com/api/v1';
 
 interface NavbarProps {
   currentPath: string;
@@ -25,11 +23,19 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
     checkAuth();
   }, [currentPath]);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
     const auth = isAuthenticated();
     setIsLogged(auth);
     if (auth) {
-      setUserProfile(getProfile());
+      setUserProfile(getProfile()); // Set initial from cache
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setUserProfile(user);
+        }
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       setUserProfile(null);
     }
@@ -297,13 +303,13 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <label className="text-[9px] font-mono tracking-wider font-extrabold text-slate-400 uppercase">Backend Base URL</label>
               <input
                 type="text"
-                placeholder={DEFAULT_API_URL}
+                placeholder="https://YOUR-RENDER-BACKEND.onrender.com/api/v1"
                 value={apiUrlInput}
                 onChange={(e) => setApiUrlInput(e.target.value)}
                 className="w-full text-xs font-mono p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
               <p className="text-[9px] text-slate-400 mt-1 leading-normal select-none">
-                Default: <span className="font-mono text-slate-500 bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded">{DEFAULT_API_URL}</span>
+                Default: <span className="font-mono text-slate-500 bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded">https://YOUR-RENDER-BACKEND.onrender.com/api/v1</span>
               </p>
             </div>
 
@@ -311,7 +317,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <Button
                 variant="ghost"
                 onClick={() => {
-                  setApiUrlInput(DEFAULT_API_URL);
+                  setApiUrlInput('https://YOUR-RENDER-BACKEND.onrender.com/api/v1');
                 }}
                 className="text-[10px] font-black uppercase tracking-wider py-1.5"
               >
@@ -326,8 +332,8 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               </Button>
               <Button
                 onClick={() => {
-                  const val = apiUrlInput.trim() || DEFAULT_API_URL;
-                  setApiBaseUrlOverride(val === DEFAULT_API_URL ? null : val);
+                  const val = apiUrlInput.trim() || 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1';
+                  setApiBaseUrlOverride(val === 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1' ? null : val);
                   setShowApiModal(false);
                   window.location.reload(); // Reload to apply new API configuration immediately across state
                 }}
