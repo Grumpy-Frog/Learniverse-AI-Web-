@@ -63,7 +63,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <Cpu className="h-5 w-5 animate-pulse" />
             </span>
             <div className="text-left font-black tracking-tight text-[var(--text-primary)] leading-none">
-              <span className="text-lg heading-font">PhyMentor</span>
+              <span className="text-lg heading-font">Learniverse AI</span>
               <span className="text-[var(--accent-secondary)] font-bold text-[9px] block">AI EDUCATION ENGINE</span>
             </div>
           </div>

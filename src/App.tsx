@@ -136,7 +136,7 @@ export default function App() {
       {/* Footer Area */}
       <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
-          <span>&copy; {new Date().getFullYear()} PHYMENTOR AI &bull; BILINGUAL TUTOR SERVER</span>
+          <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI &bull; BILINGUAL TUTOR SERVER</span>
           <div className="flex gap-4">
             <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
             <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>

@@ -15,13 +15,13 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     // Read on load
-    const savedTheme = localStorage.getItem('phymentor_theme') || 'default';
+    const savedTheme = localStorage.getItem('learniverse_theme') || 'default';
     applyTheme(savedTheme);
   }, []);
 
   const applyTheme = (newTheme: string) => {
     setTheme(newTheme);
-    localStorage.setItem('phymentor_theme', newTheme);
+    localStorage.setItem('learniverse_theme', newTheme);
     
     // Clear all existing theme classes
     THEMES.forEach(t => {
@@ -72,7 +72,7 @@ export default function ThemeToggle() {
 }
 
 export function initializeTheme() {
-  const savedTheme = localStorage.getItem('phymentor_theme') || 'default';
+  const savedTheme = localStorage.getItem('learniverse_theme') || 'default';
   if (savedTheme !== 'default') {
     document.documentElement.classList.add(savedTheme);
   }
