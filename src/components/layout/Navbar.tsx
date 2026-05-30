@@ -176,7 +176,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <div className="flex items-center gap-3 border-l border-[var(--glass-border)] pl-4">
                 <div className="text-right">
                   <p className="text-xs font-bold text-[var(--text-primary)] leading-none heading-font select-text">
-                    {userProfile?.name || 'Educator User'}
+                    {userProfile?.fullname || userProfile?.name || 'Educator User'}
                   </p>
                   <p className="text-[9px] font-mono lowercase opacity-70 text-[var(--text-secondary)] mt-0.5">
                     Role: <strong className="uppercase text-[var(--accent-secondary)] font-extrabold">{role}</strong>
@@ -250,7 +250,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <button onClick={() => handleNavItemClick('/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">Educational Blog</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
                 <div className="mb-2">
-                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.name}</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.fullname || userProfile?.name || 'Educator User'}</p>
                   <p className="text-[10px] text-slate-450 uppercase font-mono tracking-wider font-semibold">ROLE: student</p>
                 </div>
                 <Button size="sm" variant="danger" className="w-full justify-center" onClick={handleLogout}>Log Out</Button>
@@ -267,7 +267,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <button onClick={() => handleNavItemClick('/dashboard')} className="block w-full text-left py-2 font-extrabold text-xs text-blue-500">Student Dashboard View</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
                 <div className="mb-2">
-                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.name}</p>
+                  <p className="text-xs font-black text-slate-800 dark:text-slate-205">{userProfile?.fullname || userProfile?.name || 'Educator User'}</p>
                   <p className="text-[10px] text-slate-450 uppercase font-mono tracking-wider font-semibold">ROLE: admin</p>
                 </div>
                 <Button size="sm" variant="danger" className="w-full justify-center" onClick={handleLogout}>Log Out</Button>
