@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { User, Grade, Subject, Chapter, Topic, TextbookDocument } from '../../types';
-import Navigation from '../layout/Navbar';
 import Button from '../ui/Button';
 import CatalogSelector from './rag/CatalogSelector';
 import DocumentUploadForm from './rag/DocumentUploadForm';
@@ -104,7 +103,7 @@ export default function AdminDocumentsPage() {
     <div className="min-h-screen bg-slate-950 text-slate-200">
       
       {/* Dynamic Workspace Header */}
-      <div className="border-b border-white/5 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
+      <div className="border-b border-white/5 bg-slate-900/40">
         <div className="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
