@@ -123,24 +123,24 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FDFDFE] text-slate-800 dark:bg-[#090A0F] dark:text-slate-100 transition-colors duration-300 antialiased font-sans">
+    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300 antialiased font-sans">
       
       {/* Global Navbar */}
       <Navbar currentPath={currentPath} onNavigate={navigateTo} />
 
       {/* Main Pages Content with transition effects */}
-      <main className="flex-1 transition-all">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 xl:px-8 py-6 pb-24">
         {renderView()}
       </main>
 
       {/* Footer Area */}
-      <footer className="shrink-0 bg-white border-t border-slate-150 dark:bg-slate-950 dark:border-slate-850 p-6 select-none">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase font-mono tracking-wider text-slate-400 font-semibold">
-          <span>&copy; {new Date().getFullYear()} LEARNIVERSE AI SYSTEMS &bull; SECURE ACADEMIC LABS</span>
+      <footer className="shrink-0 bg-[var(--glass-bg)] border-t border-[var(--glass-border)] backdrop-blur-[20px] p-6 select-none relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
+          <span>&copy; {new Date().getFullYear()} PHYMENTOR AI &bull; BILINGUAL TUTOR SERVER</span>
           <div className="flex gap-4">
-            <button onClick={() => navigateTo('/')} className="hover:text-blue-500">Home</button>
-            <button onClick={() => navigateTo('/catalog')} className="hover:text-blue-500">Catalog</button>
-            <button onClick={() => navigateTo('/blog')} className="hover:text-blue-500">Dictionary Info</button>
+            <button onClick={() => navigateTo('/')} className="hover:text-[var(--accent-primary)] transition-colors">Home</button>
+            <button onClick={() => navigateTo('/catalog')} className="hover:text-[var(--accent-primary)] transition-colors">Syllabus</button>
+            <button onClick={() => navigateTo('/blog')} className="hover:text-[var(--accent-primary)] transition-colors">Journal</button>
           </div>
         </div>
       </footer>

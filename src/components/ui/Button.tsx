@@ -8,6 +8,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  disabled?: boolean;
+  onClick?: (e: any) => void;
 }
 
 export default function Button({
@@ -23,34 +25,33 @@ export default function Button({
 }: ButtonProps) {
   const getVariantStyles = () => {
     if (disabled || isLoading) {
-      return 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed border border-slate-300 dark:border-slate-800';
+      return 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--glass-border)] opacity-40 cursor-not-allowed';
     }
 
     switch (variant) {
       case 'primary':
-        // Primary text light vs black/dark theme button styles
-        return 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-400 dark:hover:bg-blue-500 dark:text-slate-950 font-medium border border-transparent shadow-sm';
+        return 'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-transparent hover:-translate-y-0.5';
       case 'secondary':
-        return 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm';
+        return 'bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] backdrop-blur-[20px] shadow-sm hover:-translate-y-0.5';
       case 'danger':
-        return 'bg-rose-600 hover:bg-rose-700 text-white dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 dark:hover:bg-rose-500/20 border border-transparent shadow-sm';
+        return 'bg-gradient-to-r from-[var(--danger)] to-[#e11d48] text-white shadow-[0_8px_30px_rgba(225,29,72,0.15)] border border-transparent hover:-translate-y-0.5';
       case 'success':
-        return 'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20 border border-transparent shadow-sm';
+        return 'bg-gradient-to-r from-[var(--success)] to-[#059669] text-white shadow-[0_8px_30px_rgba(5,150,105,0.15)] border border-transparent hover:-translate-y-0.5';
       case 'ghost':
-        return 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent';
+        return 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] border border-transparent hover:text-[var(--text-primary)]';
       default:
-        return 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-transparent';
+        return 'bg-[var(--glass-bg)] text-[var(--text-primary)] border border-transparent hover:bg-[var(--bg-surface)]';
     }
   };
 
   const getSizeStyles = () => {
     switch (size) {
       case 'sm':
-        return 'px-3 py-1.5 text-xs';
+        return 'px-3 py-1.5 text-[12px] font-semibold h-[32px] rounded-lg';
       case 'lg':
-        return 'px-6 py-3 text-base';
+        return 'px-6 py-3 text-[16px] font-bold h-[56px] rounded-xl';
       default:
-        return 'px-4 py-2 text-sm';
+        return 'px-4 py-2 text-[14px] font-semibold h-[44px] rounded-xl';
     }
   };
 
@@ -59,7 +60,7 @@ export default function Button({
       id={id}
       type={type}
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-lg transition-all duration-200 select-none active:scale-98 font-medium border focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 outline-hidden ${getVariantStyles()} ${getSizeStyles()} ${className}`}
+      className={`inline-flex items-center justify-center transition-all duration-300 select-none active:scale-95 border focus:outline-hidden focus:ring-2 focus:ring-[var(--accent-primary)] outline-hidden min-w-[44px] ${getVariantStyles()} ${getSizeStyles()} ${className}`}
       {...props}
     >
       {isLoading && (

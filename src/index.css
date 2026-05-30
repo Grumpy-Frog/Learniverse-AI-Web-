@@ -1,38 +1,116 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+
+  --animate-shimmer: shimmer 2s infinite;
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
 
 :root {
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --bg-light: #FBFBFC;
-  --card-light: #FFFFFF;
-  --border-light: #1A1A1A; /* Crisp brutalist border */
-  --text-light: #000000;
+  font-family: 'Poppins', 'Noto Sans Bengali', sans-serif;
   
-  --bg-dark: #0A0A0A;
-  --card-dark: #121212;
-  --border-dark: #262626;
-  --text-dark: #FFFFFF;
+  /* Defaults to Cosmic Dark */
+  --bg-primary: #0A0E27;
+  --bg-surface: rgba(255,255,255,0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255,255,255,0.7);
+  --accent-primary: #6C63FF;
+  --accent-secondary: #00D2FF;
+  --success: #00C853;
+  --warning: #FFB300;
+  --danger: #FF5252;
+  --glass-bg: rgba(255,255,255,0.05); /* slightly adjusted for layering */
+  --glass-border: rgba(255,255,255,0.12);
+}
+
+.theme-light {
+  --bg-primary: #F0F2F8;
+  --bg-surface: rgba(255,255,255,0.85);
+  --text-primary: #1A1A2E;
+  --text-secondary: rgba(26,26,46,0.6);
+  --accent-primary: #5B4CDB;
+  --accent-secondary: #00B8D4;
+  --success: #00A844;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --glass-bg: rgba(255,255,255,0.5);
+  --glass-border: rgba(0,0,0,0.08);
+}
+
+.theme-ocean {
+  --bg-primary: #0C1929;
+  --bg-surface: rgba(8,145,178,0.12);
+  --text-primary: #E0F7FA;
+  --text-secondary: rgba(224,247,250,0.6);
+  --accent-primary: #0891B2;
+  --accent-secondary: #22D3EE;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --glass-bg: rgba(8,145,178,0.05);
+  --glass-border: rgba(34,211,238,0.15);
+}
+
+.theme-warm {
+  --bg-primary: #1A1410;
+  --bg-surface: rgba(230,126,34,0.1);
+  --text-primary: #FFF8E1;
+  --text-secondary: rgba(255,248,225,0.6);
+  --accent-primary: #E67E22;
+  --accent-secondary: #F39C12;
+  --success: #27AE60;
+  --warning: #F1C40F;
+  --danger: #C0392B;
+  --glass-bg: rgba(230,126,34,0.05);
+  --glass-border: rgba(243,156,18,0.15);
+}
+
+.theme-purple {
+  --bg-primary: #120B1A;
+  --bg-surface: rgba(155,89,182,0.1);
+  --text-primary: #F3E5F5;
+  --text-secondary: rgba(243,229,245,0.6);
+  --accent-primary: #9B59B6;
+  --accent-secondary: #BB86FC;
+  --success: #00C853;
+  --warning: #FFB300;
+  --danger: #FF5252;
+  --glass-bg: rgba(155,89,182,0.05);
+  --glass-border: rgba(187,134,252,0.15);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-light);
-  color: var(--text-light);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   transition: background-color 0.2s, color 0.2s;
 }
 
-.dark body {
-  background-color: var(--bg-dark);
-  color: var(--text-dark);
-}
-
 .heading-font {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Poppins', 'Noto Sans Bengali', sans-serif;
+  font-weight: 700;
 }
 
 .mono-font {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: inherit;
 }
 
 /* Custom scrollbar */

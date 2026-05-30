@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, isAuthenticated, purgeSession } from '../../lib/auth';
+import { getApiBaseUrl, setApiBaseUrlOverride } from '../../lib/api';
 import ThemeToggle from '../ui/ThemeToggle';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { BookOpen, User, LogOut, Menu, X, Landmark, Cpu, Sparkles } from 'lucide-react';
+import { BookOpen, User, LogOut, Menu, X, Landmark, Cpu, Sparkles, Settings } from 'lucide-react';
 
 interface NavbarProps {
   currentPath: string;
@@ -14,6 +15,8 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [isLogged, setIsLogged] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [apiUrlInput, setApiUrlInput] = useState('');
 
   useEffect(() => {
     // Check loading state dynamically on mount and whenever currentPath shifts
@@ -47,7 +50,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
   const role = userProfile?.role || 'guest';
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-slate-150 dark:border-slate-850 select-none">
+    <nav className="sticky top-0 z-40 bg-[var(--glass-bg)] backdrop-blur-[20px] border-b border-[var(--glass-border)] select-none">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex justify-between items-center h-16">
           
@@ -56,12 +59,12 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
             onClick={() => handleNavItemClick(isLogged ? '/dashboard' : '/')}
             className="flex items-center gap-2 cursor-pointer grow-0 select-none group"
           >
-            <span className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-white dark:bg-white dark:border-transparent dark:text-slate-950 shadow-md transform group-hover:scale-105 transition-all">
+            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center font-bold text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] transform group-hover:scale-105 transition-all">
               <Cpu className="h-5 w-5 animate-pulse" />
             </span>
-            <div className="text-left font-black tracking-tight text-slate-900 dark:text-white leading-none">
-              <span className="text-lg heading-font">Learniverse</span>
-              <span className="text-blue-500 font-mono text-[9px] block">AI EDUCATION ENGINE</span>
+            <div className="text-left font-black tracking-tight text-[var(--text-primary)] leading-none">
+              <span className="text-lg heading-font">PhyMentor</span>
+              <span className="text-[var(--accent-secondary)] font-bold text-[9px] block">AI EDUCATION ENGINE</span>
             </div>
           </div>
 
@@ -73,13 +76,13 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <>
                 <button
                   onClick={() => handleNavItemClick('/catalog')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/catalog' ? 'text-blue-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-600 dark:text-slate-300 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-900/40'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/catalog' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Syllabus Catalog
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/blog')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/blog' ? 'text-blue-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-600 dark:text-slate-300 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-900/40'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/blog' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Edu Blog
                 </button>
@@ -91,25 +94,25 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <>
                 <button
                   onClick={() => handleNavItemClick('/dashboard')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/dashboard' ? 'text-blue-520 bg-slate-50 dark:bg-slate-900/60 font-black' : 'text-slate-700 dark:text-slate-205 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-905'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/dashboard' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   My Dashboard
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/catalog')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/catalog' ? 'text-blue-520 bg-slate-50 dark:bg-slate-900/60 font-black' : 'text-slate-700 dark:text-slate-205 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-905'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/catalog' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Syllabus Catalog
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/tutor')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/tutor' ? 'text-blue-520 bg-slate-50 dark:bg-slate-900/60 font-black' : 'text-slate-700 dark:text-slate-205 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-905'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/tutor' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   AI Tutor Workspace
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/blog')}
-                  className={`px-3 py-2 text-xs font-bold uppercase transition rounded-lg ${currentPath === '/blog' ? 'text-blue-520 bg-slate-50 dark:bg-slate-900/60 font-black' : 'text-slate-700 dark:text-slate-205 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-905'}`}
+                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/blog' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Educational Blog
                 </button>
@@ -121,32 +124,32 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
               <>
                 <button
                   onClick={() => handleNavItemClick('/admin/catalog')}
-                  className={`px-2.5 py-1.5 text-xs font-black uppercase transition rounded-lg truncate ${currentPath === '/admin/catalog' ? 'text-indigo-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-650 dark:text-slate-300 hover:text-indigo-400'}`}
+                  className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/catalog' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Curriculum Builder
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/admin/simulations')}
-                  className={`px-2.5 py-1.5 text-xs font-black uppercase transition rounded-lg truncate ${currentPath === '/admin/simulations' ? 'text-indigo-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-650 dark:text-slate-300 hover:text-indigo-400'}`}
+                  className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/simulations' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Simulation Registry
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/admin/documents')}
-                  className={`px-2.5 py-1.5 text-xs font-black uppercase transition rounded-lg truncate ${currentPath === '/admin/documents' ? 'text-indigo-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-650 dark:text-slate-300 hover:text-indigo-400'}`}
+                  className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/documents' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   RAG Embedder
                 </button>
                 <button
                   onClick={() => handleNavItemClick('/admin/blog')}
-                  className={`px-2.5 py-1.5 text-xs font-black uppercase transition rounded-lg truncate ${currentPath === '/admin/blog' ? 'text-indigo-500 bg-slate-50 dark:bg-slate-900/60' : 'text-slate-650 dark:text-slate-300 hover:text-indigo-400'}`}
+                  className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/blog' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
                 >
                   Edu Publisher
                 </button>
                 {/* Visual student preview path */}
                 <button
                   onClick={() => handleNavItemClick('/dashboard')}
-                  className="px-2.5 py-1.5 text-xs font-black uppercase text-blue-500 hover:underline shrink-0"
+                  className="px-2.5 py-1.5 text-[11px] font-bold uppercase text-[var(--accent-primary)] hover:underline shrink-0"
                 >
                   Student Dashboard
                 </button>
@@ -158,21 +161,31 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
           {/* Desktop Right items: Theme toggle, login/profile, logout */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <ThemeToggle />
+            <button
+              onClick={() => {
+                setApiUrlInput(getApiBaseUrl());
+                setShowApiModal(true);
+              }}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
+              title="Backend Server Configuration"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
 
             {isLogged ? (
-              <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-4">
+              <div className="flex items-center gap-3 border-l border-[var(--glass-border)] pl-4">
                 <div className="text-right">
-                  <p className="text-xs font-black text-slate-850 dark:text-white leading-none heading-font select-text">
+                  <p className="text-xs font-bold text-[var(--text-primary)] leading-none heading-font select-text">
                     {userProfile?.name || 'Educator User'}
                   </p>
-                  <p className="text-[9px] font-mono lowercase opacity-70 text-slate-450 mt-0.5">
-                    Role: <strong className="uppercase text-blue-500 font-extrabold">{role}</strong>
+                  <p className="text-[9px] font-mono lowercase opacity-70 text-[var(--text-secondary)] mt-0.5">
+                    Role: <strong className="uppercase text-[var(--accent-secondary)] font-extrabold">{role}</strong>
                   </p>
                 </div>
                 
                 <button
                   onClick={handleLogout}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-neutral-802 cursor-pointer transition"
+                  className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--glass-bg)] cursor-pointer transition border border-transparent hover:border-[var(--glass-border)]"
                   title="Logout Session"
                 >
                   <LogOut className="h-4 w-4" />
@@ -183,7 +196,7 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
                 <Button size="sm" variant="ghost" className="text-xs font-bold" onClick={() => handleNavItemClick('/login')}>
                   Login
                 </Button>
-                <Button size="sm" className="text-xs font-bold" onClick={() => handleNavItemClick('/register')}>
+                <Button size="sm" variant="primary" className="text-xs font-bold shadow-[0_4px_15px_rgba(0,0,0,0.1)]" onClick={() => handleNavItemClick('/register')}>
                   Register
                 </Button>
               </div>
@@ -193,6 +206,16 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
           {/* Mobile hamburger trigger */}
           <div className="md:hidden flex items-center gap-3">
             <ThemeToggle />
+            <button
+              onClick={() => {
+                setApiUrlInput(getApiBaseUrl());
+                setShowApiModal(true);
+              }}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer"
+              title="Backend Server Configuration"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
@@ -252,6 +275,66 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
             </>
           )}
 
+        </div>
+      )}
+
+      {showApiModal && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs select-text">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-6 space-y-4">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-tight text-slate-905 dark:text-white flex items-center gap-2">
+                <Settings className="h-5 w-5 text-indigo-505 animate-spin" style={{ animationDuration: '6s' }} />
+                Backend API Connection
+              </h3>
+              <p className="text-[11px] text-slate-500 leading-normal mt-1">
+                Configure your deployed Render backend API endpoint. The system runs locally or queries your live URL transparently.
+              </p>
+            </div>
+
+            <div className="space-y-1.5 text-left">
+              <label className="text-[9px] font-mono tracking-wider font-extrabold text-slate-400 uppercase">Backend Base URL</label>
+              <input
+                type="text"
+                placeholder="https://YOUR-RENDER-BACKEND.onrender.com/api/v1"
+                value={apiUrlInput}
+                onChange={(e) => setApiUrlInput(e.target.value)}
+                className="w-full text-xs font-mono p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+              <p className="text-[9px] text-slate-400 mt-1 leading-normal select-none">
+                Default: <span className="font-mono text-slate-500 bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded">https://YOUR-RENDER-BACKEND.onrender.com/api/v1</span>
+              </p>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2 select-none">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setApiUrlInput('https://YOUR-RENDER-BACKEND.onrender.com/api/v1');
+                }}
+                className="text-[10px] font-black uppercase tracking-wider py-1.5"
+              >
+                Reset Default
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowApiModal(false)}
+                className="text-[10px] font-black uppercase tracking-wider py-1.5"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const val = apiUrlInput.trim() || 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1';
+                  setApiBaseUrlOverride(val === 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1' ? null : val);
+                  setShowApiModal(false);
+                  window.location.reload(); // Reload to apply new API configuration immediately across state
+                }}
+                className="text-[10px] font-black uppercase tracking-wider bg-blue-600 hover:bg-blue-750 text-white rounded-lg py-1.5 px-3"
+              >
+                Apply & Refresh
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

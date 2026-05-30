@@ -105,7 +105,7 @@ async function request(path: string, options: RequestInit = {}): Promise<any> {
       throw error;
     }
     // Network reachability issue
-    console.error('API connection failed:', error);
+    // Suppress console.error to avoid spamming the log in preview mode
     const connectionError: any = new Error('Could not reach backend server. Please verify your Render backend container is running and active.');
     connectionError.status = 503;
     throw connectionError;

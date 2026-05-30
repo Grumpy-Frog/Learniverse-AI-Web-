@@ -119,75 +119,88 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
   return (
     <div className="space-y-8 select-none">
       
-      {/* Upper header */}
-      <div className="border-b border-black dark:border-white pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-        <div>
-          <span className="text-[10px] font-mono tracking-[0.25em] font-black text-rose-500 uppercase block">
-            INDIVIDUALIZED CLASSROOM GRAPH
-          </span>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-slate-905 dark:text-white mt-1">
-            Student Dashboard
-          </h1>
+      {/* Gamified Header Layer */}
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[24px] p-5 relative overflow-hidden backdrop-blur-md">
+        <div className="flex items-start justify-between z-10 relative">
+          <div>
+            <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--accent-secondary)] flex items-center gap-1">
+               Level 4 Scholar
+            </span>
+            <h1 className="text-2xl font-black mt-1">
+              Welcome back, Alex!
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-gradient-to-br from-[#FF9800] to-[#F57C00] px-3 py-1.5 rounded-full shadow-lg">
+            <Flame className="w-4 h-4 text-white" />
+            <span className="text-white text-xs font-bold tracking-wide">12 Day Streak</span>
+          </div>
         </div>
-        
-        {/* Grade Swapper selector */}
-        <div className="flex items-center gap-2">
-          <label className="text-[10px] font-mono font-black uppercase text-slate-400">Class Grade:</label>
-          <select
-            value={selectedGradeId}
-            onChange={handleGradeChange}
-            className="text-xs p-2.5 rounded border bg-white dark:bg-slate-900 border-slate-205 text-slate-900 dark:text-white font-extrabold uppercase"
-          >
-            {grades.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
+
+        {/* XP Bar */}
+        <div className="mt-6 z-10 relative">
+          <div className="flex justify-between items-end mb-2">
+            <span className="text-xs font-semibold text-[var(--text-secondary)]">2,450 XP</span>
+            <span className="text-[10px] font-bold uppercase text-[var(--accent-primary)]">550 To Level 5</span>
+          </div>
+          <div className="w-full h-[10px] rounded-full overflow-hidden bg-white/10 shadow-inner relative">
+            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]" style={{ width: '82%' }}></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)] -translate-x-[100%] animate-[shimmer_2s_infinite]"></div>
+          </div>
         </div>
+
+        {/* Floating Orb Background */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[var(--accent-primary)]/20 rounded-full blur-[40px] pointer-events-none"></div>
       </div>
 
       {errorMsg && <StatusMessage type="error" message={errorMsg} />}
 
-      {/* Aggregate Stats Tiles Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      {/* Aggregate Stats Gamification Grid */}
+      <div className="grid grid-cols-2 gap-4">
         
-        <Card className="p-5 border-2 border-black dark:border-white relative overflow-hidden flex flex-col justify-between min-h-[110px] bg-white">
-          <div>
-            <p className="text-[9.5px] font-mono uppercase tracking-wider text-slate-400 font-extrabold">OVERALL PROGRESS COMPLETED</p>
-            <p className="text-3xl font-black mt-1.5">{stats.overallCompletionRate}%</p>
+        {/* Mastery Heatmap 5x2 */}
+        <Card className="col-span-2 p-5 flex flex-col justify-between">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Topic Mastery Heatmap</p>
+            <span className="text-xs font-bold text-[var(--success)]">Top 15% Class</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full mt-2.5 overflow-hidden">
-            <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${stats.overallCompletionRate}%` }}></div>
+          <div className="grid grid-cols-5 gap-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((cell) => {
+              let colorClass = "bg-[var(--glass-bg)] border border-[var(--glass-border)]";
+              if (cell === 1 || cell === 4 || cell === 6) colorClass = "bg-[var(--success)] opacity-90"; // strong
+              else if (cell === 2 || cell === 8) colorClass = "bg-[var(--accent-secondary)] opacity-80"; // improving
+              else if (cell === 3 || cell === 9) colorClass = "bg-[var(--warning)] opacity-80"; // moderate
+              else if (cell === 5) colorClass = "bg-[var(--danger)] opacity-80"; // weak
+              return (
+                <div key={cell} className={`h-8 rounded-lg ${colorClass} transition-opacity duration-300 hover:opacity-100`}></div>
+              )
+            })}
+          </div>
+          <div className="flex justify-between mt-3 text-[9px] font-semibold text-[var(--text-secondary)] uppercase">
+            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-[var(--danger)]/80"></div>Weak</div>
+            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-[var(--success)]/90"></div>Strong</div>
           </div>
         </Card>
 
-        <Card className="p-5 border border-slate-200 dark:border-neutral-802 relative flex flex-col justify-between bg-[#fbfbfc]">
-          <div>
-            <p className="text-[9.5px] font-mono uppercase tracking-wider text-slate-400 font-extrabold">Completed Topics</p>
-            <p className="text-3xl font-black mt-1.5 text-slate-900">{stats.completedTopics}</p>
+        <Card className="p-4 flex flex-col items-center text-center justify-center relative">
+          <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-3">Overall Progress</p>
+          <div className="relative w-[80px] h-[80px] flex items-center justify-center">
+            {/* SVG Skill Ring */}
+            <svg className="absolute top-0 left-0 w-full h-full -rotate-90 transform" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="25" fill="none" stroke="var(--glass-bg)" strokeWidth="6" />
+              <circle cx="30" cy="30" r="25" fill="none" stroke="var(--accent-primary)" strokeWidth="6" strokeDasharray="157" strokeDashoffset={157 - (157 * stats.overallCompletionRate) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+            </svg>
+            <span className="text-xl font-black">{stats.overallCompletionRate}%</span>
           </div>
-          <span className="text-[10px] text-slate-450 flex items-center gap-1 mt-2 font-mono">
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-550" /> Completed diagnostic verify loops
+        </Card>
+
+        <Card className="p-4 flex flex-col justify-between bg-gradient-to-br from-[var(--glass-bg)] to-transparent">
+          <p className="text-[10px] uppercase font-bold text-[var(--success)] mb-2">Strengths Assessed</p>
+          <p className="text-3xl font-black text-[var(--success)]">{stats.strengthsCount}</p>
+          <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1 font-medium mt-1">
+            <Award className="h-3 w-3 text-[var(--success)]" /> Mastery level
           </span>
         </Card>
-
-        <Card className="p-5 border border-slate-202 dark:border-neutral-802 relative flex flex-col justify-between bg-white">
-          <div>
-            <p className="text-[9.5px] font-mono uppercase tracking-wider text-emerald-600 font-extrabold">ACADEMIC STRENGTHS</p>
-            <p className="text-3xl font-black mt-1.5 text-emerald-600">{stats.strengthsCount}</p>
-          </div>
-          <span className="text-[10px] text-slate-450 mt-2 font-mono flex items-center gap-1">
-            <Award className="h-3.5 w-3.5 text-emerald-500" /> High conceptual mastery levels
-          </span>
-        </Card>
-
-        <Card className="p-5 border border-slate-202 dark:border-neutral-802 relative flex flex-col justify-between bg-[#fbfbfc]">
-          <div>
-            <p className="text-[9.5px] font-mono uppercase tracking-wider text-rose-505 font-extrabold">REMEDIAL WEAKNESSES</p>
-            <p className="text-3xl font-black mt-1.5 text-rose-505">{stats.weaknessesCount}</p>
-          </div>
-          <span className="text-[10px] text-slate-450 mt-2 font-mono flex items-center gap-1">
-            <ShieldAlert className="h-3.5 w-3.5 text-rose-500 animate-pulse" /> Areas triggering remedy pathways
-          </span>
-        </Card>
-
       </div>
 
       {/* Subjects Progress list Cards */}

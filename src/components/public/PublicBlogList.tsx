@@ -42,7 +42,7 @@ export default function PublicBlogList({ onNavigate }: PublicBlogListProps) {
   };
 
   // Extract unique categories safely as strings
-  const categories: string[] = ['All', ...blogs.map(b => b.category || '').filter((val, index, self) => val && self.indexOf(val) === index)];
+  const categories: string[] = ['All', ...(blogs.map(b => (b.category as string) || '').filter((val, index, self) => !!val && self.indexOf(val) === index) as string[])];
 
   if (isLoading) {
     return <LoadingState message="Awaiting educational journal stream..." size="lg" />;

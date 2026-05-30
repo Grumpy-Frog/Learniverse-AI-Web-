@@ -19,11 +19,11 @@ export default function Card({
   id,
 }: CardProps) {
   const baseCardStyles = `
-    rounded-2xl transition-all duration-300 overflow-hidden
-    bg-white dark:bg-slate-900 
-    text-slate-900 dark:text-slate-50
-    ${bordered ? 'border border-slate-200 dark:border-slate-800' : ''}
-    ${onClick || hoverable ? 'hover:shadow-md cursor-pointer hover:border-slate-300 dark:hover:border-slate-700/80 active:scale-[0.99]' : ''}
+    rounded-[24px] transition-all duration-300 overflow-hidden
+    bg-[var(--glass-bg)] backdrop-blur-[20px]
+    text-[var(--text-primary)]
+    ${bordered ? 'border border-[var(--glass-border)]' : ''}
+    ${onClick || hoverable ? 'hover:-translate-y-1 hover:shadow-[0_8px_30px_var(--glass-bg)] cursor-pointer hover:border-[#ffffff33] active:scale-[0.98]' : ''}
     ${className}
   `;
 
