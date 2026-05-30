@@ -207,14 +207,22 @@ export default function AdminCatalogManager() {
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
-        <span className="text-[10px] font-black tracking-[0.2em] text-blue-600 dark:text-blue-400 uppercase mb-1">Administrative Workspace</span>
-        <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)] heading-font">
-          CURRICULUM BUILDER & CATALOG
-        </h1>
-        <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl font-semibold">
-          Manage, browse, and structure grades, courses, modules, chapters, and individual topic learning criteria.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-8 gap-4">
+        <div>
+          <span className="text-[10px] font-black tracking-[0.3em] text-indigo-500 uppercase mb-2 block">Administrative Control</span>
+          <h1 className="text-4xl font-black tracking-tight text-white heading-font">
+            Curriculum Core
+          </h1>
+          <p className="text-sm text-slate-500 mt-2 max-w-xl font-medium leading-relaxed">
+            Architect the learning hierarchy. Define classes, map subject domains, and structure modular chapters with granular study topics.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+           <div className="px-4 py-2 rounded-xl bg-slate-900 border border-white/5 flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Database Sync Active</span>
+           </div>
+        </div>
       </div>
 
       {feedbackMsg && (
@@ -230,63 +238,63 @@ export default function AdminCatalogManager() {
         {/* Left browser console */}
         <div className="lg:col-span-5 space-y-6">
           <Card className="p-5 border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 space-y-4">
-            <div className="flex items-center gap-1.5 border-b border-[var(--glass-border)] pb-2.5">
-              <span className="p-1.5 bg-[var(--bg-surface)] rounded-lg text-[var(--accent-primary)] shrink-0">
-                <Hammer className="h-4 w-4" />
-              </span>
+            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                <Layers className="h-5 w-5 text-indigo-500" />
+              </div>
               <div>
-                <span className="text-[9px] uppercase font-bold text-[var(--text-secondary)] block">Hierarchy Browser</span>
-                <span className="text-xs font-black uppercase text-[var(--text-primary)] heading-font">Active Course Structure</span>
+                <span className="text-[9px] uppercase font-black text-slate-500 block tracking-widest">Hierarchy Explorer</span>
+                <span className="text-xs font-black uppercase text-white tracking-widest">Active Schema View</span>
               </div>
             </div>
 
-            {loader.list && <LoadingState message="Connecting to dictionary catalog database servers..." size="sm" />}
+            {loader.list && <LoadingState message="Indexing Catalog..." size="sm" />}
 
             {/* Selector boxes */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Select Grade level */}
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Class / Grade level</label>
+              <div className="space-y-2">
+                <label className="text-[9px] uppercase font-black text-slate-600 block tracking-widest pl-1">Academic Level</label>
                 <select
                   value={selectedGradeId}
                   onChange={(e) => handleSelectGrade(e.target.value)}
-                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                  className="w-full text-xs font-bold p-3.5 rounded-xl border border-white/5 bg-slate-950 text-white outline-none focus:border-indigo-500/30 transition-all cursor-pointer"
                 >
                   <option value="">-- Choose Grade Level --</option>
                   {grades.map(g => (
-                    <option key={g.id} value={g.id}>{g.name} ({g.slug})</option>
+                    <option key={g.id} value={g.id}>{g.name}</option>
                   ))}
                 </select>
               </div>
 
               {/* Select Subject link */}
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Subject Context</label>
+              <div className="space-y-2">
+                <label className="text-[9px] uppercase font-black text-slate-600 block tracking-widest pl-1">Subject Domain</label>
                 <select
                   value={selectedSubjectId}
                   onChange={(e) => handleSelectSubject(e.target.value)}
                   disabled={!selectedGradeId}
-                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)] disabled:opacity-50"
+                  className="w-full text-xs font-bold p-3.5 rounded-xl border border-white/5 bg-slate-950 text-white outline-none focus:border-indigo-500/30 transition-all disabled:opacity-30 cursor-pointer"
                 >
-                  <option value="">-- Choose Subject Context --</option>
+                  <option value="">-- Choose Subject --</option>
                   {subjects.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.slug})</option>
+                    <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </div>
 
               {/* Select Chapter link */}
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold text-[var(--text-secondary)] block">Chapter Context</label>
+              <div className="space-y-2">
+                <label className="text-[9px] uppercase font-black text-slate-600 block tracking-widest pl-1">Module / Chapter</label>
                 <select
                   value={selectedChapterId}
                   onChange={(e) => handleSelectChapter(e.target.value)}
                   disabled={!selectedSubjectId}
-                  className="w-full text-xs p-2.5 rounded-lg border border-[var(--glass-border)] bg-[var(--bg-surface)] text-[var(--text-primary)] disabled:opacity-50"
+                  className="w-full text-xs font-bold p-3.5 rounded-xl border border-white/5 bg-slate-950 text-white outline-none focus:border-indigo-500/30 transition-all disabled:opacity-30 cursor-pointer"
                 >
-                  <option value="">-- Choose Chapter Context --</option>
+                  <option value="">-- Choose Chapter --</option>
                   {chapters.map(c => (
-                    <option key={c.id} value={c.id}>Chapter {c.chapter_number}: {c.title}</option>
+                    <option key={c.id} value={c.id}>Cap. {c.chapter_number}: {c.title}</option>
                   ))}
                 </select>
               </div>
@@ -294,63 +302,73 @@ export default function AdminCatalogManager() {
 
             {/* List of currently associated topics preview */}
             {selectedChapterId && !loader.list && (
-              <div className="pt-4 border-t border-[var(--glass-border)] space-y-2">
-                <span className="text-[9px] uppercase font-bold text-[var(--accent-primary)] block tracking-wider">Topics Linked in Chapter ({topics.length})</span>
+              <div className="pt-6 border-t border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] uppercase font-black text-indigo-400 block tracking-[0.2em]">Mapped Topics ({topics.length})</span>
+                </div>
                 {topics.length === 0 ? (
-                  <p className="text-[11px] text-[var(--text-secondary)] italic">No topics under this chapter yet. Creating the first one on the right!</p>
+                  <div className="p-4 rounded-xl border border-dashed border-white/10 text-center">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">No nodes mapped yet</p>
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {topics.map(t => (
-                      <div key={t.id} className="p-2 bg-[var(--bg-surface)] rounded-lg border border-[var(--glass-border)] text-xs font-medium flex justify-between items-center text-[var(--text-primary)]">
-                        <span className="truncate">{t.title}</span>
-                        <span className="text-[8px] uppercase tracking-wide px-1 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)] shrink-0 font-mono border border-[var(--glass-border)]">Order {t.display_order}</span>
+                      <div key={t.id} className="p-3 bg-slate-950 rounded-xl border border-white/5 text-[11px] font-bold flex justify-between items-center text-slate-300 group hover:border-indigo-500/20 transition-all">
+                        <span className="truncate pr-2">{t.title}</span>
+                        <span className="text-[8px] font-black tracking-widest px-2 py-0.5 rounded-full bg-slate-900 border border-white/5 text-slate-500">#{t.display_order}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
+
           </Card>
         </div>
 
         {/* Right Forms console */}
         <div className="lg:col-span-7 space-y-6">
 
-          {/* Form 1: Add new grade level */}
-          <Card className="p-5 flex flex-col gap-4">
-            <details className="outline-hidden" open={!selectedGradeId}>
-              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
-                <span>01 / ADD GRADE LEVEL</span>
-                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
+          <Card className="p-8 bg-slate-900 border-white/5 flex flex-col gap-6 rounded-[2rem]">
+            <details className="outline-hidden group" open={!selectedGradeId}>
+              <summary className="font-black text-xs text-white cursor-pointer select-none flex justify-between items-center border-b border-white/5 pb-4 outline-hidden tracking-[0.2em]">
+                <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                     <PlusCircle className="h-4 w-4 text-indigo-500" />
+                   </div>
+                   <span>01 / ADD GRADE LEVEL</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-600 group-open:rotate-180 transition-transform" />
               </summary>
               
-              <form onSubmit={handleCreateGrade} className="space-y-4 pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleCreateGrade} className="space-y-6 pt-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <Input
                     label="Grade Name"
-                    placeholder="e.g., Grade 10, Higher Secondary, O-Levels"
+                    placeholder="e.g., Grade 10"
                     value={gradeForm.name}
                     onChange={(e) => setGradeForm({ ...gradeForm, name: e.target.value })}
                     required
                   />
                   <Input
-                    label="Slug (letters, numbers, dash)"
-                    placeholder="e.g., class-10, o-level"
+                    label="Slug Identifier"
+                    placeholder="e.g., class-10"
                     value={gradeForm.slug}
                     onChange={(e) => setGradeForm({ ...gradeForm, slug: e.target.value })}
                     required
                   />
                 </div>
-                <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
-                  <Input
-                    label="Display order number"
-                    type="number"
-                    value={gradeForm.displayOrder}
-                    onChange={(e) => setGradeForm({ ...gradeForm, displayOrder: parseInt(e.target.value) || 1 })}
-                    className="w-[120px]"
-                  />
-                  <Button type="submit" size="sm" isLoading={loader.create}>
-                    Create Grade Level
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between p-6 bg-slate-950 rounded-2xl border border-white/5 gap-6">
+                  <div className="w-full sm:w-[140px]">
+                    <Input
+                      label="Order"
+                      type="number"
+                      value={gradeForm.displayOrder}
+                      onChange={(e) => setGradeForm({ ...gradeForm, displayOrder: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <Button type="submit" variant="primary" size="md" isLoading={loader.create} className="w-full sm:w-auto shadow-xl shadow-indigo-600/20">
+                    <Sparkles className="h-4 w-4 mr-2" /> Create Level
                   </Button>
                 </div>
               </form>
@@ -358,50 +376,58 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 2: Add sibling subjects */}
-          <Card className="p-5 flex flex-col gap-4">
-            <details className="outline-hidden" open={!!selectedGradeId && !selectedSubjectId}>
-              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
-                <span>02 / ADD SUBJECT ELEMENT</span>
-                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
+          <Card className="p-8 bg-slate-900 border-white/5 flex flex-col gap-6 rounded-[2rem]">
+            <details className="outline-hidden group" open={!!selectedGradeId && !selectedSubjectId}>
+              <summary className="font-black text-xs text-white cursor-pointer select-none flex justify-between items-center border-b border-white/5 pb-4 outline-hidden tracking-[0.2em]">
+                <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                     <BookOpen className="h-4 w-4 text-blue-500" />
+                   </div>
+                   <span>02 / ADD SUBJECT ELEMENT</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-600 group-open:rotate-180 transition-transform" />
               </summary>
 
-              <form onSubmit={handleCreateSubject} className="space-y-4 pt-4">
+              <form onSubmit={handleCreateSubject} className="space-y-6 pt-8">
                 {!selectedGradeId ? (
-                  <p className="text-xs text-[var(--warning)] italic">Please select a Class / Grade Level on the Left to activate this builder Form.</p>
+                  <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 text-[10px] font-black uppercase text-amber-500/70 tracking-widest text-center">
+                    Locked: Select parent level in explorer
+                  </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <Input
-                        label="Subject Name"
-                        placeholder="e.g., Chemistry, Physics, Advanced Math"
+                        label="Subject Title"
+                        placeholder="e.g., Physics"
                         value={subjectForm.name}
                         onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
                         required
                       />
                       <Input
-                        label="Slug URL marker"
-                        placeholder="e.g., chemistry, physics-advanced"
+                        label="Slug URL"
+                        placeholder="e.g., physics"
                         value={subjectForm.slug}
                         onChange={(e) => setSubjectForm({ ...subjectForm, slug: e.target.value })}
                         required
                       />
                     </div>
                     <Input
-                      label="Course Description Summary"
-                      placeholder="e.g., Comprehensive organic chemistry syllabus, molecular physics models."
+                      label="Summary description"
+                      placeholder="e.g., Comprehensive physics core syllabus"
                       value={subjectForm.description}
                       onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
                     />
-                    <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
-                      <Input
-                        label="Display order"
-                        type="number"
-                        value={subjectForm.displayOrder}
-                        onChange={(e) => setSubjectForm({ ...subjectForm, displayOrder: parseInt(e.target.value) || 1 })}
-                        className="w-[120px]"
-                      />
-                      <Button type="submit" size="sm" isLoading={loader.create}>
-                        Add Subject Context
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between p-6 bg-slate-950 rounded-2xl border border-white/5 gap-6">
+                      <div className="w-full sm:w-[140px]">
+                        <Input
+                          label="Order"
+                          type="number"
+                          value={subjectForm.displayOrder}
+                          onChange={(e) => setSubjectForm({ ...subjectForm, displayOrder: parseInt(e.target.value) || 1 })}
+                        />
+                      </div>
+                      <Button type="submit" variant="primary" size="md" isLoading={loader.create} className="w-full sm:w-auto shadow-xl shadow-indigo-600/20">
+                        <PlusCircle className="h-4 w-4 mr-2" /> Add Subject
                       </Button>
                     </div>
                   </>
@@ -411,22 +437,29 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 3: Add new Chapter details */}
-          <Card className="p-5 flex flex-col gap-4">
-            <details className="outline-hidden" open={!!selectedSubjectId && !selectedChapterId}>
-              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
-                <span>03 / ADD CHAPTER OR MODULE</span>
-                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
+          <Card className="p-8 bg-slate-900 border-white/5 flex flex-col gap-6 rounded-[2rem]">
+            <details className="outline-hidden group" open={!!selectedSubjectId && !selectedChapterId}>
+              <summary className="font-black text-xs text-white cursor-pointer select-none flex justify-between items-center border-b border-white/5 pb-4 outline-hidden tracking-[0.2em]">
+                <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                     <Folder className="h-4 w-4 text-emerald-500" />
+                   </div>
+                   <span>03 / ADD CHAPTER OR MODULE</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-600 group-open:rotate-180 transition-transform" />
               </summary>
 
-              <form onSubmit={handleCreateChapter} className="space-y-4 pt-4">
+              <form onSubmit={handleCreateChapter} className="space-y-6 pt-8">
                 {!selectedSubjectId ? (
-                  <p className="text-xs text-[var(--warning)] italic">Select a Grade Level & Subject on the Left Browser to unlock Chapter inputs.</p>
+                  <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 text-[10px] font-black uppercase text-amber-500/70 tracking-widest text-center">
+                    Locked: Select parent subject domain
+                  </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-6">
                       <div className="sm:col-span-3">
                         <Input
-                          label="Chapter No"
+                          label="No."
                           type="number"
                           value={chapterForm.chapterNumber}
                           onChange={(e) => setChapterForm({ ...chapterForm, chapterNumber: parseInt(e.target.value) || 1 })}
@@ -435,8 +468,8 @@ export default function AdminCatalogManager() {
                       </div>
                       <div className="sm:col-span-9">
                         <Input
-                          label="Title of Chapter"
-                          placeholder="e.g., Organic Compounds, Newton's Laws"
+                          label="Chapter Title"
+                          placeholder="e.g., Newton's Laws"
                           value={chapterForm.title}
                           onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
                           required
@@ -444,21 +477,21 @@ export default function AdminCatalogManager() {
                       </div>
                     </div>
                     <Input
-                      label="Chapter Slug URL"
-                      placeholder="e.g., chapter-1-organic-acids"
+                      label="Slug"
+                      placeholder="e.g., chapter-1-laws"
                       value={chapterForm.slug}
                       onChange={(e) => setChapterForm({ ...chapterForm, slug: e.target.value })}
                       required
                     />
                     <Input
-                      label="Explanation summary"
-                      placeholder="Brief overview of lessons contained in this file module."
+                      label="Description"
+                      placeholder="Brief overview of module..."
                       value={chapterForm.description}
                       onChange={(e) => setChapterForm({ ...chapterForm, description: e.target.value })}
                     />
-                    <div className="flex justify-end p-2">
-                      <Button type="submit" size="sm" isLoading={loader.create}>
-                        Add Chapter details
+                    <div className="flex justify-end pt-4">
+                      <Button type="submit" variant="primary" size="md" isLoading={loader.create} className="w-full sm:w-auto shadow-xl shadow-indigo-600/20">
+                        <Sparkles className="h-4 w-4 mr-2" /> Push Module
                       </Button>
                     </div>
                   </>
@@ -468,63 +501,71 @@ export default function AdminCatalogManager() {
           </Card>
 
           {/* Form 4: Add exact Learning Topic details */}
-          <Card className="p-5 flex flex-col gap-4">
-            <details className="outline-hidden" open={!!selectedChapterId}>
-              <summary className="font-bold text-[14px] text-[var(--text-primary)] cursor-pointer select-none flex justify-between items-center border-b border-[var(--glass-border)] pb-2.5 outline-hidden heading-font">
-                <span>04 / ADD SPECIFIC STUDY TOPIC</span>
-                <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
+          <Card className="p-8 bg-slate-900 border-white/5 flex flex-col gap-6 rounded-[2rem]">
+            <details className="outline-hidden group" open={!!selectedChapterId}>
+              <summary className="font-black text-xs text-white cursor-pointer select-none flex justify-between items-center border-b border-white/5 pb-4 outline-hidden tracking-[0.2em]">
+                <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                     <Hammer className="h-4 w-4 text-slate-300" />
+                   </div>
+                   <span>04 / ADD SPECIFIC STUDY TOPIC</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-600 group-open:rotate-180 transition-transform" />
               </summary>
 
-              <form onSubmit={handleCreateTopic} className="space-y-4 pt-4">
+              <form onSubmit={handleCreateTopic} className="space-y-6 pt-8">
                 {!selectedChapterId ? (
-                  <p className="text-xs text-[var(--warning)] italic">Select a Class & Subject & Chapter on the Left Browser to unlock detailed Topic entries.</p>
+                  <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 text-[10px] font-black uppercase text-amber-500/70 tracking-widest text-center">
+                    Locked: Specify chapter context
+                  </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <Input
                         label="Topic Title"
-                        placeholder="e.g., Alkanes properties, Force Vector Sums"
+                        placeholder="e.g., Alkanes properties"
                         value={topicForm.title}
                         onChange={(e) => setTopicForm({ ...topicForm, title: e.target.value })}
                         required
                       />
                       <Input
-                        label="Topic Slug"
-                        placeholder="e.g., alkanes-properties"
+                        label="Slug"
+                        placeholder="e.g., alkanes-props"
                         value={topicForm.slug}
                         onChange={(e) => setTopicForm({ ...topicForm, slug: e.target.value })}
                         required
                       />
                     </div>
                     <Input
-                      label="Syllabus Learning Objectives (Exposed to AI & Student)"
-                      placeholder="e.g., Describe chemical processes inside covalent bonds of alkenes."
+                      label="Learning Objective"
+                      placeholder="e.g., Describe process..."
                       value={topicForm.learningObjective}
                       onChange={(e) => setTopicForm({ ...topicForm, learningObjective: e.target.value })}
                       required
                     />
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
-                        General Brief / Explanatory Description
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 pl-1">
+                        Topic Core Context
                       </label>
                       <textarea
                         value={topicForm.description}
                         onChange={(e) => setTopicForm({ ...topicForm, description: e.target.value })}
-                        placeholder="Detailed academic summary of this topic..."
-                        className="w-full min-h-[90px] p-2.5 rounded-[12px] border text-sm transition-all duration-200 outline-hidden bg-[var(--bg-surface)] backdrop-blur-sm text-[var(--text-primary)] border-[var(--glass-border)] placeholder:text-[var(--text-secondary)] focus:border-[var(--accent-primary)]"
+                        placeholder="Academic briefing of this study node..."
+                        className="w-full min-h-[120px] p-4 rounded-2xl border text-sm font-medium transition-all duration-200 outline-hidden bg-slate-950 text-white border-white/5 placeholder:text-slate-700 focus:border-indigo-500/30"
                         required
                       />
                     </div>
-                    <div className="flex justify-between items-center bg-[var(--bg-surface)] border border-[var(--glass-border)] p-3 rounded-lg gap-4">
-                      <Input
-                        label="Display order"
-                        type="number"
-                        value={topicForm.displayOrder}
-                        onChange={(e) => setTopicForm({ ...topicForm, displayOrder: parseInt(e.target.value) || 1 })}
-                        className="w-[120px]"
-                      />
-                      <Button type="submit" size="sm" isLoading={loader.create}>
-                        Add Study Topic
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between p-6 bg-slate-950 rounded-2xl border border-white/5 gap-6">
+                      <div className="w-full sm:w-[140px]">
+                        <Input
+                          label="Order"
+                          type="number"
+                          value={topicForm.displayOrder}
+                          onChange={(e) => setTopicForm({ ...topicForm, displayOrder: parseInt(e.target.value) || 1 })}
+                        />
+                      </div>
+                      <Button type="submit" variant="primary" size="md" isLoading={loader.create} className="w-full sm:w-auto shadow-xl shadow-indigo-600/20">
+                        <PlusCircle className="h-4 w-4 mr-2" /> Add Study Node
                       </Button>
                     </div>
                   </>

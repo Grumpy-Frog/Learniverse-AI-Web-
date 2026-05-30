@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { DiagnosticGenerationResponse } from '../types';
+
 // Read environment variables or fallback values.
 // We support both NEXT_PUBLIC_API_BASE_URL (which can be injected into window or process) and VITE_API_BASE_URL.
 const DEFAULT_URL = 'https://YOUR-RENDER-BACKEND.onrender.com/api/v1';
@@ -289,7 +291,7 @@ export const api = {
     return request(`/rag/documents/${documentId}/chunks/build`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, is_active: true }),
     });
   },
 
@@ -298,7 +300,7 @@ export const api = {
   },
 
   async testRagSearch(query: string, language: string = 'en', topic_id?: string, limit: number = 5) {
-    return request('/rag/search', {
+    return request(`/rag/search?language=${language}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, language, topic_id, limit }),
@@ -347,19 +349,29 @@ export const api = {
   },
 
   // --- Diagnostics, Quizzes and status checks ---
-  async generateUnderstandingCheck(topicId: string, language: string = 'en', conversationId: string | null = null) {
-    return request(`/diagnostics/topics/${topicId}/understanding-check/generate`, {
+  async generateUnderstandingCheck(topicId: string, language: string = 'en', conversationId: string | null = null): Promise<DiagnosticGenerationResponse> {
+    return request(`/diagnostics/topics/${topicId}/understanding-check/generate?language=${language}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language, conversation_id: conversationId }),
+      body: JSON.stringify({ 
+        language, 
+        topic_id: topicId,
+        topicId: topicId,
+        conversation_id: conversationId 
+      }),
     });
   },
 
-  async generateDiagnosticQuiz(topicId: string, language: string = 'en', conversationId: string | null = null) {
-    return request(`/diagnostics/topics/${topicId}/quiz/generate`, {
+  async generateDiagnosticQuiz(topicId: string, language: string = 'en', conversationId: string | null = null): Promise<DiagnosticGenerationResponse> {
+    return request(`/diagnostics/topics/${topicId}/quiz/generate?language=${language}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language, conversation_id: conversationId }),
+      body: JSON.stringify({ 
+        language, 
+        topic_id: topicId,
+        topicId: topicId,
+        conversation_id: conversationId 
+      }),
     });
   },
 

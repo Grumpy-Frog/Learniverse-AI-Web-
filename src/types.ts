@@ -215,6 +215,12 @@ export interface DiagnosticQuestion {
   max_score: number;
 }
 
+export interface DiagnosticGenerationResponse {
+  session: DiagnosticSession;
+  questions: DiagnosticQuestion[];
+  note?: string;
+}
+
 export interface DiagnosticResult {
   session: any;
   answers: {

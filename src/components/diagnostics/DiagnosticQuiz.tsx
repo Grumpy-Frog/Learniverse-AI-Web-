@@ -23,6 +23,10 @@ interface DiagnosticQuizProps {
   onQuizCompleted?: (result: DiagnosticResult) => void;
 }
 
+const isUuid = (value: unknown): value is string =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 export default function DiagnosticQuiz({
   topicId,
   topicTitle,
@@ -55,15 +59,24 @@ export default function DiagnosticQuiz({
   const handleGenerate = async () => {
     setState(prev => ({ ...prev, loading: true, error: null, result: null, answers: {} }));
     try {
-      const sess = await api.generateDiagnosticQuiz(topicId, language, conversationId);
-      const qList: DiagnosticQuestion[] = await api.getSessionQuestions(sess.id);
+      const response = await api.generateDiagnosticQuiz(topicId, language, conversationId);
+      const sessionId = response.session?.id;
+      let qList: DiagnosticQuestion[] = response.questions || [];
       
-      setState(prev => ({
-        ...prev,
-        sessionId: sess.id,
-        questions: qList || [],
-        loading: false
-      }));
+      if (sessionId && isUuid(sessionId)) {
+        if (qList.length === 0) {
+          qList = await api.getSessionQuestions(sessionId);
+        }
+
+        setState(prev => ({
+          ...prev,
+          sessionId: sessionId,
+          questions: qList || [],
+          loading: false
+        }));
+      } else {
+        throw new Error('Diagnostic session was not created correctly. Please try again.');
+      }
     } catch (err: any) {
       setState(prev => ({ ...prev, loading: false, error: err.message || 'Error occurred while generating diagnostic quiz.' }));
     }
@@ -86,6 +99,10 @@ export default function DiagnosticQuiz({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!state.sessionId || state.questions.length === 0) return;
+    if (!isUuid(state.sessionId)) {
+      setState(prev => ({ ...prev, error: 'Invalid session identifier. Please restart the quiz.' }));
+      return;
+    }
 
     setState(prev => ({ ...prev, submitting: true, error: null }));
     try {

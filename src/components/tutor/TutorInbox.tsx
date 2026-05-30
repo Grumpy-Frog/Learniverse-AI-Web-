@@ -202,12 +202,16 @@ export default function TutorInbox() {
 
   const processTurnResponse = (response: any) => {
     if (response) {
-      if (response.reply) {
-        if (response.sources) {
-          response.reply.sources = response.sources;
+      // Handle different possible response structures from tutor API
+      const reply = response.reply || response.message || (response.role ? response : null);
+      
+      if (reply) {
+        if (response.sources && !reply.sources) {
+          reply.sources = response.sources;
         }
-        setMessages(prev => [...prev, response.reply]);
+        setMessages(prev => [...prev, reply]);
       }
+      
       if (response.note) {
         setLastNote(response.note);
       }

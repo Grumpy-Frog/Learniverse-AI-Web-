@@ -47,11 +47,11 @@ export default function Button({
   const getSizeStyles = () => {
     switch (size) {
       case 'sm':
-        return 'px-3 py-1.5 text-[12px] font-semibold h-[32px] rounded-lg';
+        return 'px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] min-h-[36px] rounded-xl';
       case 'lg':
-        return 'px-6 py-3 text-[16px] font-bold h-[56px] rounded-xl';
+        return 'px-8 py-4 text-[16px] font-black min-h-[60px] rounded-2xl';
       default:
-        return 'px-4 py-2 text-[14px] font-semibold h-[44px] rounded-xl';
+        return 'px-6 py-3 text-[12px] font-black uppercase tracking-wider min-h-[48px] rounded-2xl';
     }
   };
 
@@ -60,7 +60,7 @@ export default function Button({
       id={id}
       type={type}
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center transition-all duration-300 select-none active:scale-95 border focus:outline-hidden focus:ring-2 focus:ring-[var(--accent-primary)] outline-hidden min-w-[44px] ${getVariantStyles()} ${getSizeStyles()} ${className}`}
+      className={`inline-flex items-center justify-center transition-all duration-500 select-none active:scale-95 border focus:outline-hidden focus:ring-2 focus:ring-[var(--accent-primary)]/20 outline-hidden ${getVariantStyles()} ${getSizeStyles()} ${className}`}
       {...props}
     >
       {isLoading && (

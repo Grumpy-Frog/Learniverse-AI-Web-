@@ -25,6 +25,10 @@ interface UnderstandingCheckProps {
   onSuccessCheck?: () => void;
 }
 
+const isUuid = (value: unknown): value is string =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 export default function UnderstandingCheck({
   topicId,
   topicTitle,
@@ -61,19 +65,29 @@ export default function UnderstandingCheck({
   const handleGenerate = async () => {
     setState(prev => ({ ...prev, loading: true, error: null, result: null, studentAnswer: '' }));
     try {
-      const sess = await api.generateUnderstandingCheck(topicId, language, conversationId);
-      const questions: DiagnosticQuestion[] = await api.getSessionQuestions(sess.id);
+      const response = await api.generateUnderstandingCheck(topicId, language, conversationId);
       
-      if (questions && questions.length > 0) {
-        setState(prev => ({
-          ...prev,
-          sessionId: sess.id,
-          questionId: questions[0].id,
-          questionText: questions[0].question_text,
-          loading: false
-        }));
+      const sessionId = response.session?.id;
+      let questions: DiagnosticQuestion[] = response.questions || [];
+
+      if (sessionId && isUuid(sessionId)) {
+        if (questions.length === 0) {
+          questions = await api.getSessionQuestions(sessionId);
+        }
+
+        if (questions && questions.length > 0) {
+          setState(prev => ({
+            ...prev,
+            sessionId: sessionId,
+            questionId: questions[0].id,
+            questionText: questions[0].question_text,
+            loading: false
+          }));
+        } else {
+          throw new Error('No assessment questions generated.');
+        }
       } else {
-        throw new Error('No assessment questions generated.');
+        throw new Error('Diagnostic session was not created correctly. Please try again.');
       }
     } catch (err: any) {
       setState(prev => ({ ...prev, loading: false, error: err.message || 'Failed to generate understanding check.' }));
@@ -83,6 +97,10 @@ export default function UnderstandingCheck({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!state.studentAnswer.trim() || !state.sessionId || !state.questionId) return;
+    if (!isUuid(state.sessionId)) {
+      setState(prev => ({ ...prev, error: 'Invalid session identifier. Please restart the check.' }));
+      return;
+    }
 
     setState(prev => ({ ...prev, submitting: true, error: null }));
     try {
