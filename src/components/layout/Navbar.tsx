@@ -112,12 +112,29 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
                 >
                   Syllabus Catalog
                 </button>
+                
+                {/* Prominent Glowing AI Tutor Button */}
                 <button
                   onClick={() => handleNavItemClick('/tutor')}
-                  className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/tutor' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
+                  className={`relative group px-4 py-2 text-[11px] font-black uppercase transition-all duration-500 rounded-xl flex items-center gap-2 overflow-hidden border ${
+                    currentPath === '/tutor' 
+                      ? 'bg-[var(--accent-primary)] text-white border-transparent shadow-[0_0_20px_rgba(108,99,255,0.4)]' 
+                      : 'bg-[var(--glass-bg)] text-[var(--accent-secondary)] border-[var(--accent-secondary)]/30 hover:border-[var(--accent-secondary)] hover:shadow-[0_0_15px_rgba(0,210,255,0.25)]'
+                  }`}
                 >
-                  AI Tutor Workspace
+                  <Sparkles className={`h-3.5 w-3.5 ${currentPath === '/tutor' ? 'text-white' : 'text-[var(--accent-secondary)]'} animate-pulse`} />
+                  <span>AI Tutor</span>
+                  {currentPath !== '/tutor' && (
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent-secondary)]/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  )}
+                  {currentPath !== '/tutor' && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-secondary)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-secondary)]"></span>
+                    </span>
+                  )}
                 </button>
+
                 <button
                   onClick={() => handleNavItemClick('/blog')}
                   className={`px-3 py-2 text-[11px] font-bold uppercase transition rounded-lg ${currentPath === '/blog' ? 'text-white bg-[var(--accent-primary)] shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
@@ -136,6 +153,16 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
                 >
                   Curriculum Builder
                 </button>
+                
+                {/* Admin Quick access to AI Tutor */}
+                <button
+                  onClick={() => handleNavItemClick('/tutor')}
+                  className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg flex items-center gap-1.5 border border-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/10 hover:shadow-[0_0_10px_rgba(108,99,255,0.2)] ${currentPath === '/tutor' ? 'text-white bg-[var(--accent-primary)] shadow-sm' : 'text-[var(--accent-primary)]'}`}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  AI Tutor
+                </button>
+
                 <button
                   onClick={() => handleNavItemClick('/admin/simulations')}
                   className={`px-2.5 py-1.5 text-[10px] font-bold uppercase transition rounded-lg truncate ${currentPath === '/admin/simulations' ? 'text-white bg-[var(--accent-secondary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'}`}
@@ -254,7 +281,13 @@ export default function Navbar({ currentPath, onNavigate }: NavbarProps) {
             <>
               <button onClick={() => handleNavItemClick('/dashboard')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">My Dashboard</button>
               <button onClick={() => handleNavItemClick('/catalog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">Syllabus Catalog</button>
-              <button onClick={() => handleNavItemClick('/tutor')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">AI Tutor Workspace</button>
+              <button 
+                onClick={() => handleNavItemClick('/tutor')} 
+                className={`block w-full text-left py-2.5 px-3 font-black text-xs uppercase rounded-lg border transition-all flex items-center gap-2 ${currentPath === '/tutor' ? 'bg-[var(--accent-primary)] text-white' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800'}`}
+              >
+                <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                AI Tutor Workspace
+              </button>
               <button onClick={() => handleNavItemClick('/blog')} className="block w-full text-left py-2 font-bold text-xs uppercase text-slate-700 hover:text-blue-500">Educational Blog</button>
               <div className="pt-2.5 border-t border-slate-105 select-text">
                 <div className="mb-2 cursor-pointer" onClick={() => handleNavItemClick('/profile')}>
