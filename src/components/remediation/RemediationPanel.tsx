@@ -25,43 +25,45 @@ interface RemediationPanelProps {
   onRemediationCompleted?: () => void;
 }
 
-function shouldShowFocusedHelp(result: DiagnosticResult | null): boolean {
-  if (!result) return false;
-
-  const weaknesses = result.weaknesses ?? [];
-  const answerWeaknesses = (result.answers ?? [])
-    .map((answer) => answer.detected_weakness)
-    .filter(Boolean);
-
-  const percentage = result.session?.percentage ?? null;
-  const outcome = result.session?.outcome ?? "";
-  const completionStatus = result.completion_status ?? "";
-
+function isValidUUID(value: unknown): value is string {
   return (
-    weaknesses.length > 0 ||
-    answerWeaknesses.length > 0 ||
-    outcome === "needs_practice" ||
-    outcome === "needs_diagnostic" ||
-    completionStatus === "needs_practice" ||
-    (percentage !== null && percentage < 70)
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
   );
 }
 
 function getFocusedHelpWeaknesses(result: DiagnosticResult | null): string[] {
   if (!result) return [];
-
-  const fromResult = result.weaknesses ?? [];
-
-  const fromAnswers = (result.answers ?? [])
+  const directWeaknesses = result.weaknesses ?? [];
+  const detectedWeaknesses = (result.answers ?? [])
     .map((answer) => answer.detected_weakness)
     .filter(Boolean) as string[];
-
-  const fromWrongAnswers = (result.answers ?? [])
+  const wrongSkillLabels = (result.answers ?? [])
     .filter((answer) => !answer.is_correct)
     .map((answer) => answer.skill_label)
     .filter(Boolean);
+  return Array.from(
+    new Set([
+      ...directWeaknesses,
+      ...detectedWeaknesses,
+      ...wrongSkillLabels,
+    ])
+  );
+}
 
-  return Array.from(new Set([...fromResult, ...fromAnswers, ...fromWrongAnswers]));
+function shouldShowFocusedHelp(result: DiagnosticResult | null): boolean {
+  if (!result) return false;
+  const weaknesses = getFocusedHelpWeaknesses(result);
+  const percentage = result.session?.percentage ?? null;
+  const completionStatus = result.completion_status ?? null;
+  const outcome = result.session?.outcome ?? null;
+
+  return (
+    weaknesses.length > 0 ||
+    (percentage !== null && percentage < 70) ||
+    completionStatus === "needs_practice" ||
+    outcome === "needs_practice"
+  );
 }
 
 export default function RemediationPanel({
@@ -90,13 +92,26 @@ export default function RemediationPanel({
     setState(prev => ({ ...prev, initialLoading: true, error: null }));
     try {
       const cachedSessionId = sessionStorage.getItem(`learniverse_last_session_id_${topicId}`);
-      if (cachedSessionId) {
+      if (cachedSessionId && isValidUUID(cachedSessionId)) {
         const result = await api.getSessionResult(cachedSessionId);
         const weaknesses = getFocusedHelpWeaknesses(result);
+        
+        let initialWeakness: string | null = null;
+        if (weaknesses.length > 0) {
+          initialWeakness = weaknesses[0];
+        } else {
+          const percentage = result.session?.percentage ?? null;
+          const outcome = result.session?.outcome ?? "";
+          const completionStatus = result.completion_status ?? "";
+          if ((percentage !== null && percentage < 70) || outcome === "needs_practice" || completionStatus === "needs_practice") {
+            initialWeakness = "concept_understanding";
+          }
+        }
+
         setState(prev => ({ 
           ...prev, 
           diagnosticResult: result, 
-          selectedWeakness: weaknesses.length > 0 ? weaknesses[0] : null,
+          selectedWeakness: initialWeakness,
           initialLoading: false 
         }));
       } else {
@@ -109,32 +124,55 @@ export default function RemediationPanel({
   };
 
   const handleGenerateFocusedHelp = async () => {
-    if (!state.selectedWeakness || !state.diagnosticResult) return;
+    const diagnosticSessionId = state.diagnosticResult?.session?.id;
+    if (!isValidUUID(diagnosticSessionId)) {
+      setState(prev => ({ ...prev, error: "Diagnostic session ID is missing. Submit a diagnostic quiz first." }));
+      return;
+    }
+
+    if (!state.selectedWeakness) {
+      setState(prev => ({ ...prev, error: "Please select an explicit weakness first." }));
+      return;
+    }
     
     setState(prev => ({ ...prev, loading: true, error: null, remediationDetail: null }));
     try {
-      const sess = await api.generateRemediation(state.diagnosticResult.session.id, state.selectedWeakness, language);
-      const detail: RemediationDetail = await api.getRemediationSession(sess.id);
+      const response = await api.generateRemediation(diagnosticSessionId, state.selectedWeakness, language);
       
+      const remediationSessionId = response?.session?.id;
+      if (!isValidUUID(remediationSessionId)) {
+        throw new Error("Focused Help could not start because the remediation session ID was missing. Please generate focused help again.");
+      }
+
       setState(prev => ({
         ...prev,
-        remediationSessionId: sess.id,
-        remediationDetail: detail,
+        remediationSessionId: remediationSessionId,
+        remediationDetail: response,
         loading: false
       }));
     } catch (err: any) {
-      setState(prev => ({ ...prev, loading: false, error: err.message || 'Error occurred while generating focused help.' }));
+      let customMsg = err.message || 'Error occurred while generating focused help.';
+      if (customMsg.includes('path.remediation_session_id')) {
+        customMsg = "Focused Help could not start because the remediation session ID was missing. Please generate focused help again.";
+      }
+      setState(prev => ({ ...prev, loading: false, error: customMsg }));
     }
   };
 
   const handleSubmitRecheck = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state.recheckAnswer.trim() || !state.remediationSessionId) return;
+    const remediationSessionId = state.remediationDetail?.session?.id;
+    if (!isValidUUID(remediationSessionId)) {
+      setState(prev => ({ ...prev, error: "Remediation session ID is missing. Generate focused help first." }));
+      return;
+    }
+
+    if (!state.recheckAnswer.trim()) return;
 
     setState(prev => ({ ...prev, submitting: true, error: null }));
     try {
-      await api.submitRemediationRecheck(state.remediationSessionId, state.recheckAnswer);
-      const updated: RemediationDetail = await api.getRemediationSession(state.remediationSessionId);
+      await api.submitRemediationRecheck(remediationSessionId, state.recheckAnswer);
+      const updated: RemediationDetail = await api.getRemediationSession(remediationSessionId);
       
       setState(prev => ({ ...prev, remediationDetail: updated, submitting: false }));
 
@@ -142,7 +180,11 @@ export default function RemediationPanel({
         onRemediationCompleted();
       }
     } catch (err: any) {
-      setState(prev => ({ ...prev, submitting: false, error: err.message || 'Error occurred while checking answer.' }));
+      let customMsg = err.message || 'Error occurred while checking answer.';
+      if (customMsg.includes('path.remediation_session_id')) {
+        customMsg = "Focused Help could not start because the remediation session ID was missing. Please generate focused help again.";
+      }
+      setState(prev => ({ ...prev, submitting: false, error: customMsg }));
     }
   };
 
@@ -169,6 +211,14 @@ export default function RemediationPanel({
 
   const showFocusedHelp = shouldShowFocusedHelp(state.diagnosticResult);
   const helpWeaknesses = getFocusedHelpWeaknesses(state.diagnosticResult);
+  if (helpWeaknesses.length === 0 && state.diagnosticResult) {
+    const percentage = state.diagnosticResult.session?.percentage ?? null;
+    const outcome = state.diagnosticResult.session?.outcome ?? "";
+    const completionStatus = state.diagnosticResult.completion_status ?? "";
+    if ((percentage !== null && percentage < 70) || outcome === "needs_practice" || completionStatus === "needs_practice") {
+      helpWeaknesses.push("concept_understanding");
+    }
+  }
 
   if (!showFocusedHelp && !state.remediationDetail) {
     return (
