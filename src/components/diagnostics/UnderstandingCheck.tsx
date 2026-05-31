@@ -114,6 +114,8 @@ export default function UnderstandingCheck({
       await api.submitSessionAnswers(state.sessionId, payload);
       const res: DiagnosticResult = await api.getSessionResult(state.sessionId);
       
+      sessionStorage.setItem(`learniverse_last_session_id_${topicId}`, state.sessionId);
+      
       setState(prev => ({ ...prev, result: res, submitting: false }));
 
       // Refresh topic status in parent if needed

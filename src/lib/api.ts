@@ -376,10 +376,16 @@ export const api = {
   },
 
   async getSessionQuestions(sessionId: string) {
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId)) {
+      throw new Error("Missing or invalid diagnostic session ID");
+    }
     return request(`/diagnostics/sessions/${sessionId}/questions`, { method: 'GET' });
   },
 
   async submitSessionAnswers(sessionId: string, payload: { answers: { question_id: string, student_answer: string }[] }) {
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId)) {
+      throw new Error("Missing or invalid diagnostic session ID");
+    }
     return request(`/diagnostics/sessions/${sessionId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -388,6 +394,9 @@ export const api = {
   },
 
   async getSessionResult(sessionId: string) {
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId)) {
+      throw new Error("Missing or invalid diagnostic session ID");
+    }
     return request(`/diagnostics/sessions/${sessionId}/result`, { method: 'GET' });
   },
 
@@ -401,6 +410,9 @@ export const api = {
 
   // --- Remediation ---
   async generateRemediation(diagnosticSessionId: string, weaknessLabel: string, language: string = 'en') {
+    if (!diagnosticSessionId || diagnosticSessionId === 'undefined' || diagnosticSessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(diagnosticSessionId)) {
+      throw new Error("Missing or invalid diagnostic session ID");
+    }
     return request(`/remediation/diagnostic-sessions/${diagnosticSessionId}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -409,10 +421,16 @@ export const api = {
   },
 
   async getRemediationSession(remediationSessionId: string) {
+    if (!remediationSessionId || remediationSessionId === 'undefined' || remediationSessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(remediationSessionId)) {
+      throw new Error("Focused Help could not start because the remediation session ID was missing. Please generate focused help again.");
+    }
     return request(`/remediation/sessions/${remediationSessionId}`, { method: 'GET' });
   },
 
   async submitRemediationRecheck(remediationSessionId: string, studentAnswer: string) {
+    if (!remediationSessionId || remediationSessionId === 'undefined' || remediationSessionId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(remediationSessionId)) {
+      throw new Error("Focused Help could not start because the remediation session ID was missing. Please generate focused help again.");
+    }
     return request(`/remediation/sessions/${remediationSessionId}/recheck`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
